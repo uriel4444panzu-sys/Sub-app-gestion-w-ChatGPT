@@ -14,11 +14,11 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Recherche par nom, catégorie ou priorité.
 - Sauvegarde locale dans le navigateur avec `localStorage`.
 - Installation sur téléphone comme une PWA, avec icône SVG texte uniquement, mode plein écran `standalone` et cache hors connexion.
-- Notifications de rappel à J-7, J-3 et J-1 avant les renouvellements, avec permission utilisateur et test de notification.
+- Notifications Web Push à J-7, J-3 et J-1 avant les renouvellements avec backend Node.js, clés VAPID, permission utilisateur et test de notification.
 
 ## Utilisation locale
 
-Ouvrez directement `index.html` dans un navigateur, ou lancez un petit serveur local :
+Pour tester seulement l'interface sans backend push, vous pouvez lancer un petit serveur statique :
 
 ```bash
 python3 -m http.server 8000
@@ -26,13 +26,31 @@ python3 -m http.server 8000
 
 Puis ouvrez <http://localhost:8000> sur votre ordinateur ou votre mobile connecté au même réseau.
 
+Pour tester les vraies notifications Web Push avec VAPID, utilisez le backend Node.js :
+
+```bash
+npm install
+npm run vapid:generate
+cp .env.example .env
+# Collez les clés VAPID générées dans .env, puis :
+npm start
+```
+
+L'application sera servie par défaut sur <http://localhost:3000>. Sur téléphone, ouvrez l'URL HTTPS de votre hébergeur backend, installez la PWA, puis activez les rappels depuis le tableau de bord.
 
 
-## Notifications de rappel
 
-SubPilot peut demander l'autorisation d'envoyer des notifications depuis le tableau de bord. Une fois les rappels activés, l'application surveille les abonnements qui arrivent à échéance et envoie une alerte à J-7, J-3 puis J-1 pour éviter les mauvaises surprises.
+## Notifications Web Push avec VAPID
 
-Sur une application statique publiée avec GitHub Pages, il n'y a pas de serveur de push permanent : les rappels sont donc vérifiés quand l'application installée s'ouvre, reprend le focus ou quand le navigateur réveille la PWA. Le service worker contient aussi un gestionnaire `push` prêt pour brancher plus tard un backend de notifications Web Push si vous voulez des envois garantis même sans ouvrir l'application.
+SubPilot contient maintenant un backend Node.js (`server.js`) qui expose les routes nécessaires aux notifications Web Push :
+
+- `GET /api/vapid-public-key` : donne à l'application la clé publique VAPID.
+- `POST /api/push-subscriptions` : enregistre l'abonnement push du téléphone et une copie minimale des abonnements à surveiller.
+- `POST /api/push-test` : envoie une notification de test depuis le serveur.
+
+Une fois les rappels activés, le backend vérifie toutes les heures les renouvellements à venir et envoie une notification à J-7, J-3 puis J-1. Les notifications déjà envoyées sont mémorisées dans `data/push-subscriptions.json` pour éviter les doublons.
+
+> Important : GitHub Pages peut continuer à héberger l'interface statique, mais il ne peut pas exécuter `server.js`. Pour des notifications push garanties quand l'app est fermée, déployez aussi le backend sur un hébergeur Node.js comme Render, Railway, Fly.io, un VPS ou tout autre service capable de garder le serveur actif en HTTPS.
 
 ## Si vous voyez `codex/...`, `main` ou une page dupliquée
 
@@ -44,7 +62,7 @@ Après une mise à jour GitHub Pages, le navigateur peut garder une ancienne ver
 
 ## Publier l'application avec GitHub Pages
 
-Pour utiliser SubPilot facilement depuis un téléphone, le plus simple est de publier le dépôt avec GitHub Pages :
+Pour utiliser SubPilot facilement depuis un téléphone sans backend, le plus simple est de publier le dépôt avec GitHub Pages :
 
 1. Créez une pull request avec ces fichiers puis fusionnez-la sur GitHub.
 2. Dans GitHub, ouvrez le dépôt puis allez dans **Settings** > **Pages**.
@@ -52,6 +70,8 @@ Pour utiliser SubPilot facilement depuis un téléphone, le plus simple est de p
 4. Le workflow `.github/workflows/pages.yml` publiera automatiquement l'application après chaque push sur `main` ou `master`.
 5. Une fois le déploiement terminé, GitHub affichera une URL du type `https://votre-compte.github.io/votre-repo/`.
 6. Ouvrez cette URL sur votre téléphone, puis installez SubPilot depuis Chrome ou Safari.
+
+Pour les vraies notifications Web Push, utilisez plutôt l'URL HTTPS du backend Node.js ou configurez un hébergement qui sert à la fois l'application et les routes `/api/*`.
 
 ## Installation sur téléphone
 
