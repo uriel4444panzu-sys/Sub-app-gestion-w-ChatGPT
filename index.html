@@ -10,14 +10,42 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=4" />
+    <link rel="stylesheet" href="styles.css?v=5" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
     <div class="ambient-orb orb-two" aria-hidden="true"></div>
 
     <main class="app-shell">
-      <header class="hero-card" aria-labelledby="app-title">
+      <nav class="tab-bar" aria-label="Navigation principale">
+        <button class="tab-button active" type="button" data-tab="dashboard" aria-selected="true" aria-controls="dashboardPanel">
+          <span>⌁</span>
+          Tableau
+        </button>
+        <button class="tab-button" type="button" data-tab="subscriptions" aria-selected="false" aria-controls="subscriptionsPanel">
+          <span>◈</span>
+          Abonnements
+        </button>
+        <button class="tab-button add-tab" type="button" data-tab="add" aria-selected="false" aria-controls="addPanel">
+          <span>＋</span>
+          Ajouter
+        </button>
+        <button class="tab-button" type="button" data-tab="budget" aria-selected="false" aria-controls="budgetPanel">
+          <span>◌</span>
+          Budget
+        </button>
+      </nav>
+
+      <section class="tab-panel dashboard-panel active" id="dashboardPanel" data-panel="dashboard" aria-labelledby="dashboardTitle">
+        <div class="section-heading dashboard-heading">
+          <div>
+            <p class="eyebrow">Vue d'ensemble</p>
+            <h2 id="dashboardTitle">Tableau de bord</h2>
+          </div>
+          <button type="button" class="ghost-button" data-tab-target="add">Ajouter</button>
+        </div>
+
+      <header class="hero-card dashboard-hero" aria-labelledby="app-title">
         <div class="brand-row">
           <div class="app-mark" aria-hidden="true">✦</div>
           <div>
@@ -47,34 +75,6 @@
           <button type="button" class="install-button" id="installButton">Installer</button>
         </div>
       </header>
-
-      <nav class="tab-bar" aria-label="Navigation principale">
-        <button class="tab-button active" type="button" data-tab="dashboard" aria-selected="true" aria-controls="dashboardPanel">
-          <span>⌁</span>
-          Tableau
-        </button>
-        <button class="tab-button" type="button" data-tab="subscriptions" aria-selected="false" aria-controls="subscriptionsPanel">
-          <span>◈</span>
-          Abonnements
-        </button>
-        <button class="tab-button add-tab" type="button" data-tab="add" aria-selected="false" aria-controls="addPanel">
-          <span>＋</span>
-          Ajouter
-        </button>
-        <button class="tab-button" type="button" data-tab="budget" aria-selected="false" aria-controls="budgetPanel">
-          <span>◌</span>
-          Budget
-        </button>
-      </nav>
-
-      <section class="tab-panel active" id="dashboardPanel" data-panel="dashboard" aria-labelledby="dashboardTitle">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Vue d'ensemble</p>
-            <h2 id="dashboardTitle">Tableau de bord</h2>
-          </div>
-          <button type="button" class="ghost-button" data-tab-target="add">Ajouter</button>
-        </div>
 
         <section class="insights-grid" aria-label="Indicateurs principaux">
           <article class="insight-card">
@@ -256,6 +256,15 @@
                 </select>
               </label>
             </div>
+            <div class="simulation-visual" aria-label="Graphique de simulation">
+              <div class="donut simulator-donut" id="simulationDonut" style="--value: 0%; --status-color: #14b8a6">
+                <span id="simulationPercent">0%</span>
+              </div>
+              <div class="simulation-caption">
+                <strong id="simulationCaptionTitle">Impact estimé</strong>
+                <p id="simulationCaptionText">Le graphique montrera la part du budget après ajout théorique.</p>
+              </div>
+            </div>
             <div class="simulation-result" id="simulationResult">
               Saisissez un prix pour voir son impact sur votre budget.
             </div>
@@ -271,6 +280,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
   </body>
 </html>

@@ -226,6 +226,7 @@ function resetForm() {
 function saveBudget() {
   monthlyBudget = Number(budgetInput.value) || 0;
   localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
+  renderInsights();
   renderBudget();
 }
 
@@ -399,13 +400,32 @@ function renderSimulation(monthlyTotal) {
   const frequency = simulationFrequency.value;
   const simulatedMonthly = toMonthlyPrice({ price, frequency });
 
+  const donut = document.querySelector("#simulationDonut");
+  const percentLabel = document.querySelector("#simulationPercent");
+  const captionTitle = document.querySelector("#simulationCaptionTitle");
+  const captionText = document.querySelector("#simulationCaptionText");
+
   if (!price) {
+    donut.style.setProperty("--value", "0%");
+    donut.style.setProperty("--status-color", "#14b8a6");
+    percentLabel.textContent = "0%";
+    captionTitle.textContent = "Impact estimé";
+    captionText.textContent = "Le graphique montrera la part du budget après ajout théorique.";
     result.textContent = "Saisissez un prix pour voir son impact sur votre budget.";
     return;
   }
 
   const nextTotal = monthlyTotal + simulatedMonthly;
   const nextPercent = monthlyBudget > 0 ? Math.round((nextTotal / monthlyBudget) * 100) : 0;
+  const displayPercent = monthlyBudget > 0 ? Math.min(nextPercent, 160) : 0;
+  const simulationColor = nextPercent > 100 ? "#e11d48" : nextPercent > 85 ? "#f59e0b" : "#14b8a6";
+  donut.style.setProperty("--value", `${displayPercent}%`);
+  donut.style.setProperty("--status-color", simulationColor);
+  percentLabel.textContent = monthlyBudget ? `${nextPercent}%` : "—";
+  captionTitle.textContent = monthlyBudget ? "Budget après simulation" : "Définissez un budget";
+  captionText.textContent = monthlyBudget
+    ? `Avec cet abonnement, vos dépenses représenteraient ${nextPercent}% de votre budget.`
+    : "Ajoutez un budget mensuel pour obtenir une lecture graphique complète.";
   const advice = monthlyBudget && nextPercent > 100
     ? "Attention : cet abonnement vous ferait dépasser votre budget."
     : monthlyBudget && nextPercent > 85

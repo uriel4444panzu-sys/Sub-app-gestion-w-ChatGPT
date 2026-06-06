@@ -9,7 +9,7 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Ajout guidé avec suggestions de services populaires, modification et suppression d'abonnements.
 - Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle.
 - Analyse par catégorie avec emojis explicites pour identifier les postes de dépense dominants.
-- Budget mensuel configurable avec graphique de progression et simulateur d'abonnement théorique.
+- Budget mensuel configurable avec graphique de progression et simulateur d'abonnement théorique illustré par un graphique dédié.
 - Priorités d'action : à garder, à réévaluer ou à résilier.
 - Recherche par nom, catégorie ou priorité.
 - Sauvegarde locale dans le navigateur avec `localStorage`.
