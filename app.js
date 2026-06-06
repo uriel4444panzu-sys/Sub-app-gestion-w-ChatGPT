@@ -167,18 +167,24 @@ function registerServiceWorker() {
   });
 }
 
-function createShortcutReminderText(subscription) {
+function createShortcutReminders(subscription) {
   const amount = formatMoney(subscription.price, subscription.currency);
   const daysUntilRenewal = getDaysUntil(subscription.nextDate);
-  const reminderLines = SHORTCUT_REMINDER_DAYS
+
+  return SHORTCUT_REMINDER_DAYS
     .filter((daysBefore) => daysUntilRenewal >= daysBefore)
     .map((daysBefore) => {
-      const alertDate = getIsoDateTimeDaysBefore(subscription.nextDate, daysBefore);
       const label = daysBefore === 1 ? "demain" : `dans ${daysBefore} jours`;
-      return `${alertDate} | ${subscription.name} se renouvelle ${label} - ${amount}`;
-    });
 
-  return reminderLines.join("\n");
+      return {
+        dateAlerte: getIsoDateTimeDaysBefore(subscription.nextDate, daysBefore),
+        titre: `${subscription.name} se renouvelle ${label} - ${amount}`,
+      };
+    });
+}
+
+function createShortcutReminderText(subscription) {
+  return JSON.stringify({ rappels: createShortcutReminders(subscription) });
 }
 
 function createShortcutReminderUrl(subscription) {
@@ -198,8 +204,8 @@ function openShortcutReminder(subscriptionId) {
   const subscription = subscriptions.find((item) => item.id === subscriptionId);
   if (!subscription) return;
 
-  const reminderText = createShortcutReminderText(subscription);
-  if (!reminderText) {
+  const reminders = createShortcutReminders(subscription);
+  if (!reminders.length) {
     window.alert("Aucun rappel J-7, J-3 ou J-1 pertinent pour cet abonnement.");
     return;
   }
@@ -623,8 +629,9 @@ function formatMoney(amount, currency = "EUR") {
 }
 
 function getIsoDateTimeDaysBefore(dateValue, daysBefore) {
-  const date = new Date(`${dateValue}T00:00:00`);
-  date.setDate(date.getDate() - daysBefore);
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() - daysBefore);
   return `${date.toISOString().slice(0, 10)}T${SHORTCUT_ALERT_TIME}`;
 }
 

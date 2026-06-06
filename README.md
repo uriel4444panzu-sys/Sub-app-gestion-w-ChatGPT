@@ -10,7 +10,7 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle.
 - Analyse par catégorie avec emojis explicites pour identifier les postes de dépense dominants.
 - Budget mensuel configurable avec graphique de progression et simulateur d'abonnement théorique illustré par un graphique dédié.
-- Bouton **Créer un rappel iPhone** sur chaque abonnement pour lancer un raccourci iOS avec un titre déjà prêt, par exemple `Renouvellement Netflix - 13,49 €`.
+- Bouton **Créer un rappel iPhone** sur chaque abonnement pour lancer un raccourci iOS avec une liste de rappels distincts à J-7, J-3 et J-1.
 - Priorités d'action : à garder, à réévaluer ou à résilier.
 - Recherche par nom, catégorie ou priorité.
 - Sauvegarde locale dans le navigateur avec `localStorage`.
@@ -42,21 +42,28 @@ Avant de l'utiliser, créez sur votre iPhone un raccourci nommé exactement :
 Ajouter abonnement rappel
 ```
 
-Le raccourci reçoit une ou plusieurs lignes déjà prêtes, sans `+` à la place des espaces. Chaque ligne utilise le format :
+Le raccourci reçoit un texte JSON avec une liste `rappels`. Chaque élément contient une date d'alerte ISO fiable et un titre prêt à utiliser :
 
-```text
-YYYY-MM-DDTHH:mm:ss | Titre du rappel
+```json
+{
+  "rappels": [
+    {
+      "dateAlerte": "2026-06-03T09:00:00",
+      "titre": "Netflix se renouvelle dans 7 jours - 13,49 €"
+    },
+    {
+      "dateAlerte": "2026-06-07T09:00:00",
+      "titre": "Netflix se renouvelle dans 3 jours - 13,49 €"
+    },
+    {
+      "dateAlerte": "2026-06-09T09:00:00",
+      "titre": "Netflix se renouvelle demain - 13,49 €"
+    }
+  ]
+}
 ```
 
-Exemple pour un renouvellement Netflix le 10/06/2026 :
-
-```text
-2026-06-03T09:00:00 | Netflix se renouvelle dans 7 jours - 13,49 €
-2026-06-07T09:00:00 | Netflix se renouvelle dans 3 jours - 13,49 €
-2026-06-09T09:00:00 | Netflix se renouvelle demain - 13,49 €
-```
-
-Dans Raccourcis, séparez l'**Entrée du raccourci** par lignes. Pour chaque ligne, séparez le texte avec ` | ` : la partie de gauche est la date d'alerte ISO fiable, et la partie de droite est le titre à mettre dans l'action **Ajouter un rappel** de l'app **Rappels**.
+Dans Raccourcis, ne créez pas un rappel avec toute l'**Entrée du raccourci** comme titre. Il faut convertir l'entrée en dictionnaire, récupérer la liste `rappels`, puis utiliser **Répéter avec chaque élément**. Dans la boucle, créez un rappel avec `titre` comme titre et `dateAlerte` comme date d'alerte. Cela crée bien 3 rappels iOS séparés quand J-7, J-3 et J-1 sont encore pertinents.
 
 ## Si vous voyez `codex/...`, `main` ou une page dupliquée
 
