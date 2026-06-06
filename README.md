@@ -42,13 +42,21 @@ Avant de l'utiliser, créez sur votre iPhone un raccourci nommé exactement :
 Ajouter abonnement rappel
 ```
 
-Le raccourci doit recevoir l'entrée texte envoyée par SubPilot. Cette entrée est déjà prête à être utilisée comme titre du rappel, par exemple :
+Le raccourci reçoit une ou plusieurs lignes déjà prêtes, sans `+` à la place des espaces. Chaque ligne utilise le format :
 
 ```text
-Renouvellement Netflix - 13,49 €
+YYYY-MM-DDTHH:mm:ss | Titre du rappel
 ```
 
-Dans Raccourcis, il suffit donc d'ajouter l'action **Ajouter un rappel** et d'utiliser l'**Entrée du raccourci** comme titre du rappel dans l'app **Rappels**.
+Exemple pour un renouvellement Netflix le 10/06/2026 :
+
+```text
+2026-06-03T09:00:00 | Netflix se renouvelle dans 7 jours - 13,49 €
+2026-06-07T09:00:00 | Netflix se renouvelle dans 3 jours - 13,49 €
+2026-06-09T09:00:00 | Netflix se renouvelle demain - 13,49 €
+```
+
+Dans Raccourcis, séparez l'**Entrée du raccourci** par lignes. Pour chaque ligne, séparez le texte avec ` | ` : la partie de gauche est la date d'alerte ISO fiable, et la partie de droite est le titre à mettre dans l'action **Ajouter un rappel** de l'app **Rappels**.
 
 ## Si vous voyez `codex/...`, `main` ou une page dupliquée
 

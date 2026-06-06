@@ -1,6 +1,8 @@
 const STORAGE_KEY = "subpilot-subscriptions";
 const BUDGET_KEY = "subpilot-monthly-budget";
 const SHORTCUT_NAME = "Ajouter abonnement rappel";
+const SHORTCUT_REMINDER_DAYS = [7, 3, 1];
+const SHORTCUT_ALERT_TIME = "09:00:00";
 
 let deferredInstallPrompt = null;
 
@@ -166,22 +168,41 @@ function registerServiceWorker() {
 }
 
 function createShortcutReminderText(subscription) {
-  return `Renouvellement ${subscription.name} - ${formatMoney(subscription.price, subscription.currency)}`;
+  const amount = formatMoney(subscription.price, subscription.currency);
+  const daysUntilRenewal = getDaysUntil(subscription.nextDate);
+  const reminderLines = SHORTCUT_REMINDER_DAYS
+    .filter((daysBefore) => daysUntilRenewal >= daysBefore)
+    .map((daysBefore) => {
+      const alertDate = getIsoDateTimeDaysBefore(subscription.nextDate, daysBefore);
+      const label = daysBefore === 1 ? "demain" : `dans ${daysBefore} jours`;
+      return `${alertDate} | ${subscription.name} se renouvelle ${label} - ${amount}`;
+    });
+
+  return reminderLines.join("\n");
 }
 
 function createShortcutReminderUrl(subscription) {
-  const parameters = new URLSearchParams({
+  const parameters = {
     name: SHORTCUT_NAME,
     input: "text",
     text: createShortcutReminderText(subscription),
-  });
+  };
+  const query = Object.entries(parameters)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join("&");
 
-  return `shortcuts://run-shortcut?${parameters.toString()}`;
+  return `shortcuts://run-shortcut?${query}`;
 }
 
 function openShortcutReminder(subscriptionId) {
   const subscription = subscriptions.find((item) => item.id === subscriptionId);
   if (!subscription) return;
+
+  const reminderText = createShortcutReminderText(subscription);
+  if (!reminderText) {
+    window.alert("Aucun rappel J-7, J-3 ou J-1 pertinent pour cet abonnement.");
+    return;
+  }
 
   window.location.href = createShortcutReminderUrl(subscription);
 }
@@ -599,6 +620,12 @@ function formatMoney(amount, currency = "EUR") {
     currency,
     maximumFractionDigits: 2,
   }).format(amount);
+}
+
+function getIsoDateTimeDaysBefore(dateValue, daysBefore) {
+  const date = new Date(`${dateValue}T00:00:00`);
+  date.setDate(date.getDate() - daysBefore);
+  return `${date.toISOString().slice(0, 10)}T${SHORTCUT_ALERT_TIME}`;
 }
 
 function getDaysUntil(dateValue) {
