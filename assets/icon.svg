@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Icône SubPilot</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a" />
+      <stop offset="1" stop-color="#4f46e5" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <circle cx="382" cy="142" r="82" fill="#14b8a6" opacity="0.95" />
+  <path d="M156 170h218M156 256h218M156 342h218M156 170v86M374 256v86" fill="none" stroke="#fff" stroke-width="54" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
