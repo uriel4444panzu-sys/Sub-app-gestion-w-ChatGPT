@@ -10,7 +10,7 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle.
 - Analyse par catégorie avec emojis explicites pour identifier les postes de dépense dominants.
 - Budget mensuel configurable avec graphique de progression et simulateur d'abonnement théorique illustré par un graphique dédié.
-- Bouton **Créer un rappel iPhone** sur chaque abonnement pour lancer un raccourci iOS avec le nom, le montant et la date de prélèvement.
+- Bouton **Créer un rappel iPhone** sur chaque abonnement pour lancer un raccourci iOS avec un titre déjà prêt, par exemple `Renouvellement Netflix - 13,49 €`.
 - Priorités d'action : à garder, à réévaluer ou à résilier.
 - Recherche par nom, catégorie ou priorité.
 - Sauvegarde locale dans le navigateur avec `localStorage`.
@@ -42,13 +42,13 @@ Avant de l'utiliser, créez sur votre iPhone un raccourci nommé exactement :
 Ajouter abonnement rappel
 ```
 
-Le raccourci doit recevoir l'entrée texte envoyée par SubPilot. Cette entrée est un JSON contenant :
+Le raccourci doit recevoir l'entrée texte envoyée par SubPilot. Cette entrée est déjà prête à être utilisée comme titre du rappel, par exemple :
 
-```json
-{"nom":"Netflix","montant":"13,49 €","date":"2026-06-13"}
+```text
+Renouvellement Netflix - 13,49 €
 ```
 
-Dans Raccourcis, vous pouvez ensuite lire ce texte, récupérer le nom, le montant et la date, puis créer un rappel dans l'app **Rappels** avec ces informations.
+Dans Raccourcis, il suffit donc d'ajouter l'action **Ajouter un rappel** et d'utiliser l'**Entrée du raccourci** comme titre du rappel dans l'app **Rappels**.
 
 ## Si vous voyez `codex/...`, `main` ou une page dupliquée
 

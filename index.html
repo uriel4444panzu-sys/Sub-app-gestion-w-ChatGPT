@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=8" />
+    <link rel="stylesheet" href="styles.css?v=9" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -132,10 +132,10 @@
           </div>
           <p>
             Pour utiliser le bouton <strong>Créer un rappel iPhone</strong>, créez d'abord dans l'app Raccourcis un raccourci nommé
-            <strong>Ajouter abonnement rappel</strong>. Il doit recevoir l'entrée texte, lire le nom, le montant et la date de prélèvement,
-            puis créer un rappel dans l'app Rappels.
+            <strong>Ajouter abonnement rappel</strong>. Il doit simplement recevoir l'entrée texte et créer un rappel dans l'app Rappels
+            avec ce texte comme titre.
           </p>
-          <p class="shortcut-format">Format envoyé : <code>{"nom":"Netflix","montant":"13,49 €","date":"2026-06-13"}</code></p>
+          <p class="shortcut-format">Texte envoyé : <code>Renouvellement Netflix - 13,49 €</code></p>
         </section>
         <div class="category-legend" id="categoryLegend" aria-label="Légende des catégories"></div>
         <div id="subscriptionList" class="subscription-list"></div>
@@ -294,6 +294,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=8"></script>
+    <script src="app.js?v=9"></script>
   </body>
 </html>

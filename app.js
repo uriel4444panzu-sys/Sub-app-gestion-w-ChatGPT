@@ -165,17 +165,15 @@ function registerServiceWorker() {
   });
 }
 
+function createShortcutReminderText(subscription) {
+  return `Renouvellement ${subscription.name} - ${formatMoney(subscription.price, subscription.currency)}`;
+}
+
 function createShortcutReminderUrl(subscription) {
-  const payload = {
-    nom: subscription.name,
-    montant: formatMoney(subscription.price, subscription.currency),
-    date: subscription.nextDate,
-  };
-  const shortcutInput = JSON.stringify(payload);
   const parameters = new URLSearchParams({
     name: SHORTCUT_NAME,
     input: "text",
-    text: shortcutInput,
+    text: createShortcutReminderText(subscription),
   });
 
   return `shortcuts://run-shortcut?${parameters.toString()}`;
