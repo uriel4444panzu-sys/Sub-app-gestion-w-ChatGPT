@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="SubPilot" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+    <title>SubPilot - Gestion d'abonnements</title>
+    <link rel="stylesheet" href="styles.css?v=6" />
+  </head>
+  <body>
+    <div class="ambient-orb orb-one" aria-hidden="true"></div>
+    <div class="ambient-orb orb-two" aria-hidden="true"></div>
+
+    <main class="app-shell">
+      <nav class="tab-bar" aria-label="Navigation principale">
+        <button class="tab-button active" type="button" data-tab="dashboard" aria-selected="true" aria-controls="dashboardPanel">
+          <span>⌁</span>
+          Tableau
+        </button>
+        <button class="tab-button" type="button" data-tab="subscriptions" aria-selected="false" aria-controls="subscriptionsPanel">
+          <span>◈</span>
+          Abonnements
+        </button>
+        <button class="tab-button add-tab" type="button" data-tab="add" aria-selected="false" aria-controls="addPanel">
+          <span>＋</span>
+          Ajouter
+        </button>
+        <button class="tab-button" type="button" data-tab="budget" aria-selected="false" aria-controls="budgetPanel">
+          <span>◌</span>
+          Budget
+        </button>
+      </nav>
+
+      <section class="tab-panel dashboard-panel active" id="dashboardPanel" data-panel="dashboard" aria-labelledby="dashboardTitle">
+        <div class="section-heading dashboard-heading">
+          <div>
+            <p class="eyebrow">Vue d'ensemble</p>
+            <h2 id="dashboardTitle">Tableau de bord</h2>
+          </div>
+          <button type="button" class="ghost-button" data-tab-target="add">Ajouter</button>
+        </div>
+
+      <header class="hero-card dashboard-hero" aria-labelledby="app-title">
+        <div class="brand-row">
+          <div class="app-mark" aria-hidden="true">✦</div>
+          <div>
+            <p class="eyebrow">Pilotage des abonnements</p>
+            <h1 id="app-title">SubPilot</h1>
+          </div>
+        </div>
+        <p class="hero-text">
+          Une vision claire, rapide et agréable de vos dépenses récurrentes — pensée pour une utilisation quotidienne sur mobile.
+        </p>
+        <div class="hero-metrics" aria-live="polite">
+          <div>
+            <span>Total mensuel</span>
+            <strong id="monthlyTotal">0,00 €</strong>
+          </div>
+          <div>
+            <span>Budget utilisé</span>
+            <strong id="budgetUsageHero">0%</strong>
+          </div>
+        </div>
+        <div class="install-card" id="installCard">
+          <div>
+            <p class="eyebrow">Application mobile</p>
+            <strong>Ajoutez SubPilot à votre écran d'accueil</strong>
+            <p id="installHelp">Installez l'app pour l'ouvrir comme une application classique, même hors connexion.</p>
+          </div>
+          <button type="button" class="install-button" id="installButton">Installer</button>
+        </div>
+      </header>
+
+        <section class="insights-grid" aria-label="Indicateurs principaux">
+          <article class="insight-card">
+            <span class="card-label">Annuel estimé</span>
+            <strong id="yearlyTotal">0,00 €</strong>
+          </article>
+          <article class="insight-card warning">
+            <span class="card-label">Prochain paiement</span>
+            <strong id="nextPayment">Aucun</strong>
+          </article>
+          <article class="insight-card">
+            <span class="card-label">Catégorie dominante</span>
+            <strong id="topCategory">-</strong>
+          </article>
+        </section>
+
+
+        <section class="panel notification-panel" aria-labelledby="notificationTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Alertes intelligentes</p>
+              <h3 id="notificationTitle">Rappels de renouvellement</h3>
+            </div>
+            <span class="notification-status" id="notificationStatus">Non activées</span>
+          </div>
+          <p class="notification-copy">
+            Recevez un rappel 7 jours, 3 jours puis 1 jour avant chaque renouvellement pour ne plus découvrir un prélèvement par surprise.
+          </p>
+          <div class="notification-actions">
+            <button type="button" class="primary-button small" id="notificationButton">Activer les rappels</button>
+            <button type="button" class="ghost-button" id="testNotificationButton">Tester</button>
+          </div>
+          <div id="reminderPreview" class="reminder-preview" aria-live="polite"></div>
+        </section>
+
+        <section class="panel compact-panel" aria-labelledby="compactListTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Résumé compact</p>
+              <h3 id="compactListTitle">Renouvellements à venir</h3>
+            </div>
+          </div>
+          <div id="compactSubscriptionList" class="compact-list"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="categoryTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Répartition</p>
+              <h3 id="categoryTitle">Où part votre budget ?</h3>
+            </div>
+          </div>
+          <div id="categoryBreakdown" class="category-breakdown"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="subscriptionsPanel" data-panel="subscriptions" hidden aria-labelledby="subscriptionsTitle">
+        <div class="section-heading list-heading">
+          <div>
+            <p class="eyebrow">Gestion</p>
+            <h2 id="subscriptionsTitle">Tous les abonnements</h2>
+          </div>
+          <label class="search-label">
+            <span>Rechercher</span>
+            <input id="searchInput" type="search" placeholder="Nom, catégorie, priorité" />
+          </label>
+        </div>
+        <div class="category-legend" id="categoryLegend" aria-label="Légende des catégories"></div>
+        <div id="subscriptionList" class="subscription-list"></div>
+      </section>
+
+      <section class="tab-panel" id="addPanel" data-panel="add" hidden aria-labelledby="addTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Ajout guidé</p>
+            <h2 id="addTitle">Ajouter un abonnement</h2>
+          </div>
+          <button type="button" class="ghost-button" id="resetButton">Réinitialiser</button>
+        </div>
+
+        <section class="panel suggestions-panel" aria-labelledby="popularTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Suggestions populaires</p>
+              <h3 id="popularTitle">Démarrer plus vite</h3>
+            </div>
+          </div>
+          <div id="popularServices" class="popular-services"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="formTitle">
+          <h3 class="visually-hidden" id="formTitle">Formulaire d'abonnement</h3>
+          <form id="subscriptionForm" class="subscription-form">
+            <input type="hidden" id="subscriptionId" />
+            <label>
+              Nom
+              <input id="name" name="name" type="text" placeholder="Netflix, salle de sport..." required />
+            </label>
+            <div class="form-row">
+              <label>
+                Prix
+                <input id="price" name="price" type="number" min="0" step="0.01" placeholder="12.99" required />
+              </label>
+              <label>
+                Devise
+                <select id="currency" name="currency">
+                  <option value="EUR">€ EUR</option>
+                  <option value="USD">$ USD</option>
+                  <option value="GBP">£ GBP</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Fréquence
+                <select id="frequency" name="frequency">
+                  <option value="monthly">Mensuel</option>
+                  <option value="yearly">Annuel</option>
+                  <option value="weekly">Hebdomadaire</option>
+                  <option value="quarterly">Trimestriel</option>
+                </select>
+              </label>
+              <label>
+                Catégorie
+                <select id="category" name="category"></select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Prochain paiement
+                <input id="nextDate" name="nextDate" type="date" required />
+              </label>
+              <label>
+                Priorité
+                <select id="priority" name="priority">
+                  <option value="keep">À garder</option>
+                  <option value="review">À réévaluer</option>
+                  <option value="cancel">À résilier</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Note
+              <textarea id="note" name="note" rows="3" placeholder="Pourquoi je le paie ? Utilisé par qui ?"></textarea>
+            </label>
+            <button type="submit" class="primary-button" id="submitButton">Ajouter l'abonnement</button>
+          </form>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="budgetPanel" data-panel="budget" hidden aria-labelledby="budgetTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Cap financier</p>
+            <h2 id="budgetTitle">Budget abonnements</h2>
+          </div>
+        </div>
+
+        <section class="budget-layout">
+          <article class="panel budget-card">
+            <label>
+              Budget mensuel souhaité
+              <div class="budget-input-row">
+                <input id="budgetInput" type="number" min="0" step="1" placeholder="120" />
+                <button type="button" class="primary-button small" id="saveBudgetButton">Sauver</button>
+              </div>
+            </label>
+            <div class="budget-visual" aria-label="Graphique de budget">
+              <div class="donut" id="budgetDonut" style="--value: 0%; --status-color: #14b8a6">
+                <span id="budgetPercent">0%</span>
+              </div>
+              <div class="budget-copy">
+                <strong id="budgetStatus">Définissez votre budget</strong>
+                <p id="budgetText">Ajoutez un plafond pour visualiser la place prise par vos abonnements.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel simulator-card" aria-labelledby="simulatorTitle">
+            <div class="section-heading tight">
+              <div>
+                <p class="eyebrow">Avant de souscrire</p>
+                <h3 id="simulatorTitle">Simulateur</h3>
+              </div>
+            </div>
+            <div class="simulator-grid">
+              <label>
+                Prix théorique
+                <input id="simulationPrice" type="number" min="0" step="0.01" placeholder="9.99" />
+              </label>
+              <label>
+                Fréquence
+                <select id="simulationFrequency">
+                  <option value="monthly">Mensuel</option>
+                  <option value="yearly">Annuel</option>
+                  <option value="weekly">Hebdomadaire</option>
+                  <option value="quarterly">Trimestriel</option>
+                </select>
+              </label>
+            </div>
+            <div class="simulation-visual" aria-label="Graphique de simulation">
+              <div class="donut simulator-donut" id="simulationDonut" style="--value: 0%; --status-color: #14b8a6">
+                <span id="simulationPercent">0%</span>
+              </div>
+              <div class="simulation-caption">
+                <strong id="simulationCaptionTitle">Impact estimé</strong>
+                <p id="simulationCaptionText">Le graphique montrera la part du budget après ajout théorique.</p>
+              </div>
+            </div>
+            <div class="simulation-result" id="simulationResult">
+              Saisissez un prix pour voir son impact sur votre budget.
+            </div>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <template id="emptyStateTemplate">
+      <article class="empty-state">
+        <strong>Aucun abonnement trouvé</strong>
+        <p>Ajoutez votre premier abonnement pour visualiser vos dépenses et vos alertes.</p>
+      </article>
+    </template>
+
+    <script src="app.js?v=6"></script>
+  </body>
+</html>
