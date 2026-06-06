@@ -1,0 +1,20 @@
+{
+  "name": "SubPilot - Gestion d'abonnements",
+  "short_name": "SubPilot",
+  "description": "Suivez vos abonnements, vos prochaines échéances et vos dépenses récurrentes depuis votre téléphone.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef2ff",
+  "theme_color": "#0f172a",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
