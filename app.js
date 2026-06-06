@@ -1,5 +1,4 @@
 const STORAGE_KEY = "subpilot-subscriptions";
- codex/develop-subscription-management-application-oc56ku
 const BUDGET_KEY = "subpilot-monthly-budget";
 
 let deferredInstallPrompt = null;
@@ -32,11 +31,6 @@ const popularServices = [
   { name: "Notion", price: 9.5, category: "Productivité", emoji: "🧠" },
 ];
 
-
-
-let deferredInstallPrompt = null;
-
- main
 const frequencyLabels = {
   weekly: "Hebdomadaire",
   monthly: "Mensuel",
@@ -51,63 +45,33 @@ const priorityLabels = {
 };
 
 const demoSubscriptions = [
- codex/develop-subscription-management-application-oc56ku
   createSubscription({
     name: "Netflix",
     price: 13.49,
-
-  {
-    id: crypto.randomUUID(),
-    name: "Netflix",
-    price: 13.49,
-    currency: "EUR",
- main
     frequency: "monthly",
     category: "Streaming",
     nextDate: getDateInDays(4),
     priority: "keep",
     note: "Utilisé plusieurs soirs par semaine.",
- codex/develop-subscription-management-application-oc56ku
   }),
   createSubscription({
     name: "Salle de sport",
     price: 29.99,
-
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "Salle de sport",
-    price: 29.99,
-    currency: "EUR",
- main
     frequency: "monthly",
     category: "Sport",
     nextDate: getDateInDays(11),
     priority: "review",
     note: "Vérifier si la fréquentation reste suffisante.",
- codex/develop-subscription-management-application-oc56ku
   }),
   createSubscription({
     name: "Stockage cloud",
     price: 99,
-
-  },
-  {
-    id: crypto.randomUUID(),
-    name: "Stockage cloud",
-    price: 99,
-    currency: "EUR",
- main
     frequency: "yearly",
     category: "Productivité",
     nextDate: getDateInDays(24),
     priority: "keep",
     note: "Sauvegardes téléphone et ordinateur.",
- codex/develop-subscription-management-application-oc56ku
   }),
-
-  },
- main
 ];
 
 const form = document.querySelector("#subscriptionForm");
@@ -118,7 +82,6 @@ const emptyStateTemplate = document.querySelector("#emptyStateTemplate");
 const installCard = document.querySelector("#installCard");
 const installButton = document.querySelector("#installButton");
 const installHelp = document.querySelector("#installHelp");
- codex/develop-subscription-management-application-oc56ku
 const budgetInput = document.querySelector("#budgetInput");
 const saveBudgetButton = document.querySelector("#saveBudgetButton");
 const simulationPrice = document.querySelector("#simulationPrice");
@@ -151,20 +114,6 @@ document.querySelectorAll("[data-tab-target]").forEach((button) => {
 setupInstallExperience();
 registerServiceWorker();
 resetForm();
-
-
-let subscriptions = loadSubscriptions();
-
-form.addEventListener("submit", handleSubmit);
-resetButton.addEventListener("click", resetForm);
-searchInput.addEventListener("input", render);
-installButton.addEventListener("click", installApp);
-
-setupInstallExperience();
-registerServiceWorker();
-
-document.querySelector("#nextDate").value = getDateInDays(7);
- main
 render();
 
 function setupInstallExperience() {
@@ -197,13 +146,7 @@ function setupInstallExperience() {
 }
 
 async function installApp() {
- codex/develop-subscription-management-application-oc56ku
   if (!deferredInstallPrompt) return;
-
-  if (!deferredInstallPrompt) {
-    return;
-  }
- main
 
   deferredInstallPrompt.prompt();
   await deferredInstallPrompt.userChoice;
@@ -212,13 +155,7 @@ async function installApp() {
 }
 
 function registerServiceWorker() {
- codex/develop-subscription-management-application-oc56ku
   if (!("serviceWorker" in navigator) || !["http:", "https:"].includes(window.location.protocol)) return;
-
-  if (!("serviceWorker" in navigator) || !["http:", "https:"].includes(window.location.protocol)) {
-    return;
-  }
- main
 
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js").catch(() => {
@@ -227,7 +164,6 @@ function registerServiceWorker() {
   });
 }
 
- codex/develop-subscription-management-application-oc56ku
 function switchTab(tabName) {
   activeTab = tabName;
 
@@ -238,22 +174,19 @@ function switchTab(tabName) {
   });
 
   document.querySelectorAll(".tab-panel").forEach((panel) => {
-    panel.classList.toggle("active", panel.dataset.panel === tabName);
+    const isActive = panel.dataset.panel === tabName;
+    panel.classList.toggle("active", isActive);
+    panel.hidden = !isActive;
   });
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
- main
 function handleSubmit(event) {
   event.preventDefault();
 
   const editingId = document.querySelector("#subscriptionId").value;
- codex/develop-subscription-management-application-oc56ku
   const subscription = createSubscription({
-
-  const subscription = {
- main
     id: editingId || crypto.randomUUID(),
     name: document.querySelector("#name").value.trim(),
     price: Number(document.querySelector("#price").value),
@@ -263,17 +196,9 @@ function handleSubmit(event) {
     nextDate: document.querySelector("#nextDate").value,
     priority: document.querySelector("#priority").value,
     note: document.querySelector("#note").value.trim(),
- codex/develop-subscription-management-application-oc56ku
   });
 
   if (!subscription.name || Number.isNaN(subscription.price)) return;
-
-  };
-
-  if (!subscription.name || Number.isNaN(subscription.price)) {
-    return;
-  }
- main
 
   if (editingId) {
     subscriptions = subscriptions.map((item) => (item.id === editingId ? subscription : item));
@@ -284,25 +209,20 @@ function handleSubmit(event) {
   saveSubscriptions();
   resetForm();
   render();
- codex/develop-subscription-management-application-oc56ku
   switchTab(activeTab === "add" ? "dashboard" : activeTab);
- main
 }
 
 function resetForm() {
   form.reset();
   document.querySelector("#subscriptionId").value = "";
- codex/develop-subscription-management-application-oc56ku
   document.querySelector("#currency").value = "EUR";
   document.querySelector("#frequency").value = "monthly";
   document.querySelector("#category").value = "Streaming";
   document.querySelector("#priority").value = "keep";
- main
   document.querySelector("#nextDate").value = getDateInDays(7);
   submitButton.textContent = "Ajouter l'abonnement";
 }
 
- codex/develop-subscription-management-application-oc56ku
 function saveBudget() {
   monthlyBudget = Number(budgetInput.value) || 0;
   localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
@@ -315,17 +235,6 @@ function loadSubscriptions() {
 
   try {
     return JSON.parse(stored).map((item) => createSubscription(item));
-
-function loadSubscriptions() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-
-  if (!stored) {
-    return demoSubscriptions;
-  }
-
-  try {
-    return JSON.parse(stored);
- main
   } catch {
     return demoSubscriptions;
   }
@@ -335,7 +244,6 @@ function saveSubscriptions() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
 }
 
- codex/develop-subscription-management-application-oc56ku
 function loadBudget() {
   return Number(localStorage.getItem(BUDGET_KEY)) || 120;
 }
@@ -386,29 +294,6 @@ function renderCompactList() {
     `;
     container.append(card);
   });
-
-function render() {
-  const filteredSubscriptions = getFilteredSubscriptions();
-  renderInsights();
-  renderBreakdown();
-  renderSubscriptions(filteredSubscriptions);
-}
-
-function renderInsights() {
-  const monthlyTotal = subscriptions.reduce((total, item) => total + toMonthlyPrice(item), 0);
-  const nextSubscription = [...subscriptions].sort(
-    (a, b) => new Date(a.nextDate).getTime() - new Date(b.nextDate).getTime(),
-  )[0];
-  const topCategory = getCategoryTotals()[0];
-
-  document.querySelector("#monthlyTotal").textContent = formatMoney(monthlyTotal);
-  document.querySelector("#yearlyTotal").textContent = `${formatMoney(monthlyTotal * 12)} / an`;
-  document.querySelector("#activeCount").textContent = subscriptions.length;
-  document.querySelector("#nextPayment").textContent = nextSubscription
-    ? `${nextSubscription.name} · ${formatRelativeDate(nextSubscription.nextDate)}`
-    : "Aucun";
-  document.querySelector("#topCategory").textContent = topCategory ? topCategory.category : "-";
- main
 }
 
 function renderBreakdown() {
@@ -422,42 +307,25 @@ function renderBreakdown() {
     return;
   }
 
- codex/develop-subscription-management-application-oc56ku
   totals.forEach(({ category, total, emoji, color }) => {
-
-  totals.forEach(({ category, total }) => {
- main
     const row = document.createElement("article");
     row.className = "category-row";
     row.innerHTML = `
       <header>
- codex/develop-subscription-management-application-oc56ku
         <span>${emoji} ${category}</span>
         <strong>${formatMoney(total)} / mois</strong>
       </header>
       <div class="progress-track" aria-hidden="true">
         <div class="progress-bar" style="width: ${(total / maxTotal) * 100}%; background: ${color}"></div>
-
-        <span>${category}</span>
-        <strong>${formatMoney(total)} / mois</strong>
-      </header>
-      <div class="progress-track" aria-hidden="true">
-        <div class="progress-bar" style="width: ${(total / maxTotal) * 100}%"></div>
- main
       </div>
     `;
     container.append(row);
   });
 }
 
- codex/develop-subscription-management-application-oc56ku
 function renderSubscriptions() {
   const container = document.querySelector("#subscriptionList");
   const items = getFilteredSubscriptions();
-
-function renderSubscriptions(items) {
-  const container = document.querySelector("#subscriptionList");
- main
   container.innerHTML = "";
 
   if (!items.length) {
@@ -470,10 +338,7 @@ function renderSubscriptions(items) {
     card.className = "subscription-card";
     card.innerHTML = `
       <header>
- codex/develop-subscription-management-application-oc56ku
         <span class="emoji-bubble large">${subscription.emoji}</span>
-
- main
         <div>
           <h3>${escapeHtml(subscription.name)}</h3>
           <div class="subscription-meta">
@@ -481,11 +346,7 @@ function renderSubscriptions(items) {
             <span>•</span>
             <span>${frequencyLabels[subscription.frequency]}</span>
             <span>•</span>
- codex/develop-subscription-management-application-oc56ku
             <span>${formatRelativeDate(subscription.nextDate)}</span>
-
-            <span>Prochain paiement ${formatRelativeDate(subscription.nextDate)}</span>
- main
           </div>
         </div>
         <span class="price-pill">${formatMoney(subscription.price, subscription.currency)}</span>
@@ -503,7 +364,6 @@ function renderSubscriptions(items) {
   container.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => {
       const id = button.dataset.id;
- codex/develop-subscription-management-application-oc56ku
       if (button.dataset.action === "edit") editSubscription(id);
       if (button.dataset.action === "delete") deleteSubscription(id);
     });
@@ -581,17 +441,6 @@ function prefillService(service) {
   document.querySelector("#note").value = `Suggestion : ${service.name}`;
 }
 
-
-      if (button.dataset.action === "edit") {
-        editSubscription(id);
-      } else {
-        deleteSubscription(id);
-      }
-    });
-  });
-}
-
- main
 function editSubscription(id) {
   const subscription = subscriptions.find((item) => item.id === id);
   if (!subscription) return;
@@ -606,11 +455,7 @@ function editSubscription(id) {
   document.querySelector("#priority").value = subscription.priority;
   document.querySelector("#note").value = subscription.note;
   submitButton.textContent = "Enregistrer les changements";
-codex/develop-subscription-management-application-oc56ku
   switchTab("add");
-
-  form.scrollIntoView({ behavior: "smooth", block: "start" });
- main
 }
 
 function deleteSubscription(id) {
@@ -621,7 +466,6 @@ function deleteSubscription(id) {
 
 function getFilteredSubscriptions() {
   const query = searchInput.value.trim().toLowerCase();
-codex/develop-subscription-management-application-oc56ku
   if (!query) return getSortedByDate();
 
   return getSortedByDate().filter((item) =>
@@ -692,24 +536,6 @@ function createSubscription(subscription) {
 
 function getCategoryMeta(categoryName) {
   return categories.find((category) => category.name === categoryName) || categories.at(-1);
-
-  if (!query) return subscriptions;
-
-  return subscriptions.filter((item) =>
-    [item.name, item.category, item.priority].some((value) => value.toLowerCase().includes(query)),
-  );
-}
-
-function getCategoryTotals() {
-  const totals = subscriptions.reduce((accumulator, item) => {
-    accumulator[item.category] = (accumulator[item.category] || 0) + toMonthlyPrice(item);
-    return accumulator;
-  }, {});
-
-  return Object.entries(totals)
-    .map(([category, total]) => ({ category, total }))
-    .sort((a, b) => b.total - a.total);
- main
 }
 
 function toMonthlyPrice(subscription) {

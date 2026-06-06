@@ -1,13 +1,9 @@
- codex/develop-subscription-management-application-oc56ku
-const CACHE_NAME = "subpilot-v2";
-
-const CACHE_NAME = "subpilot-v1";
- main
+const CACHE_NAME = "subpilot-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js",
+  "./styles.css?v=4",
+  "./app.js?v=4",
   "./manifest.webmanifest",
   "./assets/icon.svg",
 ];
@@ -33,20 +29,36 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") {
+  if (event.request.method !== "GET") return;
+
+  const requestUrl = new URL(event.request.url);
+  const isNavigation = event.request.mode === "navigate";
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+
+  if (isNavigation) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put("./index.html", responseClone));
+          return networkResponse;
+        })
+        .catch(() => caches.match("./index.html")),
+    );
     return;
   }
 
+  if (!isSameOrigin) return;
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return (
-        cachedResponse ||
-        fetch(event.request).then((networkResponse) => {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          return networkResponse;
-        })
-      );
+      const networkFetch = fetch(event.request).then((networkResponse) => {
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+        return networkResponse;
+      });
+
+      return cachedResponse || networkFetch;
     }),
   );
 });

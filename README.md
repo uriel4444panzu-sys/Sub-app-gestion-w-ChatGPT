@@ -4,19 +4,12 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 
 ## Fonctionnalités
 
- codex/develop-subscription-management-application-oc56ku
 - Navigation mobile par onglets : tableau de bord, abonnements, ajout et budget.
 - Tableau de bord avec total mensuel, projection annuelle, prochain paiement, catégorie dominante et liste compacte des renouvellements.
 - Ajout guidé avec suggestions de services populaires, modification et suppression d'abonnements.
 - Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle.
 - Analyse par catégorie avec emojis explicites pour identifier les postes de dépense dominants.
 - Budget mensuel configurable avec graphique de progression et simulateur d'abonnement théorique.
-
-- Tableau de bord avec total mensuel, projection annuelle, nombre d'abonnements actifs et prochain paiement.
-- Ajout, modification et suppression d'abonnements.
-- Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle.
-- Analyse par catégorie pour identifier les postes de dépense dominants.
- main
 - Priorités d'action : à garder, à réévaluer ou à résilier.
 - Recherche par nom, catégorie ou priorité.
 - Sauvegarde locale dans le navigateur avec `localStorage`.
@@ -32,6 +25,16 @@ python3 -m http.server 8000
 
 Puis ouvrez <http://localhost:8000> sur votre ordinateur ou votre mobile connecté au même réseau.
 
+
+
+
+## Si vous voyez `codex/...`, `main` ou une page dupliquée
+
+Cela signifie qu'une résolution de conflit GitHub a probablement gardé les deux versions d'un fichier. Il faut supprimer les blocs de conflit GitHub, garder la version la plus récente de l'application, puis relancer le déploiement. Le workflow GitHub Pages vérifie maintenant ces marqueurs avant publication pour éviter de redéployer une page cassée.
+
+## Si l'application affiche tous les onglets sur une seule page
+
+Après une mise à jour GitHub Pages, le navigateur peut garder une ancienne version en cache. Ouvrez l'application, rechargez la page, puis si nécessaire supprimez les données du site dans le navigateur avant de la réinstaller sur l'écran d'accueil. Le service worker utilise maintenant un cache versionné et recharge la page en priorité depuis le réseau pour limiter ce problème.
 
 ## Publier l'application avec GitHub Pages
 
