@@ -1,10 +1,6 @@
 const STORAGE_KEY = "subpilot-subscriptions";
 const BUDGET_KEY = "subpilot-monthly-budget";
-const NOTIFICATION_LOG_KEY = "subpilot-notification-log";
-const REMINDER_DAYS = [7, 3, 1];
-const PUSH_PUBLIC_KEY_ENDPOINT = "./api/vapid-public-key";
-const PUSH_SUBSCRIPTION_ENDPOINT = "./api/push-subscriptions";
-const PUSH_TEST_ENDPOINT = "./api/push-test";
+const SHORTCUT_NAME = "Ajouter abonnement rappel";
 
 let deferredInstallPrompt = null;
 
@@ -91,16 +87,10 @@ const budgetInput = document.querySelector("#budgetInput");
 const saveBudgetButton = document.querySelector("#saveBudgetButton");
 const simulationPrice = document.querySelector("#simulationPrice");
 const simulationFrequency = document.querySelector("#simulationFrequency");
-const notificationButton = document.querySelector("#notificationButton");
-const testNotificationButton = document.querySelector("#testNotificationButton");
-const notificationStatus = document.querySelector("#notificationStatus");
-const reminderPreview = document.querySelector("#reminderPreview");
 
 let subscriptions = loadSubscriptions();
 let monthlyBudget = loadBudget();
 let activeTab = "dashboard";
-let backendPushConfig = { checked: false, enabled: false, publicKey: null };
-let backendPushSubscription = null;
 
 hydrateCategorySelect();
 renderCategoryLegend();
@@ -112,8 +102,6 @@ searchInput.addEventListener("input", renderSubscriptions);
 saveBudgetButton.addEventListener("click", saveBudget);
 simulationPrice.addEventListener("input", renderBudget);
 simulationFrequency.addEventListener("change", renderBudget);
-notificationButton.addEventListener("click", enableNotifications);
-testNotificationButton.addEventListener("click", sendTestNotification);
 installButton.addEventListener("click", installApp);
 
 document.querySelectorAll("[data-tab]").forEach((button) => {
@@ -126,7 +114,6 @@ document.querySelectorAll("[data-tab-target]").forEach((button) => {
 
 setupInstallExperience();
 registerServiceWorker();
-setupNotificationChecks();
 resetForm();
 render();
 
@@ -172,267 +159,33 @@ function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || !["http:", "https:"].includes(window.location.protocol)) return;
 
   window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("./service-worker.js")
-      .then(() => checkRenewalReminders())
-      .catch(() => {
-        installHelp.textContent = "L'installation nécessite une ouverture via localhost ou HTTPS.";
-      });
-  });
-}
-
-function setupNotificationChecks() {
-  updateNotificationUi("Recherche du serveur Web Push…");
-  loadBackendPushConfig().then(() => {
-    updateNotificationUi();
-    renderReminderPreview();
-    if ("Notification" in window && Notification.permission === "granted") syncBackendPushSubscription();
-  });
-
-  if (!("Notification" in window)) return;
-
-  window.addEventListener("focus", checkRenewalReminders);
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) checkRenewalReminders();
-  });
-}
-
-async function enableNotifications() {
-  if (!("Notification" in window)) {
-    updateNotificationUi("Votre navigateur ne prend pas en charge les notifications web.");
-    return;
-  }
-
-  const permission = await Notification.requestPermission();
-  updateNotificationUi();
-
-  if (permission === "granted") {
-    const backendSynced = await syncBackendPushSubscription();
-    await sendNotification({
-      title: "Rappels SubPilot activés ✨",
-      body: backendSynced
-        ? "Les notifications Web Push sont branchées : le serveur surveille vos renouvellements à J-7, J-3 et J-1."
-        : "Je vous préviendrai à 7 jours, 3 jours et 1 jour quand l'app ou la PWA se réveille.",
-      tag: "subpilot-enabled",
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {
+      installHelp.textContent = "L'installation nécessite une ouverture via localhost ou HTTPS.";
     });
-    checkRenewalReminders();
-  }
-}
-
-async function sendTestNotification() {
-  if (!("Notification" in window)) {
-    updateNotificationUi("Votre navigateur ne prend pas en charge les notifications web.");
-    return;
-  }
-
-  if (Notification.permission !== "granted") {
-    await enableNotifications();
-    return;
-  }
-
-  const backendSynced = await syncBackendPushSubscription();
-  if (backendSynced) {
-    const response = await fetch(PUSH_TEST_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pushSubscription: backendPushSubscription }),
-    });
-
-    if (response.ok) {
-      updateNotificationUi("Notification de test envoyée par le backend Web Push.");
-      return;
-    }
-  }
-
-  await sendNotification({
-    title: "Test SubPilot 🔔",
-    body: "Les rappels sont prêts. SubPilot surveille vos renouvellements à J-7, J-3 et J-1.",
-    tag: "subpilot-test",
   });
 }
 
-function updateNotificationUi(message = "") {
-  if (!("Notification" in window)) {
-    notificationStatus.textContent = "Indisponible";
-    notificationButton.disabled = true;
-    testNotificationButton.disabled = true;
-    reminderPreview.textContent = message || "Ce navigateur ne permet pas les notifications web.";
-    return;
-  }
-
-  const permission = Notification.permission;
-  const labels = {
-    granted: "Activées",
-    denied: "Refusées",
-    default: "Non activées",
+function createShortcutReminderUrl(subscription) {
+  const payload = {
+    nom: subscription.name,
+    montant: formatMoney(subscription.price, subscription.currency),
+    date: subscription.nextDate,
   };
-
-  const pushMode = backendPushConfig.enabled ? " · Web Push" : " · local";
-  notificationStatus.textContent = permission === "granted" ? `${labels[permission]}${pushMode}` : labels[permission];
-  notificationStatus.className = `notification-status ${permission}`;
-  notificationButton.textContent = permission === "granted" ? "Rappels activés" : "Activer les rappels";
-  notificationButton.disabled = permission === "granted" || permission === "denied";
-  testNotificationButton.disabled = permission !== "granted";
-
-  if (permission === "denied") {
-    reminderPreview.textContent = "Notifications refusées : réactivez-les dans les réglages du navigateur ou de l'application.";
-  } else if (message) {
-    reminderPreview.textContent = message;
-  }
-}
-
-async function checkRenewalReminders(force = false) {
-  if (!("Notification" in window) || Notification.permission !== "granted") {
-    renderReminderPreview();
-    return;
-  }
-
-  if (await syncBackendPushSubscription()) {
-    renderReminderPreview();
-    if (!force) return;
-  }
-
-  const reminders = getDueReminders();
-  const log = loadNotificationLog();
-  let sentCount = 0;
-
-  for (const reminder of reminders) {
-    const logKey = `${reminder.subscription.id}:${reminder.subscription.nextDate}:J-${reminder.daysBefore}`;
-    if (!force && log[logKey]) continue;
-
-    await sendNotification({
-      title: `${reminder.subscription.emoji} ${reminder.subscription.name} se renouvelle bientôt`,
-      body: `${formatMoney(reminder.subscription.price, reminder.subscription.currency)} · ${reminder.label}. Pensez à vérifier si vous voulez le garder.`,
-      tag: logKey,
-    });
-    log[logKey] = new Date().toISOString();
-    sentCount += 1;
-  }
-
-  if (sentCount) saveNotificationLog(log);
-  renderReminderPreview();
-}
-
-async function sendNotification({ title, body, tag }) {
-  const options = {
-    body,
-    icon: "./assets/icon.svg",
-    badge: "./assets/icon.svg",
-    tag,
-    renotify: true,
-    data: { url: "./index.html" },
-  };
-
-  if ("serviceWorker" in navigator) {
-    const registration = await navigator.serviceWorker.ready;
-    return registration.showNotification(title, options);
-  }
-
-  return new Notification(title, options);
-}
-
-async function loadBackendPushConfig() {
-  try {
-    const response = await fetch(PUSH_PUBLIC_KEY_ENDPOINT, { cache: "no-store" });
-    if (!response.ok) throw new Error("Aucun backend Web Push disponible.");
-    const config = await response.json();
-    backendPushConfig = { checked: true, enabled: Boolean(config.enabled && config.publicKey), publicKey: config.publicKey };
-  } catch {
-    backendPushConfig = { checked: true, enabled: false, publicKey: null };
-  }
-
-  return backendPushConfig;
-}
-
-async function syncBackendPushSubscription() {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
-  if (!backendPushConfig.checked) await loadBackendPushConfig();
-  if (!backendPushConfig.enabled || Notification.permission !== "granted") return false;
-
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    backendPushSubscription = await registration.pushManager.getSubscription();
-
-    if (!backendPushSubscription) {
-      backendPushSubscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(backendPushConfig.publicKey),
-      });
-    }
-
-    const response = await fetch(PUSH_SUBSCRIPTION_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        pushSubscription: backendPushSubscription,
-        subscriptions: serializeSubscriptionsForPush(),
-      }),
-    });
-
-    if (!response.ok) throw new Error("Synchronisation Web Push refusée par le serveur.");
-    updateNotificationUi("Web Push serveur actif : les rappels seront envoyés même si l'app est fermée.");
-    return true;
-  } catch {
-    updateNotificationUi("Le backend Web Push est configuré, mais l'abonnement push n'a pas pu être synchronisé.");
-    return false;
-  }
-}
-
-function serializeSubscriptionsForPush() {
-  return subscriptions.map(({ id, name, price, currency, frequency, category, emoji, nextDate }) => ({
-    id,
-    name,
-    price,
-    currency,
-    frequency,
-    category,
-    emoji,
-    nextDate,
-  }));
-}
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = `${base64String}${padding}`.replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = window.atob(base64);
-  return Uint8Array.from([...rawData].map((character) => character.charCodeAt(0)));
-}
-
-function getDueReminders() {
-  return subscriptions.flatMap((subscription) => {
-    const daysBefore = getDaysUntil(subscription.nextDate);
-    if (!REMINDER_DAYS.includes(daysBefore)) return [];
-    return [{ subscription, daysBefore, label: `renouvellement dans ${daysBefore} jour${daysBefore > 1 ? "s" : ""}` }];
+  const shortcutInput = JSON.stringify(payload);
+  const parameters = new URLSearchParams({
+    name: SHORTCUT_NAME,
+    input: "text",
+    text: shortcutInput,
   });
+
+  return `shortcuts://run-shortcut?${parameters.toString()}`;
 }
 
-function renderReminderPreview() {
-  const upcoming = subscriptions
-    .map((subscription) => ({ subscription, days: getDaysUntil(subscription.nextDate) }))
-    .filter(({ days }) => days >= 0 && days <= 7)
-    .sort((a, b) => a.days - b.days)
-    .slice(0, 3);
+function openShortcutReminder(subscriptionId) {
+  const subscription = subscriptions.find((item) => item.id === subscriptionId);
+  if (!subscription) return;
 
-  if (!upcoming.length) {
-    reminderPreview.textContent = "Aucun renouvellement dans les 7 prochains jours.";
-    return;
-  }
-
-  reminderPreview.innerHTML = upcoming
-    .map(({ subscription, days }) => `<span>${subscription.emoji} ${escapeHtml(subscription.name)} · ${days === 0 ? "aujourd'hui" : `J-${days}`}</span>`)
-    .join("");
-}
-
-function loadNotificationLog() {
-  try {
-    return JSON.parse(localStorage.getItem(NOTIFICATION_LOG_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
-
-function saveNotificationLog(log) {
-  localStorage.setItem(NOTIFICATION_LOG_KEY, JSON.stringify(log));
+  window.location.href = createShortcutReminderUrl(subscription);
 }
 
 function switchTab(tabName) {
@@ -499,7 +252,6 @@ function saveBudget() {
   localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
   renderInsights();
   renderBudget();
-  renderReminderPreview();
 }
 
 function loadSubscriptions() {
@@ -515,8 +267,6 @@ function loadSubscriptions() {
 
 function saveSubscriptions() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
-  checkRenewalReminders();
-  syncBackendPushSubscription();
 }
 
 function loadBudget() {
@@ -529,7 +279,6 @@ function render() {
   renderBreakdown();
   renderSubscriptions();
   renderBudget();
-  renderReminderPreview();
 }
 
 function renderInsights() {
@@ -630,6 +379,7 @@ function renderSubscriptions() {
       ${subscription.note ? `<p class="subscription-note">${escapeHtml(subscription.note)}</p>` : ""}
       <div class="card-actions">
         <span class="priority-pill ${subscription.priority}">${priorityLabels[subscription.priority]}</span>
+        <button type="button" class="shortcut-button" data-action="shortcut" data-id="${subscription.id}">Créer un rappel iPhone</button>
         <button type="button" class="edit-button" data-action="edit" data-id="${subscription.id}">Modifier</button>
         <button type="button" class="delete-button" data-action="delete" data-id="${subscription.id}">Supprimer</button>
       </div>
@@ -640,6 +390,7 @@ function renderSubscriptions() {
   container.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => {
       const id = button.dataset.id;
+      if (button.dataset.action === "shortcut") openShortcutReminder(id);
       if (button.dataset.action === "edit") editSubscription(id);
       if (button.dataset.action === "delete") deleteSubscription(id);
     });

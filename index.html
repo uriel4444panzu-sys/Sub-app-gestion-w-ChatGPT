@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=7" />
+    <link rel="stylesheet" href="styles.css?v=8" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -91,25 +91,6 @@
           </article>
         </section>
 
-
-        <section class="panel notification-panel" aria-labelledby="notificationTitle">
-          <div class="section-heading tight">
-            <div>
-              <p class="eyebrow">Alertes intelligentes</p>
-              <h3 id="notificationTitle">Rappels de renouvellement</h3>
-            </div>
-            <span class="notification-status" id="notificationStatus">Non activées</span>
-          </div>
-          <p class="notification-copy">
-            Recevez de vraies notifications Web Push 7 jours, 3 jours puis 1 jour avant chaque renouvellement quand le backend VAPID est configuré.
-          </p>
-          <div class="notification-actions">
-            <button type="button" class="primary-button small" id="notificationButton">Activer les rappels</button>
-            <button type="button" class="ghost-button" id="testNotificationButton">Tester</button>
-          </div>
-          <div id="reminderPreview" class="reminder-preview" aria-live="polite"></div>
-        </section>
-
         <section class="panel compact-panel" aria-labelledby="compactListTitle">
           <div class="section-heading tight">
             <div>
@@ -142,6 +123,20 @@
             <input id="searchInput" type="search" placeholder="Nom, catégorie, priorité" />
           </label>
         </div>
+        <section class="panel shortcut-help" aria-labelledby="shortcutHelpTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Rappels iPhone</p>
+              <h3 id="shortcutHelpTitle">Créer un rappel avec Raccourcis iOS</h3>
+            </div>
+          </div>
+          <p>
+            Pour utiliser le bouton <strong>Créer un rappel iPhone</strong>, créez d'abord dans l'app Raccourcis un raccourci nommé
+            <strong>Ajouter abonnement rappel</strong>. Il doit recevoir l'entrée texte, lire le nom, le montant et la date de prélèvement,
+            puis créer un rappel dans l'app Rappels.
+          </p>
+          <p class="shortcut-format">Format envoyé : <code>{"nom":"Netflix","montant":"13,49 €","date":"2026-06-13"}</code></p>
+        </section>
         <div class="category-legend" id="categoryLegend" aria-label="Légende des catégories"></div>
         <div id="subscriptionList" class="subscription-list"></div>
       </section>
@@ -299,6 +294,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=7"></script>
+    <script src="app.js?v=8"></script>
   </body>
 </html>
