@@ -1,0 +1,427 @@
+:root {
+  color-scheme: light;
+  --bg: #eef2ff;
+  --surface: #ffffff;
+  --surface-strong: #f8fafc;
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #4f46e5;
+  --primary-dark: #3730a3;
+  --accent: #14b8a6;
+  --danger: #e11d48;
+  --warning: #f59e0b;
+  --shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+  --radius: 24px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.24), transparent 34rem),
+    linear-gradient(135deg, #eef2ff 0%, #f8fafc 55%, #ecfeff 100%);
+  color: var(--text);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.app-shell {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 18px 14px 32px;
+}
+
+.hero-card,
+.panel,
+.insight-card {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.hero-card {
+  display: grid;
+  gap: 22px;
+  padding: 28px;
+  border-radius: 32px;
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(49, 46, 129, 0.92)),
+    var(--text);
+  color: #fff;
+}
+
+.hero-copy h1 {
+  margin: 0 0 10px;
+  font-size: clamp(2.5rem, 13vw, 4.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.08em;
+}
+
+.hero-copy p:last-child {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.55;
+}
+
+.eyebrow,
+.card-label {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.hero-card .eyebrow {
+  color: #a5b4fc;
+}
+
+.month-total {
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  justify-items: start;
+  padding: 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.month-total span,
+.month-total small {
+  color: #cbd5e1;
+}
+
+.month-total strong {
+  font-size: clamp(2rem, 10vw, 3.5rem);
+  letter-spacing: -0.06em;
+}
+
+.install-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.install-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1.05rem;
+}
+
+.install-card p:not(.eyebrow) {
+  margin: 0;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.install-button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--primary-dark);
+  font-weight: 900;
+}
+
+.install-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.insight-card {
+  min-height: 112px;
+  padding: 16px;
+  border-radius: 22px;
+}
+
+.insight-card strong {
+  display: block;
+  font-size: clamp(1.2rem, 5vw, 1.7rem);
+  line-height: 1.1;
+}
+
+.insight-card.warning {
+  background: #fffbeb;
+}
+
+.panel {
+  margin-top: 14px;
+  padding: 20px;
+  border-radius: var(--radius);
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  letter-spacing: -0.04em;
+}
+
+.subscription-form,
+.subscription-list,
+.category-breakdown {
+  display: grid;
+  gap: 12px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+label,
+.search-label span {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  background: var(--surface-strong);
+  color: var(--text);
+  padding: 13px 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.14);
+}
+
+.primary-button,
+.ghost-button {
+  border: 0;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.primary-button {
+  min-height: 52px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  box-shadow: 0 16px 38px rgba(79, 70, 229, 0.3);
+}
+
+.ghost-button {
+  flex: 0 0 auto;
+  background: #eef2ff;
+  color: var(--primary-dark);
+  padding: 10px 14px;
+}
+
+.category-row {
+  display: grid;
+  gap: 8px;
+}
+
+.category-row header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 800;
+}
+
+.progress-track {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--primary));
+}
+
+.list-heading {
+  align-items: stretch;
+}
+
+.search-label {
+  min-width: 190px;
+}
+
+.subscription-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: var(--surface-strong);
+}
+
+.subscription-card header,
+.subscription-meta,
+.card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.subscription-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.price-pill,
+.priority-pill {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.price-pill {
+  background: #e0e7ff;
+  color: var(--primary-dark);
+}
+
+.priority-pill.keep {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.priority-pill.review {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.priority-pill.cancel {
+  background: #ffe4e6;
+  color: #be123c;
+}
+
+.subscription-meta {
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.9rem;
+  justify-content: flex-start;
+}
+
+.subscription-note {
+  margin: 0;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.card-actions {
+  justify-content: flex-end;
+}
+
+.card-actions button {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 12px;
+  font-weight: 800;
+}
+
+.edit-button {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.delete-button {
+  background: #ffe4e6;
+  color: var(--danger);
+}
+
+.empty-state {
+  padding: 22px;
+  border: 1px dashed #94a3b8;
+  border-radius: 18px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.empty-state strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+@media (max-width: 620px) {
+  .app-shell {
+    padding-inline: 10px;
+  }
+
+  .hero-card,
+  .panel {
+    padding: 18px;
+  }
+
+  .install-card {
+    gap: 12px;
+  }
+
+  .insights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-card {
+    min-height: auto;
+  }
+
+  .form-row,
+  .list-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading,
+  .subscription-card header {
+    flex-direction: column;
+  }
+
+  .search-label {
+    min-width: 100%;
+  }
+}
