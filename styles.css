@@ -1,16 +1,29 @@
 :root {
   color-scheme: light;
   --bg: #eef2ff;
+ codex/develop-subscription-management-application-oc56ku
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface-solid: #ffffff;
+
   --surface: #ffffff;
+ main
   --surface-strong: #f8fafc;
   --text: #0f172a;
   --muted: #64748b;
   --primary: #4f46e5;
   --primary-dark: #3730a3;
   --accent: #14b8a6;
+ codex/develop-subscription-management-application-oc56ku
+  --rose: #ec4899;
   --danger: #e11d48;
   --warning: #f59e0b;
   --shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+  --soft-shadow: 0 14px 34px rgba(15, 23, 42, 0.1);
+
+  --danger: #e11d48;
+  --warning: #f59e0b;
+  --shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+ main
   --radius: 24px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -22,12 +35,33 @@
 body {
   margin: 0;
   min-height: 100vh;
+ codex/develop-subscription-management-application-oc56ku
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(20, 184, 166, 0.24), transparent 22rem),
+    radial-gradient(circle at 92% 18%, rgba(236, 72, 153, 0.16), transparent 20rem),
+
   background:
     radial-gradient(circle at top left, rgba(20, 184, 166, 0.24), transparent 34rem),
+ main
     linear-gradient(135deg, #eef2ff 0%, #f8fafc 55%, #ecfeff 100%);
   color: var(--text);
 }
 
+ codex/develop-subscription-management-application-oc56ku
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background-image:
+    linear-gradient(rgba(79, 70, 229, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 70, 229, 0.06) 1px, transparent 1px);
+  background-size: 38px 38px;
+  content: "";
+  mask-image: linear-gradient(to bottom, #000, transparent 75%);
+}
+
+ main
 button,
 input,
 select,
@@ -43,16 +77,58 @@ button {
   display: none !important;
 }
 
+ codex/develop-subscription-management-application-oc56ku
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ambient-orb {
+  position: fixed;
+  z-index: -2;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  filter: blur(14px);
+  opacity: 0.35;
+}
+
+.orb-one {
+  top: 70px;
+  left: -70px;
+  background: var(--accent);
+}
+
+.orb-two {
+  right: -90px;
+  bottom: 110px;
+  background: var(--primary);
+}
+
+.app-shell {
+  width: min(100%, 780px);
+  margin: 0 auto;
+  padding: 18px 14px 112px;
+
 .app-shell {
   width: min(100%, 760px);
   margin: 0 auto;
-  padding: 18px 14px 32px;
+ main
 }
 
 .hero-card,
 .panel,
+ codex/develop-subscription-management-application-oc56ku
+.insight-card,
+.tab-bar {
+
 .insight-card {
   background: rgba(255, 255, 255, 0.88);
+ main
   border: 1px solid rgba(148, 163, 184, 0.24);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
@@ -60,6 +136,53 @@ button {
 
 .hero-card {
   display: grid;
+ codex/develop-subscription-management-application-oc56ku
+  gap: 18px;
+  padding: 24px;
+  border-radius: 32px;
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(49, 46, 129, 0.88)),
+    var(--text);
+  color: #fff;
+  overflow: hidden;
+  position: relative;
+}
+
+.hero-card::after {
+  position: absolute;
+  right: -70px;
+  top: -90px;
+  width: 220px;
+  height: 220px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.5), transparent 68%);
+  content: "";
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.app-mark {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), #a5b4fc);
+  color: #fff;
+  font-size: 1.55rem;
+  box-shadow: 0 16px 36px rgba(20, 184, 166, 0.28);
+}
+
+.hero-card h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 12vw, 4.2rem);
+
   gap: 22px;
   padding: 28px;
   border-radius: 32px;
@@ -72,11 +195,18 @@ button {
 .hero-copy h1 {
   margin: 0 0 10px;
   font-size: clamp(2.5rem, 13vw, 4.4rem);
+ main
   line-height: 0.9;
   letter-spacing: -0.08em;
 }
 
+ codex/develop-subscription-management-application-oc56ku
+.hero-text {
+  position: relative;
+  z-index: 1;
+
 .hero-copy p:last-child {
+ main
   margin: 0;
   color: #cbd5e1;
   line-height: 1.55;
@@ -86,8 +216,12 @@ button {
 .card-label {
   margin: 0 0 8px;
   color: var(--muted);
+ codex/develop-subscription-management-application-oc56ku
+  font-size: 0.72rem;
+  font-weight: 850;
   font-size: 0.74rem;
   font-weight: 800;
+ main
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -95,6 +229,37 @@ button {
 .hero-card .eyebrow {
   color: #a5b4fc;
 }
+
+ codex/develop-subscription-management-application-oc56ku
+.hero-metrics,
+.install-card {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: 1.35fr 0.8fr;
+  gap: 10px;
+}
+
+.hero-metrics div,
+.install-card {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.hero-metrics span,
+.hero-metrics small,
+.install-card p:not(.eyebrow) {
+  color: #cbd5e1;
+}
+
+.hero-metrics strong {
+  display: block;
+  font-size: clamp(1.6rem, 8vw, 2.65rem);
 
 .month-total {
   display: grid;
@@ -113,27 +278,38 @@ button {
 
 .month-total strong {
   font-size: clamp(2rem, 10vw, 3.5rem);
+ main
   letter-spacing: -0.06em;
 }
 
 .install-card {
   display: grid;
+ codex/develop-subscription-management-application-oc56ku
+  gap: 12px;
+
   gap: 14px;
   padding: 18px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.1);
+ main
 }
 
 .install-card strong {
   display: block;
   margin-bottom: 6px;
+ codex/develop-subscription-management-application-oc56ku
+
   font-size: 1.05rem;
+ main
 }
 
 .install-card p:not(.eyebrow) {
   margin: 0;
+ codex/develop-subscription-management-application-oc56ku
+
   color: #cbd5e1;
+ main
   line-height: 1.45;
 }
 
@@ -151,6 +327,70 @@ button {
   opacity: 0.65;
 }
 
+ codex/develop-subscription-management-application-oc56ku
+.tab-bar {
+  position: sticky;
+  top: 10px;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 14px 0;
+  padding: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.tab-button {
+  display: grid;
+  gap: 2px;
+  min-height: 58px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 850;
+  transition: transform 0.22s ease, background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.tab-button span {
+  font-size: 1.25rem;
+}
+
+.tab-button.active {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(79, 70, 229, 0.28);
+}
+
+.add-tab.active {
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+}
+
+.tab-panel {
+  display: none;
+  animation: panel-in 0.28s ease both;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+@keyframes panel-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+ main
 .insights-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -158,6 +398,14 @@ button {
   margin: 14px 0;
 }
 
+ codex/develop-subscription-management-application-oc56ku
+.insight-card,
+.panel {
+  background: var(--surface);
+}
+
+
+ main
 .insight-card {
   min-height: 112px;
   padding: 16px;
@@ -166,18 +414,33 @@ button {
 
 .insight-card strong {
   display: block;
+ codex/develop-subscription-management-application-oc56ku
+  font-size: clamp(1.08rem, 4.8vw, 1.55rem);
+
   font-size: clamp(1.2rem, 5vw, 1.7rem);
+ main
   line-height: 1.1;
 }
 
 .insight-card.warning {
+ codex/develop-subscription-management-application-oc56ku
+  background: linear-gradient(135deg, #fffbeb, #fff7ed);
+
   background: #fffbeb;
+ main
 }
 
 .panel {
   margin-top: 14px;
   padding: 20px;
   border-radius: var(--radius);
+ codex/develop-subscription-management-application-oc56ku
+  box-shadow: var(--soft-shadow);
+}
+
+.compact-panel {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(236, 254, 255, 0.88));
+ main
 }
 
 .section-heading {
@@ -188,6 +451,30 @@ button {
   margin-bottom: 16px;
 }
 
+ codex/develop-subscription-management-application-oc56ku
+.section-heading.tight {
+  margin-bottom: 12px;
+}
+
+.section-heading h2,
+.section-heading h3 {
+  margin: 0;
+  letter-spacing: -0.04em;
+}
+
+.section-heading h2 {
+  font-size: 1.45rem;
+}
+
+.section-heading h3 {
+  font-size: 1.18rem;
+}
+
+.subscription-form,
+.subscription-list,
+.category-breakdown,
+.compact-list {
+
 .section-heading h2 {
   margin: 0;
   font-size: 1.35rem;
@@ -197,11 +484,18 @@ button {
 .subscription-form,
 .subscription-list,
 .category-breakdown {
+ main
   display: grid;
   gap: 12px;
 }
 
+ codex/develop-subscription-management-application-oc56ku
+.form-row,
+.budget-input-row,
+.simulator-grid {
+
 .form-row {
+ main
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
@@ -213,7 +507,11 @@ label,
   gap: 7px;
   color: var(--muted);
   font-size: 0.88rem;
+ codex/develop-subscription-management-application-oc56ku
+  font-weight: 750;
+
   font-weight: 700;
+ main
 }
 
 input,
@@ -226,7 +524,11 @@ textarea {
   color: var(--text);
   padding: 13px 14px;
   outline: none;
+ codex/develop-subscription-management-application-oc56ku
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+ main
 }
 
 input:focus,
@@ -240,7 +542,11 @@ textarea:focus {
 .ghost-button {
   border: 0;
   border-radius: 999px;
+ codex/develop-subscription-management-application-oc56ku
+  font-weight: 850;
+
   font-weight: 800;
+ main
 }
 
 .primary-button {
@@ -250,6 +556,12 @@ textarea:focus {
   box-shadow: 0 16px 38px rgba(79, 70, 229, 0.3);
 }
 
+ codex/develop-subscription-management-application-oc56ku
+.primary-button.small {
+  min-height: 48px;
+}
+
+ main
 .ghost-button {
   flex: 0 0 auto;
   background: #eef2ff;
@@ -257,6 +569,50 @@ textarea:focus {
   padding: 10px 14px;
 }
 
+ codex/develop-subscription-management-application-oc56ku
+.compact-subscription {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  padding: 10px 12px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.compact-subscription strong,
+.compact-subscription small {
+  display: block;
+}
+
+.compact-subscription small {
+  color: var(--muted);
+}
+
+.compact-subscription b {
+  color: var(--primary-dark);
+}
+
+.emoji-bubble {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 15px;
+  background: #eef2ff;
+  font-size: 1.2rem;
+}
+
+.emoji-bubble.large {
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+  font-size: 1.35rem;
+}
+
+ main
 .category-row {
   display: grid;
   gap: 8px;
@@ -266,7 +622,11 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+ codex/develop-subscription-management-application-oc56ku
+  font-weight: 850;
+
   font-weight: 800;
+ main
 }
 
 .progress-track {
@@ -279,7 +639,10 @@ textarea:focus {
 .progress-bar {
   height: 100%;
   border-radius: inherit;
+ codex/develop-subscription-management-application-oc56ku
+
   background: linear-gradient(90deg, var(--accent), var(--primary));
+ main
 }
 
 .list-heading {
@@ -287,7 +650,66 @@ textarea:focus {
 }
 
 .search-label {
+ codex/develop-subscription-management-application-oc56ku
+  min-width: 220px;
+}
+
+.category-legend,
+.popular-services {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.category-legend::-webkit-scrollbar,
+.popular-services::-webkit-scrollbar {
+  display: none;
+}
+
+.legend-badge,
+.service-chip {
+  flex: 0 0 auto;
+  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.legend-badge {
+  padding: 9px 11px;
+  border-radius: 999px;
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.service-chip {
+  display: grid;
+  min-width: 126px;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 20px;
+  text-align: left;
+  color: var(--text);
+  box-shadow: var(--soft-shadow);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.service-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(79, 70, 229, 0.36);
+}
+
+.service-chip span {
+  font-size: 1.55rem;
+}
+
+.service-chip small {
+  color: var(--muted);
+
   min-width: 190px;
+ main
 }
 
 .subscription-card {
@@ -295,8 +717,14 @@ textarea:focus {
   gap: 12px;
   padding: 16px;
   border: 1px solid #e2e8f0;
+ codex/develop-subscription-management-application-oc56ku
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--soft-shadow);
+
   border-radius: 20px;
   background: var(--surface-strong);
+ main
 }
 
 .subscription-card header,
@@ -304,8 +732,16 @@ textarea:focus {
 .card-actions {
   display: flex;
   align-items: center;
+ codex/develop-subscription-management-application-oc56ku
+  gap: 12px;
+}
+
+.subscription-card header {
+  justify-content: space-between;
+
   justify-content: space-between;
   gap: 12px;
+ main
 }
 
 .subscription-card h3 {
@@ -322,6 +758,10 @@ textarea:focus {
 }
 
 .price-pill {
+ codex/develop-subscription-management-application-oc56ku
+  margin-left: auto;
+
+ main
   background: #e0e7ff;
   color: var(--primary-dark);
 }
@@ -345,7 +785,10 @@ textarea:focus {
   flex-wrap: wrap;
   color: var(--muted);
   font-size: 0.9rem;
+ codex/develop-subscription-management-application-oc56ku
+=======
   justify-content: flex-start;
+ main
 }
 
 .subscription-note {
@@ -356,13 +799,20 @@ textarea:focus {
 
 .card-actions {
   justify-content: flex-end;
+ codex/develop-subscription-management-application-oc56ku
+  flex-wrap: wrap;
+ main
 }
 
 .card-actions button {
   border: 0;
   border-radius: 999px;
   padding: 9px 12px;
+ codex/develop-subscription-management-application-oc56ku
+  font-weight: 850;
+
   font-weight: 800;
+ main
 }
 
 .edit-button {
@@ -373,6 +823,71 @@ textarea:focus {
 .delete-button {
   background: #ffe4e6;
   color: var(--danger);
+}
+
+.budget-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.budget-visual {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.donut {
+  display: grid;
+  width: 132px;
+  height: 132px;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(var(--status-color) var(--value), #e2e8f0 0);
+  position: relative;
+  transition: background 0.4s ease;
+}
+
+.donut::after {
+  position: absolute;
+  inset: 15px;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+}
+
+.donut span {
+  position: relative;
+  z-index: 1;
+  font-size: 1.5rem;
+  font-weight: 950;
+  color: var(--text);
+}
+
+.budget-copy strong {
+  display: block;
+  font-size: 1.2rem;
+}
+
+.budget-copy p,
+.simulation-result p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.simulation-result {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eef2ff, #ecfeff);
+  color: #334155;
+}
+
+.simulation-result strong,
+.simulation-result span {
+  display: block;
 }
 
 .empty-state {
@@ -399,26 +914,42 @@ textarea:focus {
     padding: 18px;
   }
 
-  .install-card {
-    gap: 12px;
+  .hero-metrics,
+  .insights-grid,
+  .form-row,
+  .budget-input-row,
+  .simulator-grid,
+  .budget-visual,
+  .list-heading {
+    grid-template-columns: 1fr;
   }
 
-  .insights-grid {
-    grid-template-columns: 1fr;
+  .tab-bar {
+    position: fixed;
+    inset: auto 10px 12px;
+    margin: 0;
+  }
+
+  .tab-button {
+    min-height: 56px;
+    font-size: 0.68rem;
   }
 
   .insight-card {
     min-height: auto;
   }
 
-  .form-row,
-  .list-heading {
-    grid-template-columns: 1fr;
-  }
-
   .section-heading,
   .subscription-card header {
     flex-direction: column;
+  }
+
+  .subscription-card header {
+    align-items: flex-start;
+  }
+
+  .price-pill {
+    margin-left: 0;
   }
 
   .search-label {

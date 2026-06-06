@@ -1,4 +1,8 @@
+ codex/develop-subscription-management-application-oc56ku
+const CACHE_NAME = "subpilot-v2";
+
 const CACHE_NAME = "subpilot-v1";
+ main
 const APP_SHELL = [
   "./",
   "./index.html",
