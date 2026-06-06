@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=11" />
+    <link rel="stylesheet" href="styles.css?v=12" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -132,10 +132,10 @@
           </div>
           <p>
             Pour utiliser le bouton <strong>Créer un rappel iPhone</strong>, créez d'abord dans l'app Raccourcis un raccourci nommé
-            <strong>Ajouter abonnement rappel</strong>. Il reçoit une liste JSON de rappels, puis doit faire une boucle
-            pour créer <strong>un rappel distinct par élément</strong> dans l'app Rappels.
+            <strong>Ajouter abonnement rappel</strong>. SubPilot lance ce raccourci une fois par rappel à créer.
+            Le raccourci reçoit un texte simple au format <strong>titre|date d'alerte</strong>.
           </p>
-          <p class="shortcut-format">Exemple d'élément reçu : <code>{"dateAlerte":"2026-06-03T09:00:00","titre":"Netflix se renouvelle dans 7 jours - 13,49 €"}</code></p>
+          <p class="shortcut-format">Exemple reçu : <code>Netflix se renouvelle dans 3 jours - 13,49 €|2026-06-07T09:00:00</code></p>
         </section>
         <div class="category-legend" id="categoryLegend" aria-label="Légende des catégories"></div>
         <div id="subscriptionList" class="subscription-list"></div>
@@ -294,6 +294,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=12"></script>
   </body>
 </html>

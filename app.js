@@ -3,6 +3,7 @@ const BUDGET_KEY = "subpilot-monthly-budget";
 const SHORTCUT_NAME = "Ajouter abonnement rappel";
 const SHORTCUT_REMINDER_DAYS = [7, 3, 1];
 const SHORTCUT_ALERT_TIME = "09:00:00";
+const SHORTCUT_OPEN_DELAY = 1_200;
 
 let deferredInstallPrompt = null;
 
@@ -93,6 +94,8 @@ const simulationFrequency = document.querySelector("#simulationFrequency");
 let subscriptions = loadSubscriptions();
 let monthlyBudget = loadBudget();
 let activeTab = "dashboard";
+let shortcutReminderQueue = [];
+let shortcutReminderTimer = null;
 
 hydrateCategorySelect();
 renderCategoryLegend();
@@ -105,6 +108,10 @@ saveBudgetButton.addEventListener("click", saveBudget);
 simulationPrice.addEventListener("input", renderBudget);
 simulationFrequency.addEventListener("change", renderBudget);
 installButton.addEventListener("click", installApp);
+window.addEventListener("focus", resumeShortcutReminderQueue);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") resumeShortcutReminderQueue();
+});
 
 document.querySelectorAll("[data-tab]").forEach((button) => {
   button.addEventListener("click", () => switchTab(button.dataset.tab));
@@ -177,27 +184,18 @@ function createShortcutReminders(subscription) {
       const label = daysBefore === 1 ? "demain" : `dans ${daysBefore} jours`;
 
       return {
-        dateAlerte: getIsoDateTimeDaysBefore(subscription.nextDate, daysBefore),
-        titre: `${subscription.name} se renouvelle ${label} - ${amount}`,
+        alertDate: getIsoDateTimeDaysBefore(subscription.nextDate, daysBefore),
+        title: `${subscription.name} se renouvelle ${label} - ${amount}`,
       };
     });
 }
 
-function createShortcutReminderText(subscription) {
-  return JSON.stringify({ rappels: createShortcutReminders(subscription) });
+function createShortcutReminderText(reminder) {
+  return `${reminder.title}|${reminder.alertDate}`;
 }
 
-function createShortcutReminderUrl(subscription) {
-  const parameters = {
-    name: SHORTCUT_NAME,
-    input: "text",
-    text: createShortcutReminderText(subscription),
-  };
-  const query = Object.entries(parameters)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-    .join("&");
-
-  return `shortcuts://run-shortcut?${query}`;
+function createShortcutReminderUrl(reminder) {
+  return `shortcuts://run-shortcut?name=${encodeURIComponent(SHORTCUT_NAME)}&input=text&text=${encodeURIComponent(createShortcutReminderText(reminder))}`;
 }
 
 function openShortcutReminder(subscriptionId) {
@@ -210,7 +208,34 @@ function openShortcutReminder(subscriptionId) {
     return;
   }
 
-  window.location.href = createShortcutReminderUrl(subscription);
+  launchShortcutReminderQueue(reminders);
+}
+
+function launchShortcutReminderQueue(reminders) {
+  shortcutReminderQueue = [...reminders];
+  openNextShortcutReminder();
+}
+
+function resumeShortcutReminderQueue() {
+  if (shortcutReminderQueue.length) {
+    openNextShortcutReminder();
+  }
+}
+
+function openNextShortcutReminder() {
+  if (shortcutReminderTimer) {
+    window.clearTimeout(shortcutReminderTimer);
+    shortcutReminderTimer = null;
+  }
+
+  const reminder = shortcutReminderQueue.shift();
+  if (!reminder) return;
+
+  window.location.href = createShortcutReminderUrl(reminder);
+
+  if (shortcutReminderQueue.length) {
+    shortcutReminderTimer = window.setTimeout(openNextShortcutReminder, SHORTCUT_OPEN_DELAY);
+  }
 }
 
 function switchTab(tabName) {
