@@ -5,7 +5,7 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 ## Fonctionnalités
 
 - Navigation mobile par onglets : tableau de bord, abonnements, ajout et budget.
-- Tableau de bord avec total mensuel, projection annuelle, prochain paiement, catégorie dominante et liste compacte des renouvellements.
+- Tableau de bord avec total mensuel, projection annuelle, prochain paiement, catégorie dominante, liste compacte des renouvellements et rappels de notification.
 - Ajout guidé avec suggestions de services populaires, modification et suppression d'abonnements.
 - Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle.
 - Analyse par catégorie avec emojis explicites pour identifier les postes de dépense dominants.
@@ -14,6 +14,7 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Recherche par nom, catégorie ou priorité.
 - Sauvegarde locale dans le navigateur avec `localStorage`.
 - Installation sur téléphone comme une PWA, avec icône SVG texte uniquement, mode plein écran `standalone` et cache hors connexion.
+- Notifications de rappel à J-7, J-3 et J-1 avant les renouvellements, avec permission utilisateur et test de notification.
 
 ## Utilisation locale
 
@@ -27,6 +28,11 @@ Puis ouvrez <http://localhost:8000> sur votre ordinateur ou votre mobile connect
 
 
 
+## Notifications de rappel
+
+SubPilot peut demander l'autorisation d'envoyer des notifications depuis le tableau de bord. Une fois les rappels activés, l'application surveille les abonnements qui arrivent à échéance et envoie une alerte à J-7, J-3 puis J-1 pour éviter les mauvaises surprises.
+
+Sur une application statique publiée avec GitHub Pages, il n'y a pas de serveur de push permanent : les rappels sont donc vérifiés quand l'application installée s'ouvre, reprend le focus ou quand le navigateur réveille la PWA. Le service worker contient aussi un gestionnaire `push` prêt pour brancher plus tard un backend de notifications Web Push si vous voulez des envois garantis même sans ouvrir l'application.
 
 ## Si vous voyez `codex/...`, `main` ou une page dupliquée
 

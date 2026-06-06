@@ -1,9 +1,9 @@
-const CACHE_NAME = "subpilot-v5";
+const CACHE_NAME = "subpilot-v6";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=5",
-  "./app.js?v=5",
+  "./styles.css?v=6",
+  "./app.js?v=6",
   "./manifest.webmanifest",
   "./assets/icon.svg",
 ];
@@ -59,6 +59,48 @@ self.addEventListener("fetch", (event) => {
       });
 
       return cachedResponse || networkFetch;
+    }),
+  );
+});
+
+
+self.addEventListener("push", (event) => {
+  let payload = {
+    title: "Rappel SubPilot",
+    body: "Un abonnement approche de son renouvellement.",
+    url: "./index.html",
+  };
+
+  if (event.data) {
+    try {
+      payload = { ...payload, ...event.data.json() };
+    } catch {
+      payload.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "./assets/icon.svg",
+      badge: "./assets/icon.svg",
+      tag: payload.tag || "subpilot-reminder",
+      renotify: true,
+      data: { url: payload.url || "./index.html" },
+      actions: [{ action: "open", title: "Ouvrir SubPilot" }],
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = new URL(event.notification.data?.url || "./index.html", self.registration.scope).href;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      const existingClient = clientList.find((client) => client.url === targetUrl || client.url.startsWith(targetUrl));
+      if (existingClient) return existingClient.focus();
+      return self.clients.openWindow(targetUrl);
     }),
   );
 });

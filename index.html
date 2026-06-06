@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=5" />
+    <link rel="stylesheet" href="styles.css?v=6" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -89,6 +89,25 @@
             <span class="card-label">Catégorie dominante</span>
             <strong id="topCategory">-</strong>
           </article>
+        </section>
+
+
+        <section class="panel notification-panel" aria-labelledby="notificationTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Alertes intelligentes</p>
+              <h3 id="notificationTitle">Rappels de renouvellement</h3>
+            </div>
+            <span class="notification-status" id="notificationStatus">Non activées</span>
+          </div>
+          <p class="notification-copy">
+            Recevez un rappel 7 jours, 3 jours puis 1 jour avant chaque renouvellement pour ne plus découvrir un prélèvement par surprise.
+          </p>
+          <div class="notification-actions">
+            <button type="button" class="primary-button small" id="notificationButton">Activer les rappels</button>
+            <button type="button" class="ghost-button" id="testNotificationButton">Tester</button>
+          </div>
+          <div id="reminderPreview" class="reminder-preview" aria-live="polite"></div>
         </section>
 
         <section class="panel compact-panel" aria-labelledby="compactListTitle">
@@ -280,6 +299,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
   </body>
 </html>

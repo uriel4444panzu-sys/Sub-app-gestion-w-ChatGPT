@@ -1,5 +1,7 @@
 const STORAGE_KEY = "subpilot-subscriptions";
 const BUDGET_KEY = "subpilot-monthly-budget";
+const NOTIFICATION_LOG_KEY = "subpilot-notification-log";
+const REMINDER_DAYS = [7, 3, 1];
 
 let deferredInstallPrompt = null;
 
@@ -86,6 +88,10 @@ const budgetInput = document.querySelector("#budgetInput");
 const saveBudgetButton = document.querySelector("#saveBudgetButton");
 const simulationPrice = document.querySelector("#simulationPrice");
 const simulationFrequency = document.querySelector("#simulationFrequency");
+const notificationButton = document.querySelector("#notificationButton");
+const testNotificationButton = document.querySelector("#testNotificationButton");
+const notificationStatus = document.querySelector("#notificationStatus");
+const reminderPreview = document.querySelector("#reminderPreview");
 
 let subscriptions = loadSubscriptions();
 let monthlyBudget = loadBudget();
@@ -101,6 +107,8 @@ searchInput.addEventListener("input", renderSubscriptions);
 saveBudgetButton.addEventListener("click", saveBudget);
 simulationPrice.addEventListener("input", renderBudget);
 simulationFrequency.addEventListener("change", renderBudget);
+notificationButton.addEventListener("click", enableNotifications);
+testNotificationButton.addEventListener("click", sendTestNotification);
 installButton.addEventListener("click", installApp);
 
 document.querySelectorAll("[data-tab]").forEach((button) => {
@@ -113,6 +121,7 @@ document.querySelectorAll("[data-tab-target]").forEach((button) => {
 
 setupInstallExperience();
 registerServiceWorker();
+setupNotificationChecks();
 resetForm();
 render();
 
@@ -158,10 +167,172 @@ function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || !["http:", "https:"].includes(window.location.protocol)) return;
 
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch(() => {
-      installHelp.textContent = "L'installation nécessite une ouverture via localhost ou HTTPS.";
-    });
+    navigator.serviceWorker
+      .register("./service-worker.js")
+      .then(() => checkRenewalReminders())
+      .catch(() => {
+        installHelp.textContent = "L'installation nécessite une ouverture via localhost ou HTTPS.";
+      });
   });
+}
+
+function setupNotificationChecks() {
+  updateNotificationUi();
+
+  if (!("Notification" in window)) return;
+
+  window.addEventListener("focus", checkRenewalReminders);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) checkRenewalReminders();
+  });
+}
+
+async function enableNotifications() {
+  if (!("Notification" in window)) {
+    updateNotificationUi("Votre navigateur ne prend pas en charge les notifications web.");
+    return;
+  }
+
+  const permission = await Notification.requestPermission();
+  updateNotificationUi();
+
+  if (permission === "granted") {
+    await sendNotification({
+      title: "Rappels SubPilot activés ✨",
+      body: "Je vous préviendrai à 7 jours, 3 jours et 1 jour des renouvellements quand l'app ou la PWA se réveille.",
+      tag: "subpilot-enabled",
+    });
+    checkRenewalReminders(true);
+  }
+}
+
+async function sendTestNotification() {
+  if (!("Notification" in window)) {
+    updateNotificationUi("Votre navigateur ne prend pas en charge les notifications web.");
+    return;
+  }
+
+  if (Notification.permission !== "granted") {
+    await enableNotifications();
+    return;
+  }
+
+  await sendNotification({
+    title: "Test SubPilot 🔔",
+    body: "Les rappels sont prêts. SubPilot surveille vos renouvellements à J-7, J-3 et J-1.",
+    tag: "subpilot-test",
+  });
+}
+
+function updateNotificationUi(message = "") {
+  if (!("Notification" in window)) {
+    notificationStatus.textContent = "Indisponible";
+    notificationButton.disabled = true;
+    testNotificationButton.disabled = true;
+    reminderPreview.textContent = message || "Ce navigateur ne permet pas les notifications web.";
+    return;
+  }
+
+  const permission = Notification.permission;
+  const labels = {
+    granted: "Activées",
+    denied: "Refusées",
+    default: "Non activées",
+  };
+
+  notificationStatus.textContent = labels[permission];
+  notificationStatus.className = `notification-status ${permission}`;
+  notificationButton.textContent = permission === "granted" ? "Rappels activés" : "Activer les rappels";
+  notificationButton.disabled = permission === "granted" || permission === "denied";
+  testNotificationButton.disabled = permission !== "granted";
+
+  if (permission === "denied") {
+    reminderPreview.textContent = "Notifications refusées : réactivez-les dans les réglages du navigateur ou de l'application.";
+  } else if (message) {
+    reminderPreview.textContent = message;
+  }
+}
+
+async function checkRenewalReminders(force = false) {
+  if (!("Notification" in window) || Notification.permission !== "granted") {
+    renderReminderPreview();
+    return;
+  }
+
+  const reminders = getDueReminders();
+  const log = loadNotificationLog();
+  let sentCount = 0;
+
+  for (const reminder of reminders) {
+    const logKey = `${reminder.subscription.id}:${reminder.subscription.nextDate}:J-${reminder.daysBefore}`;
+    if (!force && log[logKey]) continue;
+
+    await sendNotification({
+      title: `${reminder.subscription.emoji} ${reminder.subscription.name} se renouvelle bientôt`,
+      body: `${formatMoney(reminder.subscription.price, reminder.subscription.currency)} · ${reminder.label}. Pensez à vérifier si vous voulez le garder.`,
+      tag: logKey,
+    });
+    log[logKey] = new Date().toISOString();
+    sentCount += 1;
+  }
+
+  if (sentCount) saveNotificationLog(log);
+  renderReminderPreview();
+}
+
+async function sendNotification({ title, body, tag }) {
+  const options = {
+    body,
+    icon: "./assets/icon.svg",
+    badge: "./assets/icon.svg",
+    tag,
+    renotify: true,
+    data: { url: "./index.html" },
+  };
+
+  if ("serviceWorker" in navigator) {
+    const registration = await navigator.serviceWorker.ready;
+    return registration.showNotification(title, options);
+  }
+
+  return new Notification(title, options);
+}
+
+function getDueReminders() {
+  return subscriptions.flatMap((subscription) => {
+    const daysBefore = getDaysUntil(subscription.nextDate);
+    if (!REMINDER_DAYS.includes(daysBefore)) return [];
+    return [{ subscription, daysBefore, label: `renouvellement dans ${daysBefore} jour${daysBefore > 1 ? "s" : ""}` }];
+  });
+}
+
+function renderReminderPreview() {
+  const upcoming = subscriptions
+    .map((subscription) => ({ subscription, days: getDaysUntil(subscription.nextDate) }))
+    .filter(({ days }) => days >= 0 && days <= 7)
+    .sort((a, b) => a.days - b.days)
+    .slice(0, 3);
+
+  if (!upcoming.length) {
+    reminderPreview.textContent = "Aucun renouvellement dans les 7 prochains jours.";
+    return;
+  }
+
+  reminderPreview.innerHTML = upcoming
+    .map(({ subscription, days }) => `<span>${subscription.emoji} ${escapeHtml(subscription.name)} · ${days === 0 ? "aujourd'hui" : `J-${days}`}</span>`)
+    .join("");
+}
+
+function loadNotificationLog() {
+  try {
+    return JSON.parse(localStorage.getItem(NOTIFICATION_LOG_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveNotificationLog(log) {
+  localStorage.setItem(NOTIFICATION_LOG_KEY, JSON.stringify(log));
 }
 
 function switchTab(tabName) {
@@ -228,6 +399,7 @@ function saveBudget() {
   localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
   renderInsights();
   renderBudget();
+  renderReminderPreview();
 }
 
 function loadSubscriptions() {
@@ -243,6 +415,7 @@ function loadSubscriptions() {
 
 function saveSubscriptions() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
+  checkRenewalReminders();
 }
 
 function loadBudget() {
@@ -255,6 +428,7 @@ function render() {
   renderBreakdown();
   renderSubscriptions();
   renderBudget();
+  renderReminderPreview();
 }
 
 function renderInsights() {
@@ -577,11 +751,15 @@ function formatMoney(amount, currency = "EUR") {
   }).format(amount);
 }
 
-function formatRelativeDate(dateValue) {
+function getDaysUntil(dateValue) {
   const date = new Date(`${dateValue}T00:00:00`);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const days = Math.round((date - today) / 86_400_000);
+  return Math.round((date - today) / 86_400_000);
+}
+
+function formatRelativeDate(dateValue) {
+  const days = getDaysUntil(dateValue);
 
   if (days === 0) return "aujourd'hui";
   if (days === 1) return "demain";
