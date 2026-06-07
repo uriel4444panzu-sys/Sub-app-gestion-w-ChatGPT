@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=12" />
+    <link rel="stylesheet" href="styles.css?v=13" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -123,19 +123,18 @@
             <input id="searchInput" type="search" placeholder="Nom, catégorie, priorité" />
           </label>
         </div>
-        <section class="panel shortcut-help" aria-labelledby="shortcutHelpTitle">
+        <section class="panel calendar-help" aria-labelledby="calendarHelpTitle">
           <div class="section-heading tight">
             <div>
-              <p class="eyebrow">Rappels iPhone</p>
-              <h3 id="shortcutHelpTitle">Créer un rappel avec Raccourcis iOS</h3>
+              <p class="eyebrow">Calendrier</p>
+              <h3 id="calendarHelpTitle">Ajouter les renouvellements au calendrier</h3>
             </div>
           </div>
           <p>
-            Pour utiliser le bouton <strong>Créer un rappel iPhone</strong>, créez d'abord dans l'app Raccourcis un raccourci nommé
-            <strong>Ajouter abonnement rappel</strong>. SubPilot lance ce raccourci une fois par rappel à créer.
-            Le raccourci reçoit un texte simple au format <strong>titre|date d'alerte</strong>.
+            Le bouton <strong>Ajouter au calendrier</strong> télécharge un fichier <strong>.ics</strong> importable sur iPhone,
+            Google Calendar, Outlook et Apple Calendar. Il contient jusqu'à 3 événements séparés : J-7, J-3 et J-1 à 08:00.
           </p>
-          <p class="shortcut-format">Exemple reçu : <code>Netflix se renouvelle dans 3 jours - 13,49 €|2026-06-07T09:00:00</code></p>
+          <p class="calendar-format">Exemple : <code>Netflix se renouvelle dans 3 jours - 13,49 €</code>, le <code>2026-06-07 à 08:00</code>.</p>
         </section>
         <div class="category-legend" id="categoryLegend" aria-label="Légende des catégories"></div>
         <div id="subscriptionList" class="subscription-list"></div>
@@ -294,6 +293,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=12"></script>
+    <script src="app.js?v=13"></script>
   </body>
 </html>

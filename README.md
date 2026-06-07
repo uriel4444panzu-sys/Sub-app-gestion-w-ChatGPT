@@ -10,7 +10,7 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle.
 - Analyse par catégorie avec emojis explicites pour identifier les postes de dépense dominants.
 - Budget mensuel configurable avec graphique de progression et simulateur d'abonnement théorique illustré par un graphique dédié.
-- Bouton **Créer un rappel iPhone** sur chaque abonnement pour lancer le raccourci iOS une fois par rappel distinct à J-7, J-3 et J-1.
+- Bouton **Ajouter au calendrier** sur chaque abonnement pour télécharger un fichier `.ics` avec des événements distincts à J-7, J-3 et J-1.
 - Priorités d'action : à garder, à réévaluer ou à résilier.
 - Recherche par nom, catégorie ou priorité.
 - Sauvegarde locale dans le navigateur avec `localStorage`.
@@ -26,43 +26,34 @@ python3 -m http.server 8000
 
 Puis ouvrez <http://localhost:8000> sur votre ordinateur ou votre mobile connecté au même réseau.
 
-## Rappels iPhone avec l'app Raccourcis
+## Ajouter les renouvellements au calendrier
 
-SubPilot ne dépend plus d'un backend ni d'une configuration complexe. Dans l'onglet **Abonnements**, chaque carte contient un bouton **Créer un rappel iPhone**.
+SubPilot ne dépend plus d'un backend ni d'une configuration externe. Dans l'onglet **Abonnements**, chaque carte contient un bouton **Ajouter au calendrier**.
 
-Ce bouton ouvre l'app **Raccourcis** avec une URL du type :
+Ce bouton génère et télécharge un fichier `.ics` importable sur :
 
-```text
-shortcuts://run-shortcut?name=Ajouter%20abonnement%20rappel&input=text&text=...
-```
+- iPhone / Apple Calendar ;
+- Google Calendar ;
+- Outlook ;
+- Apple Calendar sur Mac.
 
-Avant de l'utiliser, créez sur votre iPhone un raccourci nommé exactement :
-
-```text
-Ajouter abonnement rappel
-```
-
-SubPilot n'envoie jamais plusieurs rappels dans un seul texte. Pour chaque rappel encore pertinent, il appelle le raccourci séparément avec un texte simple au format :
+Pour chaque abonnement, le fichier peut contenir jusqu'à 3 événements séparés si les dates ne sont pas déjà passées :
 
 ```text
-TITRE|DATE_ALERTE
+J-7 à 08:00
+J-3 à 08:00
+J-1 à 08:00
 ```
 
-Exemple d'appel pour Netflix :
+Chaque événement dure 15 minutes, contient une alerte calendrier au moment de l'événement et utilise un titre clair. Exemple pour un renouvellement Netflix le 10/06/2026 :
 
 ```text
-Netflix se renouvelle dans 3 jours - 13,49 €|2026-06-07T09:00:00
+2026-06-03 08:00 → Netflix se renouvelle dans 7 jours - 13,49 €
+2026-06-07 08:00 → Netflix se renouvelle dans 3 jours - 13,49 €
+2026-06-09 08:00 → Netflix se renouvelle demain - 13,49 €
 ```
 
-Pour un renouvellement Netflix le 10/06/2026, SubPilot peut donc lancer jusqu'à 3 appels séparés au raccourci :
-
-```text
-Netflix se renouvelle dans 7 jours - 13,49 €|2026-06-03T09:00:00
-Netflix se renouvelle dans 3 jours - 13,49 €|2026-06-07T09:00:00
-Netflix se renouvelle demain - 13,49 €|2026-06-09T09:00:00
-```
-
-Dans Raccourcis, séparez l'**Entrée du raccourci** avec le caractère `|` : la partie 1 devient le titre du rappel et la partie 2 devient la date d'alerte. Le raccourci crée ensuite un rappel avec ce titre et cette alerte. Comme SubPilot appelle le raccourci une fois par rappel, chaque rappel iOS reste séparé.
+Importez ensuite le fichier `.ics` téléchargé dans l'application calendrier de votre choix.
 
 ## Si vous voyez `codex/...`, `main` ou une page dupliquée
 

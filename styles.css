@@ -892,23 +892,23 @@ textarea:focus {
   }
 }
 
-.shortcut-help {
+.calendar-help {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(238, 242, 255, 0.88)),
     var(--surface);
 }
 
-.shortcut-help p {
+.calendar-help p {
   margin: 0;
   color: #475569;
   line-height: 1.55;
 }
 
-.shortcut-help p + p {
+.calendar-help p + p {
   margin-top: 10px;
 }
 
-.shortcut-help code {
+.calendar-help code {
   display: inline-block;
   max-width: 100%;
   overflow-wrap: anywhere;
@@ -920,11 +920,11 @@ textarea:focus {
   font-weight: 800;
 }
 
-.shortcut-format {
+.calendar-format {
   font-size: 0.86rem;
 }
 
-.shortcut-button {
+.calendar-button {
   background: #ecfeff;
   color: #0f766e;
 }
