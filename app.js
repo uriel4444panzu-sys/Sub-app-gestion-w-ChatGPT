@@ -511,7 +511,7 @@ function renderSubscriptions() {
             <span>•</span>
             <span>${frequencyLabels[subscription.frequency]}</span>
             <span>•</span>
-            <span>${formatRelativeDate(subscription.nextDate)}</span>
+            <span>Renouvellement le ${formatExactDate(subscription.nextDate)}</span>
           </div>
         </div>
         <span class="price-pill">${formatMoney(subscription.price, subscription.currency)}</span>
@@ -797,6 +797,17 @@ function getDaysUntil(dateValue) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return Math.round((date - today) / 86_400_000);
+}
+
+function formatExactDate(dateValue) {
+  const date = parseDateOnly(dateValue);
+  if (!date) return dateValue;
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
 }
 
 function formatRelativeDate(dateValue) {
