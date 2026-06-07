@@ -7,7 +7,7 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Navigation mobile par onglets : tableau de bord, abonnements, ajout et budget.
 - Tableau de bord avec total mensuel, projection annuelle, prochain paiement, catégorie dominante et liste compacte des renouvellements.
 - Ajout guidé avec suggestions de services populaires, modification et suppression d'abonnements.
-- Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle.
+- Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle, avec mise à jour automatique des dates de prélèvement dépassées.
 - Analyse par catégorie avec emojis explicites pour identifier les postes de dépense dominants.
 - Budget mensuel configurable avec graphique de progression et simulateur d'abonnement théorique illustré par un graphique dédié.
 - Bouton **Ajouter au calendrier** sur chaque abonnement pour télécharger un fichier `.ics` avec des événements distincts à J-7, J-3 et J-1.
@@ -28,7 +28,7 @@ Puis ouvrez <http://localhost:8000> sur votre ordinateur ou votre mobile connect
 
 ## Ajouter les renouvellements au calendrier
 
-SubPilot ne dépend plus d'un backend ni d'une configuration externe. Dans l'onglet **Abonnements**, chaque carte contient un bouton **Ajouter au calendrier**.
+SubPilot ne dépend plus d'un backend ni d'une configuration externe. Dans l'onglet **Abonnements**, chaque carte contient un bouton **Ajouter au calendrier**. Dans l'application, le panneau reste volontairement simple : il explique seulement que l'utilisateur peut ajouter des rappels de renouvellement dans son calendrier.
 
 Ce bouton génère et télécharge un fichier `.ics` importable sur :
 
@@ -54,6 +54,17 @@ Chaque événement dure 15 minutes, contient une alerte calendrier au moment de 
 ```
 
 Importez ensuite le fichier `.ics` téléchargé dans l'application calendrier de votre choix.
+
+## Mise à jour automatique des prochaines dates
+
+Quand l'application s'ouvre ou qu'un abonnement est ajouté/modifié, SubPilot vérifie la date du prochain prélèvement. Si elle est déjà passée, elle avance automatiquement la date selon la fréquence :
+
+- hebdomadaire : prochaine occurrence de 7 jours en 7 jours ;
+- mensuelle : prochain mois pertinent ;
+- trimestrielle : prochain trimestre pertinent ;
+- annuelle : prochaine année pertinente.
+
+Exemple : un abonnement mensuel prévu le 10/05/2026 affichera automatiquement l'occurrence suivante si cette date est dépassée.
 
 ## Si vous voyez `codex/...`, `main` ou une page dupliquée
 

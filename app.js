@@ -1,6 +1,7 @@
 const STORAGE_KEY = "subpilot-subscriptions";
 const BUDGET_KEY = "subpilot-monthly-budget";
 const CALENDAR_REMINDER_DAYS = [7, 3, 1];
+const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 const CALENDAR_ALERT_HOUR = 8;
 const CALENDAR_EVENT_DURATION_MINUTES = 15;
 
@@ -90,13 +91,16 @@ const saveBudgetButton = document.querySelector("#saveBudgetButton");
 const simulationPrice = document.querySelector("#simulationPrice");
 const simulationFrequency = document.querySelector("#simulationFrequency");
 
-let subscriptions = loadSubscriptions();
+const loadedSubscriptions = loadSubscriptions();
+const normalizedSubscriptions = normalizeSubscriptions(loadedSubscriptions);
+let subscriptions = normalizedSubscriptions.items;
 let monthlyBudget = loadBudget();
 let activeTab = "dashboard";
 
 hydrateCategorySelect();
 renderCategoryLegend();
 renderPopularServices();
+if (normalizedSubscriptions.changed) saveSubscriptions();
 
 form.addEventListener("submit", handleSubmit);
 resetButton.addEventListener("click", resetForm);
@@ -165,6 +169,90 @@ function registerServiceWorker() {
       installHelp.textContent = "L'installation nécessite une ouverture via localhost ou HTTPS.";
     });
   });
+}
+
+function normalizeSubscriptions(items) {
+  let changed = false;
+  const normalizedItems = items.map((item) => {
+    const normalizedDate = normalizeNextDate(item.nextDate, item.frequency);
+    if (normalizedDate !== item.nextDate) changed = true;
+    return { ...item, nextDate: normalizedDate };
+  });
+
+  return { items: normalizedItems, changed };
+}
+
+function normalizeNextDate(dateValue, frequency = "monthly") {
+  const today = getTodayDateOnly();
+  const originalDate = parseDateOnly(dateValue);
+  if (!originalDate || originalDate >= today) return dateValue;
+
+  if (frequency === "weekly") {
+    return formatDateOnly(advanceWeeklyDate(originalDate, today));
+  }
+
+  const monthsStep = FREQUENCY_STEPS[frequency] || FREQUENCY_STEPS.monthly;
+  return formatDateOnly(advanceMonthlyDate(dateValue, monthsStep, today));
+}
+
+function advanceWeeklyDate(originalDate, today) {
+  const nextDate = new Date(originalDate);
+  while (nextDate < today) {
+    nextDate.setDate(nextDate.getDate() + FREQUENCY_STEPS.weekly);
+  }
+  return nextDate;
+}
+
+function advanceMonthlyDate(dateValue, monthsStep, today) {
+  let cycles = 1;
+  let nextDate = addMonthsClamped(dateValue, monthsStep);
+
+  while (nextDate < today) {
+    cycles += 1;
+    nextDate = addMonthsClamped(dateValue, monthsStep * cycles);
+  }
+
+  return nextDate;
+}
+
+function addMonthsClamped(dateValue, monthsToAdd) {
+  const parts = parseDateParts(dateValue);
+  if (!parts) return getTodayDateOnly();
+
+  const targetMonthIndex = parts.month - 1 + monthsToAdd;
+  const targetYear = parts.year + Math.floor(targetMonthIndex / 12);
+  const targetMonth = ((targetMonthIndex % 12) + 12) % 12;
+  const lastDay = new Date(targetYear, targetMonth + 1, 0).getDate();
+  return new Date(targetYear, targetMonth, Math.min(parts.day, lastDay));
+}
+
+function getTodayDateOnly() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function parseDateOnly(dateValue) {
+  const parts = parseDateParts(dateValue);
+  if (!parts) return null;
+  return new Date(parts.year, parts.month - 1, parts.day);
+}
+
+function parseDateParts(dateValue) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateValue || "");
+  if (!match) return null;
+
+  return {
+    year: Number(match[1]),
+    month: Number(match[2]),
+    day: Number(match[3]),
+  };
+}
+
+function formatDateOnly(date) {
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()]
+    .map((part) => String(part).padStart(2, "0"))
+    .join("-");
 }
 
 function createCalendarReminderEvents(subscription) {
@@ -269,7 +357,7 @@ function handleSubmit(event) {
     currency: document.querySelector("#currency").value,
     frequency: document.querySelector("#frequency").value,
     category: document.querySelector("#category").value,
-    nextDate: document.querySelector("#nextDate").value,
+    nextDate: normalizeNextDate(document.querySelector("#nextDate").value, document.querySelector("#frequency").value),
     priority: document.querySelector("#priority").value,
     note: document.querySelector("#note").value.trim(),
   });
