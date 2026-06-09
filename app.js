@@ -1,5 +1,7 @@
 const STORAGE_KEY = "subpilot-subscriptions";
 const BUDGET_KEY = "subpilot-monthly-budget";
+const CUSTOM_CATEGORIES_KEY = "subpilot-custom-categories";
+const PROFILE_KEY = "subpilot-profile";
 const CALENDAR_REMINDER_DAYS = [7, 3, 1];
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 const CALENDAR_ALERT_HOUR = 8;
@@ -7,32 +9,44 @@ const CALENDAR_EVENT_DURATION_MINUTES = 15;
 
 let deferredInstallPrompt = null;
 
-const categories = [
-  { name: "Streaming", emoji: "🎬", color: "#7c3aed" },
-  { name: "Musique", emoji: "🎧", color: "#ec4899" },
-  { name: "Logiciels", emoji: "💻", color: "#2563eb" },
-  { name: "Productivité", emoji: "⚡", color: "#14b8a6" },
-  { name: "Sport", emoji: "🏋️", color: "#f97316" },
-  { name: "Jeux", emoji: "🎮", color: "#8b5cf6" },
-  { name: "Maison", emoji: "🏠", color: "#0f766e" },
-  { name: "Presse", emoji: "📰", color: "#64748b" },
-  { name: "Éducation", emoji: "🎓", color: "#0891b2" },
-  { name: "Transport", emoji: "🚇", color: "#dc2626" },
-  { name: "Santé", emoji: "🩺", color: "#16a34a" },
-  { name: "Autre", emoji: "✨", color: "#475569" },
+const defaultCategories = [
+  { name: "Streaming", icon: "TV", color: "#7c3aed" },
+  { name: "Musique", icon: "AU", color: "#ec4899" },
+  { name: "Logiciels", icon: "SW", color: "#2563eb" },
+  { name: "Productivité", icon: "PR", color: "#14b8a6" },
+  { name: "Sport", icon: "SP", color: "#f97316" },
+  { name: "Jeux", icon: "GM", color: "#8b5cf6" },
+  { name: "Maison", icon: "HM", color: "#0f766e" },
+  { name: "Presse", icon: "NS", color: "#64748b" },
+  { name: "Éducation", icon: "ED", color: "#0891b2" },
+  { name: "Transport", icon: "TR", color: "#dc2626" },
+  { name: "Santé", icon: "MD", color: "#16a34a" },
+  { name: "Télécom", icon: "5G", color: "#0ea5e9" },
+  { name: "Cloud", icon: "CL", color: "#6366f1" },
+  { name: "IA", icon: "AI", color: "#9333ea" },
+  { name: "Livraison", icon: "DL", color: "#ea580c" },
+  { name: "Sécurité", icon: "SC", color: "#0f172a" },
+  { name: "Finance", icon: "€", color: "#15803d" },
+  { name: "Photo", icon: "PX", color: "#db2777" },
+  { name: "Rencontre", icon: "♡", color: "#e11d48" },
+  { name: "Autre", icon: "+", color: "#475569" },
 ];
 
+let categories = [...defaultCategories, ...loadCustomCategories()];
+
 const popularServices = [
-  { name: "Netflix", price: 13.49, category: "Streaming", emoji: "🎬" },
-  { name: "Spotify", price: 10.99, category: "Musique", emoji: "🎧" },
-  { name: "Amazon Prime", price: 6.99, category: "Streaming", emoji: "📦" },
-  { name: "Disney+", price: 8.99, category: "Streaming", emoji: "🏰" },
-  { name: "Canva Pro", price: 11.99, category: "Productivité", emoji: "🎨" },
-  { name: "iCloud+", price: 2.99, category: "Productivité", emoji: "☁️" },
-  { name: "Adobe", price: 19.99, category: "Logiciels", emoji: "💻" },
-  { name: "Salle de sport", price: 29.99, category: "Sport", emoji: "🏋️" },
-  { name: "Game Pass", price: 14.99, category: "Jeux", emoji: "🎮" },
-  { name: "Notion", price: 9.5, category: "Productivité", emoji: "🧠" },
+  { name: "Netflix", price: 13.49, category: "Streaming", serviceIcon: "NF" },
+  { name: "Spotify", price: 10.99, category: "Musique", serviceIcon: "SP" },
+  { name: "Amazon Prime", price: 6.99, category: "Streaming", serviceIcon: "AP" },
+  { name: "Disney+", price: 8.99, category: "Streaming", serviceIcon: "D+" },
+  { name: "Canva Pro", price: 11.99, category: "Productivité", serviceIcon: "CV" },
+  { name: "iCloud+", price: 2.99, category: "Cloud", serviceIcon: "iC" },
+  { name: "Adobe", price: 19.99, category: "Logiciels", serviceIcon: "AD" },
+  { name: "Salle de sport", price: 29.99, category: "Sport", serviceIcon: "GY" },
+  { name: "Game Pass", price: 14.99, category: "Jeux", serviceIcon: "GP" },
+  { name: "Notion", price: 9.5, category: "Productivité", serviceIcon: "NT" },
+  { name: "ChatGPT", price: 22.99, category: "IA", serviceIcon: "AI" },
+  { name: "YouTube Premium", price: 12.99, category: "Streaming", serviceIcon: "YT" },
 ];
 
 const frequencyLabels = {
@@ -90,6 +104,17 @@ const budgetInput = document.querySelector("#budgetInput");
 const saveBudgetButton = document.querySelector("#saveBudgetButton");
 const simulationPrice = document.querySelector("#simulationPrice");
 const simulationFrequency = document.querySelector("#simulationFrequency");
+const categorySelect = document.querySelector("#category");
+const serviceIconInput = document.querySelector("#serviceIcon");
+const customCategoryPanel = document.querySelector("#customCategoryPanel");
+const customCategoryNameInput = document.querySelector("#customCategoryName");
+const customCategoryIconInput = document.querySelector("#customCategoryIcon");
+const customCategoryColorInput = document.querySelector("#customCategoryColor");
+const mailImportConsent = document.querySelector("#mailImportConsent");
+const mailImportStatus = document.querySelector("#mailImportStatus");
+const createAccountButton = document.querySelector("#createAccountButton");
+const googleSignInButton = document.querySelector("#googleSignInButton");
+const accountStatus = document.querySelector("#accountStatus");
 
 const loadedSubscriptions = loadSubscriptions();
 const normalizedSubscriptions = normalizeSubscriptions(loadedSubscriptions);
@@ -100,6 +125,7 @@ let activeTab = "dashboard";
 hydrateCategorySelect();
 renderCategoryLegend();
 renderPopularServices();
+renderAccountStatus();
 if (normalizedSubscriptions.changed) saveSubscriptions();
 
 form.addEventListener("submit", handleSubmit);
@@ -109,6 +135,10 @@ saveBudgetButton.addEventListener("click", saveBudget);
 simulationPrice.addEventListener("input", renderBudget);
 simulationFrequency.addEventListener("change", renderBudget);
 installButton.addEventListener("click", installApp);
+categorySelect.addEventListener("change", handleCategoryChange);
+mailImportConsent.addEventListener("change", updateMailImportStatus);
+createAccountButton.addEventListener("click", handleAccountCreate);
+googleSignInButton.addEventListener("click", handleGoogleSignIn);
 
 document.querySelectorAll("[data-tab]").forEach((button) => {
   button.addEventListener("click", () => switchTab(button.dataset.tab));
@@ -350,13 +380,17 @@ function handleSubmit(event) {
   event.preventDefault();
 
   const editingId = document.querySelector("#subscriptionId").value;
+  const selectedCategory = resolveSelectedCategory();
+  if (!selectedCategory) return;
+
   const subscription = createSubscription({
     id: editingId || crypto.randomUUID(),
     name: document.querySelector("#name").value.trim(),
     price: Number(document.querySelector("#price").value),
     currency: document.querySelector("#currency").value,
     frequency: document.querySelector("#frequency").value,
-    category: document.querySelector("#category").value,
+    category: selectedCategory,
+    serviceIcon: serviceIconInput.value.trim(),
     nextDate: normalizeNextDate(document.querySelector("#nextDate").value, document.querySelector("#frequency").value),
     priority: document.querySelector("#priority").value,
     note: document.querySelector("#note").value.trim(),
@@ -381,7 +415,12 @@ function resetForm() {
   document.querySelector("#subscriptionId").value = "";
   document.querySelector("#currency").value = "EUR";
   document.querySelector("#frequency").value = "monthly";
-  document.querySelector("#category").value = "Streaming";
+  categorySelect.value = "Streaming";
+  serviceIconInput.value = "";
+  customCategoryNameInput.value = "";
+  customCategoryIconInput.value = "";
+  customCategoryColorInput.value = "#4f46e5";
+  handleCategoryChange();
   document.querySelector("#priority").value = "keep";
   document.querySelector("#nextDate").value = getDateInDays(7);
   submitButton.textContent = "Ajouter l'abonnement";
@@ -431,9 +470,9 @@ function renderInsights() {
   document.querySelector("#yearlyTotal").textContent = formatMoney(monthlyTotal * 12);
   document.querySelector("#budgetUsageHero").textContent = monthlyBudget ? `${budgetUsage}%` : "-";
   document.querySelector("#nextPayment").textContent = nextSubscription
-    ? `${nextSubscription.emoji} ${nextSubscription.name} · ${formatRelativeDate(nextSubscription.nextDate)}`
+    ? `${getSubscriptionIcon(nextSubscription)} ${nextSubscription.name} · ${formatRelativeDate(nextSubscription.nextDate)}`
     : "Aucun";
-  document.querySelector("#topCategory").textContent = topCategory ? `${topCategory.emoji} ${topCategory.category}` : "-";
+  document.querySelector("#topCategory").textContent = topCategory ? `${topCategory.icon} ${topCategory.category}` : "-";
 }
 
 function renderCompactList() {
@@ -450,7 +489,7 @@ function renderCompactList() {
     const card = document.createElement("article");
     card.className = "compact-subscription";
     card.innerHTML = `
-      <span class="emoji-bubble">${subscription.emoji}</span>
+      <span class="service-icon" style="--icon-color: ${getSubscriptionIconColor(subscription)}">${escapeHtml(getSubscriptionIcon(subscription))}</span>
       <div>
         <strong>${escapeHtml(subscription.name)}</strong>
         <small>${formatRelativeDate(subscription.nextDate)}</small>
@@ -472,12 +511,12 @@ function renderBreakdown() {
     return;
   }
 
-  totals.forEach(({ category, total, emoji, color }) => {
+  totals.forEach(({ category, total, icon, color }) => {
     const row = document.createElement("article");
     row.className = "category-row";
     row.innerHTML = `
       <header>
-        <span>${emoji} ${category}</span>
+        <span><span class="mini-icon" style="--icon-color: ${color}">${escapeHtml(icon)}</span> ${category}</span>
         <strong>${formatMoney(total)} / mois</strong>
       </header>
       <div class="progress-track" aria-hidden="true">
@@ -503,7 +542,7 @@ function renderSubscriptions() {
     card.className = "subscription-card";
     card.innerHTML = `
       <header>
-        <span class="emoji-bubble large">${subscription.emoji}</span>
+        <span class="service-icon large" style="--icon-color: ${getSubscriptionIconColor(subscription)}">${escapeHtml(getSubscriptionIcon(subscription))}</span>
         <div>
           <h3>${escapeHtml(subscription.name)}</h3>
           <div class="subscription-meta">
@@ -613,7 +652,7 @@ function renderPopularServices() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "service-chip";
-    button.innerHTML = `<span>${service.emoji}</span><strong>${service.name}</strong><small>${formatMoney(service.price)}</small>`;
+    button.innerHTML = `<span class="service-icon" style="--icon-color: ${getCategoryMeta(service.category).color}">${escapeHtml(service.serviceIcon)}</span><strong>${service.name}</strong><small>${formatMoney(service.price)}</small>`;
     button.addEventListener("click", () => prefillService(service));
     container.append(button);
   });
@@ -623,7 +662,9 @@ function prefillService(service) {
   resetForm();
   document.querySelector("#name").value = service.name;
   document.querySelector("#price").value = service.price;
-  document.querySelector("#category").value = service.category;
+  categorySelect.value = service.category;
+  serviceIconInput.value = service.serviceIcon;
+  handleCategoryChange();
   document.querySelector("#note").value = `Suggestion : ${service.name}`;
 }
 
@@ -636,7 +677,12 @@ function editSubscription(id) {
   document.querySelector("#price").value = subscription.price;
   document.querySelector("#currency").value = subscription.currency;
   document.querySelector("#frequency").value = subscription.frequency;
-  document.querySelector("#category").value = subscription.category;
+  if (!categories.some((category) => category.name === subscription.category)) {
+    addCustomCategory({ name: subscription.category, icon: getSubscriptionIcon(subscription), color: "#4f46e5" });
+  }
+  categorySelect.value = subscription.category;
+  serviceIconInput.value = subscription.serviceIcon || "";
+  handleCategoryChange();
   document.querySelector("#nextDate").value = subscription.nextDate;
   document.querySelector("#priority").value = subscription.priority;
   document.querySelector("#note").value = subscription.note;
@@ -655,7 +701,7 @@ function getFilteredSubscriptions() {
   if (!query) return getSortedByDate();
 
   return getSortedByDate().filter((item) =>
-    [item.name, item.category, item.priority, item.emoji].some((value) => value.toLowerCase().includes(query)),
+    [item.name, item.category, item.priority, getSubscriptionIcon(item)].some((value) => value.toLowerCase().includes(query)),
   );
 }
 
@@ -670,7 +716,7 @@ function getMonthlyTotal() {
 function getCategoryTotals() {
   const totals = subscriptions.reduce((accumulator, item) => {
     const meta = getCategoryMeta(item.category);
-    accumulator[item.category] ||= { category: item.category, total: 0, emoji: meta.emoji, color: meta.color };
+    accumulator[item.category] ||= { category: item.category, total: 0, icon: meta.icon, color: meta.color };
     accumulator[item.category].total += toMonthlyPrice(item);
     return accumulator;
   }, {});
@@ -685,7 +731,7 @@ function hydrateCategorySelect() {
   categories.forEach((category) => {
     const option = document.createElement("option");
     option.value = category.name;
-    option.textContent = `${category.emoji} ${category.name}`;
+    option.textContent = `${category.icon} · ${category.name}`;
     select.append(option);
   });
 }
@@ -697,9 +743,130 @@ function renderCategoryLegend() {
   categories.forEach((category) => {
     const badge = document.createElement("span");
     badge.className = "legend-badge";
-    badge.innerHTML = `${category.emoji} ${category.name}`;
+    badge.innerHTML = `<span class="mini-icon" style="--icon-color: ${category.color}">${escapeHtml(category.icon)}</span>${escapeHtml(category.name)}`;
     container.append(badge);
   });
+}
+
+function handleCategoryChange() {
+  customCategoryPanel.hidden = categorySelect.value !== "Autre";
+}
+
+function resolveSelectedCategory() {
+  if (categorySelect.value !== "Autre") return categorySelect.value;
+
+  const customName = customCategoryNameInput.value.trim();
+  if (!customName) return "Autre";
+
+  addCustomCategory({
+    name: customName,
+    icon: customCategoryIconInput.value.trim() || getServiceInitials(customName),
+    color: customCategoryColorInput.value || "#4f46e5",
+  });
+
+  return customName;
+}
+
+function addCustomCategory(category) {
+  const normalizedCategory = {
+    name: category.name.trim(),
+    icon: normalizeIconText(category.icon || getServiceInitials(category.name)),
+    color: normalizeColor(category.color),
+    custom: true,
+  };
+
+  if (!normalizedCategory.name) return;
+
+  const existingIndex = categories.findIndex((item) => item.name.toLowerCase() === normalizedCategory.name.toLowerCase());
+  if (existingIndex >= 0) {
+    categories[existingIndex] = { ...categories[existingIndex], ...normalizedCategory };
+  } else {
+    const otherIndex = categories.findIndex((item) => item.name === "Autre");
+    categories.splice(Math.max(otherIndex, 0), 0, normalizedCategory);
+  }
+
+  saveCustomCategories();
+  hydrateCategorySelect();
+  categorySelect.value = normalizedCategory.name;
+  renderCategoryLegend();
+}
+
+function loadCustomCategories() {
+  try {
+    return (JSON.parse(localStorage.getItem(CUSTOM_CATEGORIES_KEY)) || []).map((category) => ({
+      name: category.name,
+      icon: normalizeIconText(category.icon || getServiceInitials(category.name)),
+      color: normalizeColor(category.color),
+      custom: true,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function saveCustomCategories() {
+  const customCategories = categories.filter((category) => category.custom);
+  localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+}
+
+function getSubscriptionIcon(subscription) {
+  return normalizeIconText(subscription.serviceIcon || getServiceInitials(subscription.name));
+}
+
+function getSubscriptionIconColor(subscription) {
+  return getCategoryMeta(subscription.category).color;
+}
+
+function getServiceInitials(value) {
+  return String(value || "SubPilot")
+    .replace(/[+]/g, " plus")
+    .split(/\s+|[-_.]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "SP";
+}
+
+function normalizeIconText(value) {
+  return String(value || "SP").trim().slice(0, 3).toUpperCase();
+}
+
+function normalizeColor(value) {
+  return /^#[0-9a-f]{6}$/i.test(value || "") ? value : "#4f46e5";
+}
+
+function updateMailImportStatus() {
+  mailImportStatus.textContent = mailImportConsent.checked
+    ? "Import e-mail demandé : il faudra le brancher à un vrai compte sécurisé avec OAuth Gmail/Outlook côté backend avant de lire des messages."
+    : "Aucun e-mail n'est lu sans autorisation explicite. Vous pouvez continuer à ajouter vos abonnements à la main.";
+}
+
+function handleAccountCreate() {
+  const name = document.querySelector("#accountName").value.trim();
+  const email = document.querySelector("#accountEmail").value.trim();
+  const password = document.querySelector("#accountPassword").value;
+
+  if (!name || !email || !password) {
+    accountStatus.textContent = "Complétez le nom, l'e-mail et le mot de passe pour préparer la création de compte.";
+    return;
+  }
+
+  localStorage.setItem(PROFILE_KEY, JSON.stringify({ name, email, provider: "email", createdAt: new Date().toISOString() }));
+  accountStatus.textContent = "Profil local préparé. Pour de vrais comptes sécurisés, branchez cette interface à Firebase Auth, Supabase Auth ou un backend avec sessions chiffrées : SubPilot ne stocke pas le mot de passe en local.";
+  document.querySelector("#accountPassword").value = "";
+}
+
+function handleGoogleSignIn() {
+  accountStatus.textContent = "Connexion Google prête côté interface. Elle nécessite une configuration OAuth sécurisée côté backend / fournisseur d'authentification avant activation en production.";
+}
+
+function renderAccountStatus() {
+  const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || "null");
+  accountStatus.textContent = profile
+    ? `Profil local : ${profile.name} (${profile.email}). Les données restent sur cet appareil tant qu'un backend sécurisé n'est pas branché.`
+    : "Aucun compte connecté. Les comptes individuels nécessitent un backend sécurisé pour isoler réellement les espaces utilisateurs.";
+  updateMailImportStatus();
 }
 
 function createSubscription(subscription) {
@@ -713,7 +880,7 @@ function createSubscription(subscription) {
     currency: subscription.currency || "EUR",
     frequency: subscription.frequency || "monthly",
     category,
-    emoji: subscription.emoji || meta.emoji,
+    serviceIcon: normalizeIconText(subscription.serviceIcon || subscription.emoji || getServiceInitials(subscription.name)),
     nextDate: subscription.nextDate || getDateInDays(7),
     priority: subscription.priority || "keep",
     note: subscription.note || "",
@@ -721,7 +888,7 @@ function createSubscription(subscription) {
 }
 
 function getCategoryMeta(categoryName) {
-  return categories.find((category) => category.name === categoryName) || categories.at(-1);
+  return categories.find((category) => category.name === categoryName) || categories.find((category) => category.name === "Autre") || categories.at(-1);
 }
 
 function toMonthlyPrice(subscription) {

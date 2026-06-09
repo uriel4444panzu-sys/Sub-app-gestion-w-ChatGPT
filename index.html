@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=15" />
+    <link rel="stylesheet" href="styles.css?v=16" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -33,6 +33,10 @@
         <button class="tab-button" type="button" data-tab="budget" aria-selected="false" aria-controls="budgetPanel">
           <span>◌</span>
           Budget
+        </button>
+        <button class="tab-button" type="button" data-tab="account" aria-selected="false" aria-controls="accountPanel">
+          <span>◎</span>
+          Compte
         </button>
       </nav>
 
@@ -159,14 +163,34 @@
           <div id="popularServices" class="popular-services"></div>
         </section>
 
+        <section class="panel mail-import-card" aria-labelledby="mailImportTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Automatisation</p>
+              <h3 id="mailImportTitle">Ajouter depuis mes e-mails</h3>
+            </div>
+          </div>
+          <label class="toggle-row">
+            <input id="mailImportConsent" type="checkbox" />
+            <span>Je souhaite autoriser SubPilot à rechercher mes abonnements dans mes e-mails quand mon compte sécurisé sera connecté.</span>
+          </label>
+          <p id="mailImportStatus" class="helper-text"></p>
+        </section>
+
         <section class="panel" aria-labelledby="formTitle">
           <h3 class="visually-hidden" id="formTitle">Formulaire d'abonnement</h3>
           <form id="subscriptionForm" class="subscription-form">
             <input type="hidden" id="subscriptionId" />
-            <label>
-              Nom
-              <input id="name" name="name" type="text" placeholder="Netflix, salle de sport..." required />
-            </label>
+            <div class="form-row">
+              <label>
+                Nom
+                <input id="name" name="name" type="text" placeholder="Netflix, salle de sport..." required />
+              </label>
+              <label>
+                Icône du service
+                <input id="serviceIcon" name="serviceIcon" type="text" maxlength="3" placeholder="NF, SP, AI..." />
+              </label>
+            </div>
             <div class="form-row">
               <label>
                 Prix
@@ -194,6 +218,20 @@
               <label>
                 Catégorie
                 <select id="category" name="category"></select>
+              </label>
+            </div>
+            <div class="custom-category-panel" id="customCategoryPanel" hidden>
+              <label>
+                Nom de la catégorie
+                <input id="customCategoryName" type="text" placeholder="Animaux, outils créatifs..." />
+              </label>
+              <label>
+                Icône
+                <input id="customCategoryIcon" type="text" maxlength="3" placeholder="AN" />
+              </label>
+              <label>
+                Couleur
+                <input id="customCategoryColor" type="color" value="#4f46e5" />
               </label>
             </div>
             <div class="form-row">
@@ -284,6 +322,58 @@
           </article>
         </section>
       </section>
+
+      <section class="tab-panel" id="accountPanel" data-panel="account" hidden aria-labelledby="accountTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Espace personnel</p>
+            <h2 id="accountTitle">Compte & synchronisation</h2>
+          </div>
+        </div>
+
+        <section class="panel account-panel" aria-labelledby="accountFormTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Compte utilisateur</p>
+              <h3 id="accountFormTitle">Préparer un compte sécurisé</h3>
+            </div>
+          </div>
+          <p class="helper-text">
+            Les comptes permettent de retrouver ses abonnements sur plusieurs appareils et d'isoler chaque espace utilisateur.
+            La création réelle doit être branchée à un backend sécurisé : SubPilot ne stocke pas les mots de passe dans cette PWA statique.
+          </p>
+          <div class="account-grid">
+            <label>
+              Nom
+              <input id="accountName" type="text" autocomplete="name" placeholder="Votre prénom" />
+            </label>
+            <label>
+              E-mail
+              <input id="accountEmail" type="email" autocomplete="email" placeholder="vous@email.com" />
+            </label>
+            <label>
+              Mot de passe
+              <input id="accountPassword" type="password" autocomplete="new-password" placeholder="Jamais stocké localement" />
+            </label>
+          </div>
+          <div class="account-actions">
+            <button type="button" class="primary-button" id="createAccountButton">Créer mon compte</button>
+            <button type="button" class="google-button" id="googleSignInButton">Continuer avec Google</button>
+          </div>
+          <p id="accountStatus" class="helper-text status-text"></p>
+        </section>
+
+        <section class="panel security-panel" aria-labelledby="securityTitle">
+          <p class="eyebrow">Sécurité</p>
+          <h3 id="securityTitle">Ce qu'il faudra pour la version connectée</h3>
+          <ul>
+            <li>Authentification avec sessions sécurisées ou fournisseur type Firebase/Supabase Auth.</li>
+            <li>Données séparées par identifiant utilisateur côté serveur.</li>
+            <li>Connexion Google via OAuth, sans jamais récupérer le mot de passe Google.</li>
+            <li>Accès e-mail uniquement après consentement explicite, avec permissions minimales.</li>
+          </ul>
+        </section>
+      </section>
     </main>
 
     <template id="emptyStateTemplate">
@@ -293,6 +383,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=15"></script>
+    <script src="app.js?v=16"></script>
   </body>
 </html>

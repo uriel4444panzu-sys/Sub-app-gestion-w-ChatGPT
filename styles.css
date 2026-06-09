@@ -245,7 +245,7 @@ button {
   top: 10px;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   margin: 14px 0;
   padding: 8px;
@@ -256,13 +256,18 @@ button {
 .tab-button {
   display: grid;
   gap: 2px;
+  min-width: 0;
   min-height: 58px;
+  padding: 0 4px;
   place-items: center;
+  overflow: hidden;
+  text-align: center;
+  overflow-wrap: anywhere;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.74rem;
+  font-size: clamp(0.58rem, 1.7vw, 0.72rem);
   font-weight: 850;
   transition: transform 0.22s ease, background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
 }
@@ -762,8 +767,14 @@ textarea:focus {
   }
 
   .tab-button {
-    min-height: 56px;
-    font-size: 0.68rem;
+    min-height: 52px;
+    padding: 0 2px;
+    font-size: clamp(0.52rem, 2.6vw, 0.62rem);
+    line-height: 1.05;
+  }
+
+  .tab-button span {
+    font-size: 1.05rem;
   }
 
   .insight-card {
@@ -927,4 +938,119 @@ textarea:focus {
 .calendar-button {
   background: #ecfeff;
   color: #0f766e;
+}
+
+/* Account, custom categories and service icon refinements */
+.service-icon,
+.mini-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, var(--icon-color, var(--primary)), #0f172a);
+  color: #fff;
+  font-weight: 950;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+}
+
+.service-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 15px;
+  font-size: 0.82rem;
+}
+
+.service-icon.large {
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+  font-size: 0.95rem;
+}
+
+.mini-icon {
+  width: 25px;
+  height: 25px;
+  margin-right: 6px;
+  border-radius: 9px;
+  font-size: 0.62rem;
+  vertical-align: middle;
+}
+
+.custom-category-panel,
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.mail-import-card,
+.account-panel,
+.security-panel {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(236, 254, 255, 0.82)),
+    var(--surface);
+}
+
+.toggle-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.toggle-row input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--primary);
+}
+
+.helper-text,
+.security-panel li {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.status-text {
+  padding: 12px;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.google-button {
+  min-height: 48px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  font-weight: 900;
+  padding: 0 18px;
+}
+
+.security-panel ul {
+  margin: 12px 0 0;
+  padding-left: 20px;
+}
+
+@media (max-width: 620px) {
+  .custom-category-panel,
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-actions {
+    display: grid;
+  }
 }

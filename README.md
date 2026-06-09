@@ -6,9 +6,9 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 
 - Navigation mobile par onglets : tableau de bord, abonnements, ajout et budget.
 - Tableau de bord avec total mensuel, projection annuelle, prochain paiement, catégorie dominante et liste compacte des renouvellements.
-- Ajout guidé avec suggestions de services populaires, modification et suppression d'abonnements, avec date exacte de renouvellement visible dans la liste complète.
+- Ajout guidé avec suggestions de services populaires, icônes de services générées sans logo de marque, modification et suppression d'abonnements, avec date exacte de renouvellement visible dans la liste complète.
 - Gestion de plusieurs fréquences : hebdomadaire, mensuelle, trimestrielle et annuelle, avec mise à jour automatique des dates de prélèvement dépassées.
-- Analyse par catégorie avec emojis explicites pour identifier les postes de dépense dominants.
+- Analyse par catégorie avec icônes visuelles personnalisables pour identifier les postes de dépense dominants.
 - Budget mensuel configurable avec graphique de progression et simulateur d'abonnement théorique illustré par un graphique dédié.
 - Bouton **Ajouter au calendrier** sur chaque abonnement pour télécharger un fichier `.ics` avec des événements distincts à J-7, J-3 et J-1.
 - Priorités d'action : à garder, à réévaluer ou à résilier.
@@ -25,6 +25,29 @@ python3 -m http.server 8000
 ```
 
 Puis ouvrez <http://localhost:8000> sur votre ordinateur ou votre mobile connecté au même réseau.
+
+## Comptes, Google et import e-mail
+
+La version actuelle prépare l'interface de création de compte, de connexion Google et d'import automatique via e-mail, mais elle ne stocke pas de mots de passe dans la PWA statique. Pour une version réellement sécurisée, il faudra brancher l'application à un backend ou à un fournisseur d'authentification comme Firebase Auth ou Supabase Auth.
+
+Des comptes individuels sont pertinents pour :
+
+- retrouver ses abonnements sur plusieurs appareils ;
+- sauvegarder ses données si le téléphone est changé ;
+- isoler strictement les données de chaque utilisateur ;
+- autoriser plus tard un import e-mail via OAuth Gmail/Outlook avec consentement explicite.
+
+Le scrapping e-mail ne doit jamais lire une boîte mail sans autorisation. La bonne approche est un accès OAuth limité, révocable, et traité côté serveur sécurisé.
+
+### Compte admin
+
+Un compte admin n'est pas indispensable pour la première version si l'application ne propose que des espaces personnels. Il deviendra utile quand il faudra gérer du support utilisateur, modérer des intégrations, consulter des métriques anonymisées, gérer des signalements ou piloter des offres payantes.
+
+## Catégories et icônes
+
+SubPilot propose davantage de catégories par défaut et permet de créer une catégorie personnalisée depuis le choix **Autre** : nom, courte icône texte et couleur.
+
+Pour éviter les risques liés aux marques et droits d'auteur, l'application utilise actuellement des icônes générées sous forme d'initiales stylisées plutôt que des logos officiels. Les vrais logos pourront être ajoutés plus tard seulement si l'application utilise une source autorisée ou les logos fournis explicitement par l'utilisateur/service.
 
 ## Ajouter les renouvellements au calendrier
 
