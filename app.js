@@ -4,7 +4,7 @@ const CUSTOM_CATEGORIES_KEY = "subpilot-custom-categories";
 const REMEMBERED_PROFILE_KEY = "subpilot-remembered-profile";
 const CALENDAR_REMINDER_DAYS = [7, 3, 1];
 const FIREBASE_SDK_VERSION = "12.7.0";
-const FIREBASE_CONFIG_VERSION = "23";
+const FIREBASE_CONFIG_VERSION = "25";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 const CALENDAR_ALERT_HOUR = 8;
@@ -295,9 +295,9 @@ function initializeFirebaseAuth() {
 }
 
 function loadFirebaseServices() {
-  return loadFirebaseConfigModule().then((configModule) => {
+  return import(`./firebase-config.js?v=${FIREBASE_CONFIG_VERSION}&t=${Date.now()}`).then((configModule) => {
     const config = configModule.firebaseConfig || {};
-    const configured = ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(config[key]));
+    const configured = isFirebaseConfigComplete(config);
     if (!configured) return { configured, config };
 
     return Promise.all([
@@ -308,17 +308,8 @@ function loadFirebaseServices() {
   });
 }
 
-function loadFirebaseConfigModule() {
-  const configUrl = `./firebase-config.js?v=${FIREBASE_CONFIG_VERSION}&t=${Date.now()}`;
-  return fetch(configUrl, { cache: "no-store" })
-    .then((response) => {
-      if (!response.ok) throw new Error("Configuration de connexion introuvable.");
-      return response.text();
-    })
-    .then((source) => {
-      const moduleUrl = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
-      return import(moduleUrl).finally(() => URL.revokeObjectURL(moduleUrl));
-    });
+function isFirebaseConfigComplete(config) {
+  return ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(config?.[key]));
 }
 
 function handleFirebaseUserChange(user) {
