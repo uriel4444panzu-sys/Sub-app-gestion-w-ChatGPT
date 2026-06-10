@@ -2,6 +2,8 @@ const STORAGE_KEY = "subpilot-subscriptions";
 const BUDGET_KEY = "subpilot-monthly-budget";
 const CUSTOM_CATEGORIES_KEY = "subpilot-custom-categories";
 const REMEMBERED_PROFILE_KEY = "subpilot-remembered-profile";
+const LOCAL_ACCOUNTS_KEY = "subpilot-local-accounts";
+const LOCAL_SESSION_KEY = "subpilot-local-session";
 const CALENDAR_REMINDER_DAYS = [7, 3, 1];
 const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
@@ -14,6 +16,7 @@ let deferredInstallPrompt = null;
 let firebaseState = {
   ready: false,
   configured: false,
+  localMode: false,
   user: null,
   profile: null,
   auth: null,
@@ -263,8 +266,7 @@ function initializeFirebaseAuth() {
   loadFirebaseServices()
     .then((services) => {
       if (!services.configured) {
-        firebaseState = { ...firebaseState, ready: true, configured: false, error: null };
-        renderAccountStatus("La connexion sécurisée n’est pas encore disponible. Réessayez après la publication de la configuration de connexion.");
+        enableLocalAuthMode(null);
         return;
       }
 
@@ -288,10 +290,25 @@ function initializeFirebaseAuth() {
       renderAccountStatus();
     })
     .catch((error) => {
-      firebaseState = { ...firebaseState, ready: true, configured: false, error };
-      accountStatus.textContent = `Connexion sécurisée indisponible : ${getFriendlyFirebaseError(error)}.`;
-      renderAccountStatus();
+      enableLocalAuthMode(error);
     });
+}
+
+// Mode de secours : quand Firebase n'est pas configuré (ou indisponible),
+// SubPilot reste utilisable avec des comptes stockés localement sur l'appareil.
+function enableLocalAuthMode(error) {
+  firebaseState = {
+    ...firebaseState,
+    ready: true,
+    configured: false,
+    localMode: true,
+    auth: null,
+    db: null,
+    modules: null,
+    error: error || null,
+  };
+  restoreLocalSession();
+  renderAccountStatus();
 }
 
 function loadFirebaseServices() {
@@ -667,9 +684,13 @@ function resetForm() {
   submitButton.textContent = "Ajouter l'abonnement";
 }
 
+function isCloudUser() {
+  return Boolean(firebaseState.configured && firebaseState.user);
+}
+
 function saveBudget() {
   monthlyBudget = Number(budgetInput.value) || 0;
-  if (firebaseState.user) {
+  if (isCloudUser()) {
     syncCloudData();
   } else {
     localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
@@ -690,7 +711,7 @@ function loadSubscriptions() {
 }
 
 function saveSubscriptions() {
-  if (firebaseState.user) {
+  if (isCloudUser()) {
     syncCloudData();
     return;
   }
@@ -1064,7 +1085,7 @@ function loadCustomCategories() {
 
 function saveCustomCategories(shouldSync = true) {
   const customCategories = categories.filter((category) => category.custom);
-  if (firebaseState.user) {
+  if (isCloudUser()) {
     if (shouldSync) syncCloudData();
     return;
   }
@@ -1155,6 +1176,11 @@ async function createFirebaseAccount(formData, statusTarget) {
     return;
   }
 
+  if (firebaseState.localMode) {
+    await createLocalAccount(formData, statusTarget);
+    return;
+  }
+
   const { createUserWithEmailAndPassword, updateProfile } = firebaseState.modules;
   statusTarget.textContent = "Création du compte…";
   try {
@@ -1177,6 +1203,11 @@ async function signInWithEmail(formData, statusTarget) {
     return;
   }
 
+  if (firebaseState.localMode) {
+    await signInLocally(formData, statusTarget);
+    return;
+  }
+
   const { signInWithEmailAndPassword } = firebaseState.modules;
   statusTarget.textContent = "Connexion…";
   try {
@@ -1190,6 +1221,11 @@ async function signInWithEmail(formData, statusTarget) {
 async function handleGoogleSignIn() {
   const statusTarget = authGate.hidden ? accountStatus : authStatus;
   if (!ensureFirebaseReady(false, statusTarget)) return;
+
+  if (firebaseState.localMode) {
+    statusTarget.textContent = "La connexion Google nécessite la configuration Firebase. Utilisez l'e-mail et le mot de passe pour le moment.";
+    return;
+  }
 
   const { signInWithPopup, provider } = firebaseState.modules;
   statusTarget.textContent = "Ouverture de Google…";
@@ -1210,6 +1246,11 @@ async function handlePasswordReset() {
     return;
   }
 
+  if (firebaseState.localMode) {
+    authStatus.textContent = "En mode local, le mot de passe ne peut pas être réinitialisé par e-mail. Recréez un compte si vous l'avez oublié.";
+    return;
+  }
+
   try {
     await firebaseState.modules.sendPasswordResetEmail(firebaseState.auth, email);
   } catch {
@@ -1221,6 +1262,15 @@ async function handlePasswordReset() {
 }
 
 async function handleSignOut() {
+  if (firebaseState.localMode) {
+    firebaseState.user = null;
+    firebaseState.profile = null;
+    localStorage.removeItem(LOCAL_SESSION_KEY);
+    clearDisplayedAccountData();
+    renderAccountStatus("Déconnecté. Vos données restent enregistrées sur cet appareil.");
+    return;
+  }
+
   if (!firebaseState.auth || !firebaseState.modules) return;
 
   await firebaseState.modules.signOut(firebaseState.auth);
@@ -1230,6 +1280,10 @@ async function handleSignOut() {
 
 function handleSyncNow() {
   if (!ensureFirebaseReady(true, accountStatus)) return;
+  if (firebaseState.localMode) {
+    renderAccountStatus("Vos données sont enregistrées sur cet appareil. Configurez Firebase pour synchroniser entre vos appareils.");
+    return;
+  }
   syncCloudData("Vos données sont à jour.");
 }
 
@@ -1345,6 +1399,136 @@ function loadRememberedProfile() {
   return parseJson(localStorage.getItem(REMEMBERED_PROFILE_KEY), null);
 }
 
+// --- Comptes locaux (mode sans Firebase) -------------------------------------
+
+function loadLocalAccounts() {
+  const accounts = parseJson(localStorage.getItem(LOCAL_ACCOUNTS_KEY), []);
+  return Array.isArray(accounts) ? accounts : [];
+}
+
+function saveLocalAccounts(accounts) {
+  localStorage.setItem(LOCAL_ACCOUNTS_KEY, JSON.stringify(accounts));
+}
+
+function generateLocalSalt() {
+  if (window.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+async function hashLocalPassword(password, salt) {
+  const text = `${salt}:${password}`;
+  if (window.crypto?.subtle) {
+    try {
+      const data = new TextEncoder().encode(text);
+      const digest = await window.crypto.subtle.digest("SHA-256", data);
+      return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    } catch {
+      // Repli ci-dessous si SubtleCrypto est indisponible (contexte non sécurisé).
+    }
+  }
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = (hash << 5) - hash + text.charCodeAt(index);
+    hash |= 0;
+  }
+  return `fallback-${hash}`;
+}
+
+function applyLocalSession(account, { reloadData = false } = {}) {
+  firebaseState.user = {
+    uid: account.uid,
+    email: account.email,
+    displayName: account.profile?.displayName || "",
+    photoURL: account.profile?.avatarDataUrl || account.profile?.photoURL || "",
+    providerData: [],
+    local: true,
+  };
+  firebaseState.profile = account.profile || null;
+  localStorage.setItem(LOCAL_SESSION_KEY, account.uid);
+  if (account.profile) {
+    rememberProfile(account.profile);
+    renderProfile(account.profile);
+  }
+  if (reloadData) applyAccountData(readLocalAppData());
+}
+
+function restoreLocalSession() {
+  const uid = localStorage.getItem(LOCAL_SESSION_KEY);
+  if (!uid) return;
+
+  const account = loadLocalAccounts().find((item) => item.uid === uid);
+  if (account) applyLocalSession(account);
+}
+
+async function createLocalAccount(formData, statusTarget) {
+  const accounts = loadLocalAccounts();
+  const email = formData.email.toLowerCase();
+  if (accounts.some((account) => account.email === email)) {
+    statusTarget.textContent = "Un compte existe déjà avec cet e-mail sur cet appareil. Utilisez Se connecter.";
+    return;
+  }
+
+  statusTarget.textContent = "Création du compte…";
+  const salt = generateLocalSalt();
+  const passwordHash = await hashLocalPassword(formData.password, salt);
+  const uid = `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const profile = {
+    uid,
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    displayName: `${formData.firstName} ${formData.lastName}`.trim(),
+    gender: formData.gender || "",
+    birthDate: formData.birthDate,
+    email,
+    provider: "local",
+    photoURL: "",
+    avatarDataUrl: "",
+    updatedAt: new Date().toISOString(),
+  };
+
+  accounts.push({ uid, email, salt, passwordHash, profile, createdAt: new Date().toISOString() });
+  saveLocalAccounts(accounts);
+  clearPasswordFields();
+  applyLocalSession({ uid, email, profile });
+  renderAccountStatus("Compte créé, bienvenue sur SubPilot. Vos données restent sur cet appareil.");
+}
+
+async function signInLocally(formData, statusTarget) {
+  const email = formData.email.toLowerCase();
+  const account = loadLocalAccounts().find((item) => item.email === email);
+  if (!account) {
+    statusTarget.textContent = "Aucun compte trouvé pour cet e-mail sur cet appareil. Créez d'abord un compte.";
+    return;
+  }
+
+  statusTarget.textContent = "Connexion…";
+  const passwordHash = await hashLocalPassword(formData.password, account.salt);
+  if (passwordHash !== account.passwordHash) {
+    statusTarget.textContent = "Mot de passe incorrect.";
+    return;
+  }
+
+  clearPasswordFields();
+  applyLocalSession(account, { reloadData: true });
+  renderAccountStatus(`Connecté : ${account.profile?.displayName || account.email}.`);
+}
+
+function persistLocalProfile(profile) {
+  const accounts = loadLocalAccounts();
+  const index = accounts.findIndex((account) => account.uid === profile.uid);
+  if (index >= 0) {
+    accounts[index].profile = { ...accounts[index].profile, ...profile };
+    saveLocalAccounts(accounts);
+  }
+  firebaseState.profile = profile;
+  rememberProfile(profile);
+  renderProfile(profile);
+}
+
 function handleQuickLogin() {
   const rememberedProfile = loadRememberedProfile();
   switchAuthMode("login");
@@ -1375,6 +1559,13 @@ async function handleProfileDetailsSubmit(event) {
     birthDate,
     updatedAt: new Date().toISOString(),
   };
+
+  if (firebaseState.localMode) {
+    if (displayName) firebaseState.user = { ...firebaseState.user, displayName };
+    persistLocalProfile(profile);
+    renderAccountStatus("Profil mis à jour.");
+    return;
+  }
 
   try {
     const { doc, setDoc, updateProfile } = firebaseState.modules;
@@ -1438,13 +1629,19 @@ function createAvatarDataUrl(file) {
 }
 
 async function updateProfileAvatar(avatarDataUrl) {
-  const { doc, setDoc } = firebaseState.modules;
   const profile = {
     ...(firebaseState.profile || createProfileFromFirebaseUser(firebaseState.user)),
     avatarDataUrl,
     updatedAt: new Date().toISOString(),
   };
 
+  if (firebaseState.localMode) {
+    firebaseState.user = { ...firebaseState.user, photoURL: avatarDataUrl };
+    persistLocalProfile(profile);
+    return;
+  }
+
+  const { doc, setDoc } = firebaseState.modules;
   await setDoc(doc(firebaseState.db, "users", firebaseState.user.uid, "profile", "details"), {
     avatarDataUrl,
     updatedAt: profile.updatedAt,
@@ -1560,11 +1757,18 @@ function switchAuthMode(mode) {
   document.querySelectorAll("[data-auth-panel]").forEach((panel) => {
     panel.hidden = panel.dataset.authPanel !== mode;
   });
-  authStatus.textContent = firebaseState.configured
-    ? mode === "signup"
-      ? "Créez votre compte sécurisé pour synchroniser SubPilot."
-      : "Connectez-vous pour retrouver vos abonnements."
-    : "Connexion sécurisée indisponible pour le moment.";
+  if (!firebaseState.configured && !firebaseState.localMode) {
+    authStatus.textContent = "Connexion sécurisée indisponible pour le moment.";
+    return;
+  }
+
+  if (mode === "signup") {
+    authStatus.textContent = firebaseState.localMode
+      ? "Créez votre compte pour démarrer. Vos données restent sur cet appareil."
+      : "Créez votre compte sécurisé pour synchroniser SubPilot.";
+  } else {
+    authStatus.textContent = "Connectez-vous pour retrouver vos abonnements.";
+  }
 }
 
 function ensureFirebaseReady(requireUser = false, statusTarget = accountStatus) {
@@ -1573,7 +1777,7 @@ function ensureFirebaseReady(requireUser = false, statusTarget = accountStatus) 
     return false;
   }
 
-  if (!firebaseState.configured) {
+  if (!firebaseState.configured && !firebaseState.localMode) {
     statusTarget.textContent = "Connexion sécurisée indisponible pour le moment. Publiez la configuration de connexion puis réessayez.";
     return false;
   }
@@ -1606,16 +1810,18 @@ function renderAccountStatus(message) {
   } else if (!firebaseState.ready) {
     accountStatus.textContent = "Chargement de la connexion sécurisée…";
     authStatus.textContent = "Chargement de la connexion sécurisée…";
-  } else if (!firebaseState.configured) {
-    accountStatus.textContent = `Connexion sécurisée indisponible pour le moment.${firebaseProblem}`;
-    authStatus.textContent = "Connexion sécurisée indisponible pour le moment. Réessayez après la prochaine mise à jour de l’application.";
   } else if (user) {
     accountStatus.textContent = `Connecté : ${profile?.displayName || user.displayName || user.email}. Vous pouvez modifier votre profil, gérer votre photo ou vous déconnecter ici.`;
     authStatus.textContent = "Connexion réussie.";
+  } else if (!firebaseState.configured && !firebaseState.localMode) {
+    accountStatus.textContent = `Connexion sécurisée indisponible pour le moment.${firebaseProblem}`;
+    authStatus.textContent = "Connexion sécurisée indisponible pour le moment. Réessayez après la prochaine mise à jour de l’application.";
   } else {
     accountStatus.textContent = "Connectez-vous pour accéder à SubPilot.";
     authStatus.textContent = pendingAuthMode === "signup"
-      ? "Créez votre compte sécurisé pour synchroniser SubPilot."
+      ? firebaseState.localMode
+        ? "Créez votre compte pour démarrer. Vos données restent sur cet appareil."
+        : "Créez votre compte sécurisé pour synchroniser SubPilot."
       : "Connectez-vous pour retrouver vos abonnements.";
   }
 
