@@ -1,0 +1,23 @@
+{
+  "name": "subpilot",
+  "version": "1.0.0",
+  "description": "PWA mobile-first pour gérer ses abonnements avec notifications Web Push.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "vapid:generate": "web-push generate-vapid-keys"
+  },
+  "keywords": [
+    "pwa",
+    "subscriptions",
+    "web-push",
+    "vapid"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2",
+    "web-push": "^3.6.7"
+  }
+}
