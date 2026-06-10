@@ -143,11 +143,11 @@ const profileLastName = document.querySelector("#profileLastName");
 const profileGender = document.querySelector("#profileGender");
 const profileBirthDate = document.querySelector("#profileBirthDate");
 const profileProvider = document.querySelector("#profileProvider");
+const profileAccountEmail = document.querySelector("#profileAccountEmail");
+const profileDetailsForm = document.querySelector("#profileDetailsForm");
 const profilePhotoStatus = document.querySelector("#profilePhotoStatus");
 const avatarFileInput = document.querySelector("#avatarFileInput");
 const avatarCameraInput = document.querySelector("#avatarCameraInput");
-const avatarUploadButton = document.querySelector("#avatarUploadButton");
-const avatarCameraButton = document.querySelector("#avatarCameraButton");
 const authGate = document.querySelector("#authGate");
 const appShell = document.querySelector("#appShell");
 const authStatus = document.querySelector("#authStatus");
@@ -187,8 +187,7 @@ mailImportConsent.addEventListener("change", updateMailImportStatus);
 signOutButton.addEventListener("click", handleSignOut);
 syncNowButton.addEventListener("click", handleSyncNow);
 quickLoginButton.addEventListener("click", handleQuickLogin);
-avatarUploadButton.addEventListener("click", () => avatarFileInput.click());
-avatarCameraButton.addEventListener("click", () => avatarCameraInput.click());
+profileDetailsForm.addEventListener("submit", handleProfileDetailsSubmit);
 avatarFileInput.addEventListener("change", handleAvatarSelection);
 avatarCameraInput.addEventListener("change", handleAvatarSelection);
 signupForm.addEventListener("submit", handleSignupSubmit);
@@ -354,7 +353,7 @@ async function loadCloudData() {
   }
 
   applyAccountData(cloudData);
-  renderAccountStatus(snapshot.exists() ? "Compte synchronisé avec le cloud." : "Compte connecté. Aucun abonnement cloud pour le moment.");
+  renderAccountStatus(snapshot.exists() ? "Vos informations sont à jour." : "Bienvenue, votre espace personnel est prêt.");
 }
 
 function readLocalAppData() {
@@ -1160,7 +1159,7 @@ async function createFirebaseAccount(formData, statusTarget) {
     if (displayName) await updateProfile(credential.user, { displayName });
     await saveUserProfile(credential.user, formData);
     clearPasswordFields();
-    await syncCloudData("Compte créé et synchronisé.");
+    await syncCloudData("Compte créé, bienvenue sur SubPilot.");
   } catch (error) {
     statusTarget.textContent = getFriendlyFirebaseError(error);
   }
@@ -1227,7 +1226,7 @@ async function handleSignOut() {
 
 function handleSyncNow() {
   if (!ensureFirebaseReady(true, accountStatus)) return;
-  syncCloudData("Synchronisation manuelle terminée.");
+  syncCloudData("Vos données sont à jour.");
 }
 
 async function loadUserProfile(user) {
@@ -1237,7 +1236,7 @@ async function loadUserProfile(user) {
   const { doc, getDoc, setDoc } = firebaseState.modules;
   const reference = doc(firebaseState.db, "users", user.uid, "profile", "details");
   const snapshot = await getDoc(reference);
-  if (snapshot.exists()) return { ...fallbackProfile, ...snapshot.data(), uid: user.uid };
+  if (snapshot.exists()) return mergeProfileData(fallbackProfile, snapshot.data());
 
   await setDoc(reference, fallbackProfile, { merge: true });
   return fallbackProfile;
@@ -1308,6 +1307,21 @@ function getProviderLabelFromUser(user) {
   return user?.providerData?.some((provider) => provider.providerId === "google.com") ? "google" : "password";
 }
 
+function mergeProfileData(fallbackProfile, storedProfile = {}) {
+  return {
+    ...fallbackProfile,
+    ...storedProfile,
+    uid: fallbackProfile.uid,
+    firstName: storedProfile.firstName || fallbackProfile.firstName || "",
+    lastName: storedProfile.lastName || fallbackProfile.lastName || "",
+    displayName: storedProfile.displayName || fallbackProfile.displayName || "Profil SubPilot",
+    email: storedProfile.email || fallbackProfile.email || "",
+    provider: storedProfile.provider || fallbackProfile.provider || "password",
+    photoURL: storedProfile.photoURL || fallbackProfile.photoURL || "",
+    avatarDataUrl: storedProfile.avatarDataUrl || "",
+  };
+}
+
 function rememberProfile(profile) {
   if (!profile) return;
   const safeProfile = {
@@ -1332,6 +1346,43 @@ function handleQuickLogin() {
   switchAuthMode("login");
   if (rememberedProfile?.email) document.querySelector("#loginEmail").value = rememberedProfile.email;
   document.querySelector("#loginPassword").focus();
+}
+
+async function handleProfileDetailsSubmit(event) {
+  event.preventDefault();
+  if (!ensureFirebaseReady(true, accountStatus)) return;
+
+  const firstName = profileFirstName.value.trim();
+  const lastName = profileLastName.value.trim();
+  const gender = profileGender.value;
+  const birthDate = profileBirthDate.value;
+  if (birthDate && !isAtLeastMinimumAge(birthDate)) {
+    accountStatus.textContent = "Vous devez avoir au moins 13 ans pour utiliser SubPilot.";
+    return;
+  }
+
+  const displayName = `${firstName} ${lastName}`.trim() || firebaseState.user.displayName || firebaseState.user.email;
+  const profile = {
+    ...(firebaseState.profile || createProfileFromFirebaseUser(firebaseState.user)),
+    firstName,
+    lastName,
+    displayName,
+    gender,
+    birthDate,
+    updatedAt: new Date().toISOString(),
+  };
+
+  try {
+    const { doc, setDoc, updateProfile } = firebaseState.modules;
+    if (displayName && updateProfile) await updateProfile(firebaseState.user, { displayName });
+    await setDoc(doc(firebaseState.db, "users", firebaseState.user.uid, "profile", "details"), profile, { merge: true });
+    firebaseState.profile = profile;
+    rememberProfile(profile);
+    renderProfile(profile);
+    renderAccountStatus("Profil mis à jour.");
+  } catch (error) {
+    accountStatus.textContent = getFriendlyFirebaseError(error);
+  }
 }
 
 async function handleAvatarSelection(event) {
@@ -1404,10 +1455,11 @@ function renderProfile(profile) {
   const displayName = safeProfile.displayName || `${safeProfile.firstName || ""} ${safeProfile.lastName || ""}`.trim() || "Profil SubPilot";
   profileName.textContent = displayName;
   profileEmail.textContent = safeProfile.email || "Adresse e-mail non disponible";
-  profileFirstName.textContent = safeProfile.firstName || "-";
-  profileLastName.textContent = safeProfile.lastName || "-";
-  profileGender.textContent = safeProfile.gender || "Préfère ne pas répondre";
-  profileBirthDate.textContent = safeProfile.birthDate ? formatExactDate(safeProfile.birthDate) : "-";
+  profileFirstName.value = safeProfile.firstName || "";
+  profileLastName.value = safeProfile.lastName || "";
+  profileGender.value = safeProfile.gender || "";
+  profileBirthDate.value = safeProfile.birthDate || "";
+  profileAccountEmail.textContent = safeProfile.email || "-";
   profileProvider.textContent = safeProfile.provider === "google" ? "Google" : "E-mail et mot de passe";
   renderAvatar(profileAvatar, safeProfile, "SP");
 }
@@ -1542,9 +1594,6 @@ function renderAccountStatus(message) {
   authGoogleButton.disabled = !firebaseState.configured;
   signOutButton.hidden = !user;
   syncNowButton.hidden = !user;
-  avatarUploadButton.disabled = !user;
-  avatarCameraButton.disabled = !user;
-
   if (profile) renderProfile(profile);
   renderAuthQuickProfile();
 
@@ -1558,7 +1607,7 @@ function renderAccountStatus(message) {
     accountStatus.textContent = `Firebase n'est pas encore configuré. Remplissez firebase-config.js, activez Email/Password et Google dans Firebase Authentication, puis publiez à nouveau.${firebaseProblem}`;
     authStatus.textContent = accountStatus.textContent;
   } else if (user) {
-    accountStatus.textContent = `Connecté : ${profile?.displayName || user.displayName || user.email}. Vos données sont synchronisées dans votre espace cloud.`;
+    accountStatus.textContent = `Connecté : ${profile?.displayName || user.displayName || user.email}. Vous pouvez modifier votre profil, gérer votre photo ou vous déconnecter ici.`;
     authStatus.textContent = "Connexion réussie.";
   } else {
     accountStatus.textContent = "Connectez-vous pour accéder à SubPilot.";

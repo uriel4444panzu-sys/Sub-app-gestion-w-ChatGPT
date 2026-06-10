@@ -1329,3 +1329,53 @@ textarea:focus {
     display: grid;
   }
 }
+
+.file-button {
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+}
+
+.delete-button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 900;
+}
+
+.profile-form {
+  display: grid;
+  gap: 14px;
+}
+
+.profile-note {
+  margin-top: -4px;
+}
+
+.profile-grid label,
+.profile-readonly {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.profile-readonly span {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.profile-readonly strong {
+  color: var(--ink);
+  font-size: 0.98rem;
+}
+
+.secondary-actions {
+  align-items: center;
+}

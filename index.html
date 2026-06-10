@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=20" />
+    <link rel="stylesheet" href="styles.css?v=21" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -440,10 +440,14 @@
             </div>
           </div>
           <div class="profile-actions">
-            <input id="avatarFileInput" type="file" accept="image/*" hidden />
-            <input id="avatarCameraInput" type="file" accept="image/*" capture="user" hidden />
-            <button type="button" class="ghost-button" id="avatarUploadButton">Choisir une photo</button>
-            <button type="button" class="ghost-button" id="avatarCameraButton">Prendre une photo</button>
+            <label class="ghost-button file-button">
+              Choisir une photo
+              <input id="avatarFileInput" class="visually-hidden" type="file" accept="image/*" />
+            </label>
+            <label class="ghost-button file-button">
+              Prendre une photo
+              <input id="avatarCameraInput" class="visually-hidden" type="file" accept="image/*" capture="user" />
+            </label>
             <button type="button" class="delete-button" id="signOutButton">Déconnexion</button>
           </div>
           <p id="profilePhotoStatus" class="helper-text status-text">Utilisez la galerie ou l'appareil photo ; le navigateur vous demandera l'autorisation avant d'ouvrir la caméra.</p>
@@ -452,33 +456,48 @@
         <section class="panel profile-details" aria-labelledby="profileDetailsTitle">
           <div class="section-heading tight">
             <div>
-              <p class="eyebrow">Informations</p>
-              <h3 id="profileDetailsTitle">Données du formulaire</h3>
+              <p class="eyebrow">Informations personnelles</p>
+              <h3 id="profileDetailsTitle">Mes informations</h3>
             </div>
           </div>
-          <dl class="profile-grid">
-            <div>
-              <dt>Prénom</dt>
-              <dd id="profileFirstName">-</dd>
+          <p class="helper-text profile-note">Complétez ou corrigez votre profil ici. Ces informations restent liées uniquement à votre compte SubPilot.</p>
+          <form class="profile-form" id="profileDetailsForm">
+            <div class="profile-grid">
+              <label>
+                Prénom
+                <input id="profileFirstName" type="text" autocomplete="given-name" />
+              </label>
+              <label>
+                Nom
+                <input id="profileLastName" type="text" autocomplete="family-name" />
+              </label>
+              <label>
+                Sexe
+                <select id="profileGender">
+                  <option value="">Préfère ne pas répondre</option>
+                  <option value="Homme">Homme</option>
+                  <option value="Femme">Femme</option>
+                  <option value="Autre">Autre</option>
+                </select>
+              </label>
+              <label>
+                Date de naissance
+                <input id="profileBirthDate" type="date" autocomplete="bday" />
+              </label>
+              <div class="profile-readonly">
+                <span>Adresse email</span>
+                <strong id="profileAccountEmail">-</strong>
+              </div>
+              <div class="profile-readonly">
+                <span>Méthode de connexion</span>
+                <strong id="profileProvider">-</strong>
+              </div>
             </div>
-            <div>
-              <dt>Nom</dt>
-              <dd id="profileLastName">-</dd>
+            <div class="profile-actions secondary-actions">
+              <button type="submit" class="primary-button small">Enregistrer mes infos</button>
+              <button type="button" class="ghost-button sync-button" id="syncNowButton">Synchroniser maintenant</button>
             </div>
-            <div>
-              <dt>Sexe</dt>
-              <dd id="profileGender">Préfère ne pas répondre</dd>
-            </div>
-            <div>
-              <dt>Date de naissance</dt>
-              <dd id="profileBirthDate">-</dd>
-            </div>
-            <div>
-              <dt>Méthode de connexion</dt>
-              <dd id="profileProvider">-</dd>
-            </div>
-          </dl>
-          <button type="button" class="ghost-button sync-button" id="syncNowButton">Synchroniser maintenant</button>
+          </form>
           <p id="accountStatus" class="helper-text status-text"></p>
         </section>
       </section>
@@ -491,6 +510,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=20"></script>
+    <script src="app.js?v=21"></script>
   </body>
 </html>

@@ -1,9 +1,9 @@
-const CACHE_NAME = "subpilot-v20";
+const CACHE_NAME = "subpilot-v21";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=20",
-  "./app.js?v=20",
+  "./styles.css?v=21",
+  "./app.js?v=21",
   "./manifest.webmanifest",
   "./assets/icon.svg",
   "./firebase-config.js",
