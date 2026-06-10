@@ -31,7 +31,7 @@ Puis ouvrez <http://localhost:8000> sur votre ordinateur ou votre mobile connect
 
 ## Comptes, Google et import e-mail
 
-SubPilot peut désormais utiliser de vrais comptes avec **Firebase Authentication** et synchroniser les données dans **Cloud Firestore**. Tant que `firebase-config.js` n'est pas rempli, l'application reste en mode local uniquement.
+SubPilot utilise de vrais comptes avec **Firebase Authentication** et synchronise les données dans **Cloud Firestore**. Une fois `firebase-config.js` rempli et publié, tout nouvel appareil doit passer par l’inscription, la connexion ou la carte de connexion rapide avant d’accéder à l’application.
 
 Des comptes individuels sont pertinents pour :
 

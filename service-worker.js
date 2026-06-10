@@ -1,12 +1,11 @@
-const CACHE_NAME = "subpilot-v21";
+const CACHE_NAME = "subpilot-v22";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=21",
-  "./app.js?v=21",
+  "./styles.css?v=22",
+  "./app.js?v=22",
   "./manifest.webmanifest",
   "./assets/icon.svg",
-  "./firebase-config.js",
 ];
 
 self.addEventListener("install", (event) => {
@@ -50,6 +49,11 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (!isSameOrigin) return;
+
+  if (requestUrl.pathname.endsWith("/firebase-config.js")) {
+    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {

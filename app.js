@@ -4,6 +4,7 @@ const CUSTOM_CATEGORIES_KEY = "subpilot-custom-categories";
 const REMEMBERED_PROFILE_KEY = "subpilot-remembered-profile";
 const CALENDAR_REMINDER_DAYS = [7, 3, 1];
 const FIREBASE_SDK_VERSION = "12.7.0";
+const FIREBASE_CONFIG_VERSION = "22";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 const CALENDAR_ALERT_HOUR = 8;
@@ -142,7 +143,6 @@ const profileFirstName = document.querySelector("#profileFirstName");
 const profileLastName = document.querySelector("#profileLastName");
 const profileGender = document.querySelector("#profileGender");
 const profileBirthDate = document.querySelector("#profileBirthDate");
-const profileProvider = document.querySelector("#profileProvider");
 const profileAccountEmail = document.querySelector("#profileAccountEmail");
 const profileDetailsForm = document.querySelector("#profileDetailsForm");
 const profilePhotoStatus = document.querySelector("#profilePhotoStatus");
@@ -264,7 +264,7 @@ function initializeFirebaseAuth() {
     .then((services) => {
       if (!services.configured) {
         firebaseState = { ...firebaseState, ready: true, configured: false, error: null };
-        renderAccountStatus();
+        renderAccountStatus("La connexion sécurisée n’est pas encore disponible. Réessayez après la publication de la configuration de connexion.");
         return;
       }
 
@@ -289,13 +289,13 @@ function initializeFirebaseAuth() {
     })
     .catch((error) => {
       firebaseState = { ...firebaseState, ready: true, configured: false, error };
-      accountStatus.textContent = `Firebase n'a pas pu démarrer : ${getFriendlyFirebaseError(error)}.`;
+      accountStatus.textContent = `Connexion sécurisée indisponible : ${getFriendlyFirebaseError(error)}.`;
       renderAccountStatus();
     });
 }
 
 function loadFirebaseServices() {
-  return import("./firebase-config.js").then((configModule) => {
+  return import(`./firebase-config.js?v=${FIREBASE_CONFIG_VERSION}`).then((configModule) => {
     const config = configModule.firebaseConfig || {};
     const configured = ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(config[key]));
     if (!configured) return { configured, config };
@@ -1460,13 +1460,12 @@ function renderProfile(profile) {
   profileGender.value = safeProfile.gender || "";
   profileBirthDate.value = safeProfile.birthDate || "";
   profileAccountEmail.textContent = safeProfile.email || "-";
-  profileProvider.textContent = safeProfile.provider === "google" ? "Google" : "E-mail et mot de passe";
   renderAvatar(profileAvatar, safeProfile, "SP");
 }
 
 function renderAuthQuickProfile() {
   const rememberedProfile = loadRememberedProfile();
-  const shouldShowQuickProfile = Boolean(rememberedProfile && !firebaseState.user && firebaseState.configured);
+  const shouldShowQuickProfile = Boolean(rememberedProfile && !firebaseState.user);
   authQuickProfile.hidden = !shouldShowQuickProfile;
   if (!shouldShowQuickProfile) return;
 
@@ -1561,17 +1560,17 @@ function switchAuthMode(mode) {
     ? mode === "signup"
       ? "Créez votre compte sécurisé pour synchroniser SubPilot."
       : "Connectez-vous pour retrouver vos abonnements."
-    : "Firebase n'est pas encore configuré.";
+    : "Connexion sécurisée indisponible pour le moment.";
 }
 
 function ensureFirebaseReady(requireUser = false, statusTarget = accountStatus) {
   if (!firebaseState.ready) {
-    statusTarget.textContent = "Firebase est encore en cours de chargement.";
+    statusTarget.textContent = "Connexion sécurisée en cours de chargement.";
     return false;
   }
 
   if (!firebaseState.configured) {
-    statusTarget.textContent = "Firebase n'est pas configuré : remplissez firebase-config.js avec la configuration Web de votre projet Firebase.";
+    statusTarget.textContent = "Connexion sécurisée indisponible pour le moment. Publiez la configuration de connexion puis réessayez.";
     return false;
   }
 
@@ -1587,7 +1586,7 @@ function renderAccountStatus(message) {
   const user = firebaseState.user;
   const profile = firebaseState.profile || (user ? createProfileFromFirebaseUser(user) : null);
   const firebaseProblem = firebaseState.error ? ` Erreur : ${getFriendlyFirebaseError(firebaseState.error)}` : "";
-  const shouldShowAuth = !firebaseState.ready || (firebaseState.configured && !user);
+  const shouldShowAuth = !firebaseState.ready || !user;
 
   authGate.hidden = !shouldShowAuth;
   appShell.hidden = shouldShowAuth;
@@ -1601,11 +1600,11 @@ function renderAccountStatus(message) {
     accountStatus.textContent = message;
     authStatus.textContent = message;
   } else if (!firebaseState.ready) {
-    accountStatus.textContent = "Chargement de Firebase…";
-    authStatus.textContent = "Chargement de Firebase…";
+    accountStatus.textContent = "Chargement de la connexion sécurisée…";
+    authStatus.textContent = "Chargement de la connexion sécurisée…";
   } else if (!firebaseState.configured) {
-    accountStatus.textContent = `Firebase n'est pas encore configuré. Remplissez firebase-config.js, activez Email/Password et Google dans Firebase Authentication, puis publiez à nouveau.${firebaseProblem}`;
-    authStatus.textContent = accountStatus.textContent;
+    accountStatus.textContent = `Connexion sécurisée indisponible pour le moment.${firebaseProblem}`;
+    authStatus.textContent = "Connexion sécurisée indisponible pour le moment. Réessayez après la prochaine mise à jour de l’application.";
   } else if (user) {
     accountStatus.textContent = `Connecté : ${profile?.displayName || user.displayName || user.email}. Vous pouvez modifier votre profil, gérer votre photo ou vous déconnecter ici.`;
     authStatus.textContent = "Connexion réussie.";
