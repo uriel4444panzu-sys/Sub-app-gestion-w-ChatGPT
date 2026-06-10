@@ -1,11 +1,12 @@
-const CACHE_NAME = "subpilot-v16";
+const CACHE_NAME = "subpilot-v18";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=16",
-  "./app.js?v=16",
+  "./styles.css?v=18",
+  "./app.js?v=18",
   "./manifest.webmanifest",
   "./assets/icon.svg",
+  "./firebase-config.js",
 ];
 
 self.addEventListener("install", (event) => {

@@ -1,13 +1,23 @@
 const STORAGE_KEY = "subpilot-subscriptions";
 const BUDGET_KEY = "subpilot-monthly-budget";
 const CUSTOM_CATEGORIES_KEY = "subpilot-custom-categories";
-const PROFILE_KEY = "subpilot-profile";
 const CALENDAR_REMINDER_DAYS = [7, 3, 1];
+const FIREBASE_SDK_VERSION = "12.7.0";
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 const CALENDAR_ALERT_HOUR = 8;
 const CALENDAR_EVENT_DURATION_MINUTES = 15;
 
 let deferredInstallPrompt = null;
+let firebaseState = {
+  ready: false,
+  configured: false,
+  user: null,
+  auth: null,
+  db: null,
+  modules: null,
+  error: null,
+};
+let syncInProgress = false;
 
 const defaultCategories = [
   { name: "Streaming", icon: "TV", color: "#7c3aed" },
@@ -110,10 +120,14 @@ const customCategoryPanel = document.querySelector("#customCategoryPanel");
 const customCategoryNameInput = document.querySelector("#customCategoryName");
 const customCategoryIconInput = document.querySelector("#customCategoryIcon");
 const customCategoryColorInput = document.querySelector("#customCategoryColor");
+const customIconButtons = document.querySelectorAll("[data-custom-icon]");
 const mailImportConsent = document.querySelector("#mailImportConsent");
 const mailImportStatus = document.querySelector("#mailImportStatus");
 const createAccountButton = document.querySelector("#createAccountButton");
+const emailSignInButton = document.querySelector("#emailSignInButton");
 const googleSignInButton = document.querySelector("#googleSignInButton");
+const signOutButton = document.querySelector("#signOutButton");
+const syncNowButton = document.querySelector("#syncNowButton");
 const accountStatus = document.querySelector("#accountStatus");
 
 const loadedSubscriptions = loadSubscriptions();
@@ -126,6 +140,7 @@ hydrateCategorySelect();
 renderCategoryLegend();
 renderPopularServices();
 renderAccountStatus();
+initializeFirebaseAuth();
 if (normalizedSubscriptions.changed) saveSubscriptions();
 
 form.addEventListener("submit", handleSubmit);
@@ -136,9 +151,17 @@ simulationPrice.addEventListener("input", renderBudget);
 simulationFrequency.addEventListener("change", renderBudget);
 installButton.addEventListener("click", installApp);
 categorySelect.addEventListener("change", handleCategoryChange);
+serviceIconInput.addEventListener("input", () => normalizeIconInput(serviceIconInput));
+customCategoryIconInput.addEventListener("input", () => normalizeIconInput(customCategoryIconInput));
+customIconButtons.forEach((button) => {
+  button.addEventListener("click", () => selectCustomIcon(button.dataset.customIcon));
+});
 mailImportConsent.addEventListener("change", updateMailImportStatus);
 createAccountButton.addEventListener("click", handleAccountCreate);
+emailSignInButton.addEventListener("click", handleEmailSignIn);
 googleSignInButton.addEventListener("click", handleGoogleSignIn);
+signOutButton.addEventListener("click", handleSignOut);
+syncNowButton.addEventListener("click", handleSyncNow);
 
 document.querySelectorAll("[data-tab]").forEach((button) => {
   button.addEventListener("click", () => switchTab(button.dataset.tab));
@@ -199,6 +222,126 @@ function registerServiceWorker() {
       installHelp.textContent = "L'installation nécessite une ouverture via localhost ou HTTPS.";
     });
   });
+}
+
+function initializeFirebaseAuth() {
+  loadFirebaseServices()
+    .then((services) => {
+      if (!services.configured) {
+        firebaseState = { ...firebaseState, ready: true, configured: false, error: null };
+        renderAccountStatus();
+        return;
+      }
+
+      const app = services.appModule.initializeApp(services.config);
+      const auth = services.authModule.getAuth(app);
+      const db = services.firestoreModule.getFirestore(app);
+      const provider = new services.authModule.GoogleAuthProvider();
+
+      firebaseState = {
+        ready: true,
+        configured: true,
+        user: null,
+        auth,
+        db,
+        modules: { ...services.authModule, ...services.firestoreModule, provider },
+        error: null,
+      };
+
+      services.authModule.onAuthStateChanged(auth, handleFirebaseUserChange);
+      renderAccountStatus();
+    })
+    .catch((error) => {
+      firebaseState = { ...firebaseState, ready: true, configured: false, error };
+      accountStatus.textContent = `Firebase n'a pas pu démarrer : ${getFriendlyFirebaseError(error)}.`;
+      renderAccountStatus();
+    });
+}
+
+function loadFirebaseServices() {
+  return import("./firebase-config.js").then((configModule) => {
+    const config = configModule.firebaseConfig || {};
+    const configured = ["apiKey", "authDomain", "projectId", "appId"].every((key) => Boolean(config[key]));
+    if (!configured) return { configured, config };
+
+    return Promise.all([
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`),
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`),
+      import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-firestore.js`),
+    ]).then(([appModule, authModule, firestoreModule]) => ({ configured, config, appModule, authModule, firestoreModule }));
+  });
+}
+
+function handleFirebaseUserChange(user) {
+  firebaseState.user = user;
+
+  if (!user) {
+    renderAccountStatus();
+    return;
+  }
+
+  loadCloudData().catch((error) => {
+    renderAccountStatus(getFriendlyFirebaseError(error));
+  });
+}
+
+async function loadCloudData() {
+  if (!firebaseState.configured || !firebaseState.user) return;
+
+  setAccountStatus("Synchronisation du compte en cours…");
+  const { doc, getDoc } = firebaseState.modules;
+  const reference = doc(firebaseState.db, "users", firebaseState.user.uid, "data", "app");
+  const snapshot = await getDoc(reference);
+
+  if (snapshot.exists()) {
+    const data = snapshot.data();
+    subscriptions = (data.subscriptions || []).map((item) => createSubscription(item));
+    monthlyBudget = Number(data.monthlyBudget) || monthlyBudget;
+    categories = [...defaultCategories, ...(data.customCategories || []).map((category) => ({
+      name: category.name,
+      icon: normalizeIconText(category.icon, getServiceInitials(category.name)),
+      color: normalizeColor(category.color),
+      custom: true,
+    }))];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
+    localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
+    saveCustomCategories(false);
+    hydrateCategorySelect();
+    renderCategoryLegend();
+    resetForm();
+    render();
+    renderAccountStatus("Compte synchronisé avec le cloud.");
+    return;
+  }
+
+  await syncCloudData("Compte créé : vos données locales ont été envoyées dans votre espace sécurisé.");
+}
+
+async function syncCloudData(successMessage = "Synchronisation terminée.") {
+  if (!firebaseState.configured || !firebaseState.user || syncInProgress) return;
+
+  syncInProgress = true;
+  setAccountStatus("Synchronisation en cours…");
+  const { doc, setDoc } = firebaseState.modules;
+  const reference = doc(firebaseState.db, "users", firebaseState.user.uid, "data", "app");
+
+  try {
+    await setDoc(reference, {
+      subscriptions,
+      monthlyBudget,
+      customCategories: categories.filter((category) => category.custom),
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
+    renderAccountStatus(successMessage);
+  } catch (error) {
+    renderAccountStatus(getFriendlyFirebaseError(error));
+  } finally {
+    syncInProgress = false;
+  }
+}
+
+function setAccountStatus(message) {
+  accountStatus.textContent = message;
 }
 
 function normalizeSubscriptions(items) {
@@ -420,6 +563,7 @@ function resetForm() {
   customCategoryNameInput.value = "";
   customCategoryIconInput.value = "";
   customCategoryColorInput.value = "#4f46e5";
+  updateCustomIconButtons();
   handleCategoryChange();
   document.querySelector("#priority").value = "keep";
   document.querySelector("#nextDate").value = getDateInDays(7);
@@ -429,6 +573,7 @@ function resetForm() {
 function saveBudget() {
   monthlyBudget = Number(budgetInput.value) || 0;
   localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
+  syncCloudData();
   renderInsights();
   renderBudget();
 }
@@ -446,6 +591,7 @@ function loadSubscriptions() {
 
 function saveSubscriptions() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
+  syncCloudData();
 }
 
 function loadBudget() {
@@ -760,7 +906,7 @@ function resolveSelectedCategory() {
 
   addCustomCategory({
     name: customName,
-    icon: customCategoryIconInput.value.trim() || getServiceInitials(customName),
+    icon: normalizeIconText(customCategoryIconInput.value, getServiceInitials(customName)),
     color: customCategoryColorInput.value || "#4f46e5",
   });
 
@@ -770,7 +916,7 @@ function resolveSelectedCategory() {
 function addCustomCategory(category) {
   const normalizedCategory = {
     name: category.name.trim(),
-    icon: normalizeIconText(category.icon || getServiceInitials(category.name)),
+    icon: normalizeIconText(category.icon, getServiceInitials(category.name)),
     color: normalizeColor(category.color),
     custom: true,
   };
@@ -795,7 +941,7 @@ function loadCustomCategories() {
   try {
     return (JSON.parse(localStorage.getItem(CUSTOM_CATEGORIES_KEY)) || []).map((category) => ({
       name: category.name,
-      icon: normalizeIconText(category.icon || getServiceInitials(category.name)),
+      icon: normalizeIconText(category.icon, getServiceInitials(category.name)),
       color: normalizeColor(category.color),
       custom: true,
     }));
@@ -804,13 +950,14 @@ function loadCustomCategories() {
   }
 }
 
-function saveCustomCategories() {
+function saveCustomCategories(shouldSync = true) {
   const customCategories = categories.filter((category) => category.custom);
   localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
+  if (shouldSync) syncCloudData();
 }
 
 function getSubscriptionIcon(subscription) {
-  return normalizeIconText(subscription.serviceIcon || getServiceInitials(subscription.name));
+  return normalizeIconText(subscription.serviceIcon, getServiceInitials(subscription.name));
 }
 
 function getSubscriptionIconColor(subscription) {
@@ -828,45 +975,178 @@ function getServiceInitials(value) {
     .toUpperCase() || "SP";
 }
 
-function normalizeIconText(value) {
-  return String(value || "SP").trim().slice(0, 3).toUpperCase();
+function normalizeIconText(value, fallback = "SP") {
+  const normalizedFallback = fallback === "" ? "" : String(fallback || "SP").trim().slice(0, 3).toUpperCase() || "SP";
+  const cleaned = String(value || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9€$+#♡]/g, "")
+    .slice(0, 3);
+
+  return cleaned || normalizedFallback;
 }
 
 function normalizeColor(value) {
   return /^#[0-9a-f]{6}$/i.test(value || "") ? value : "#4f46e5";
 }
 
-function updateMailImportStatus() {
-  mailImportStatus.textContent = mailImportConsent.checked
-    ? "Import e-mail demandé : il faudra le brancher à un vrai compte sécurisé avec OAuth Gmail/Outlook côté backend avant de lire des messages."
-    : "Aucun e-mail n'est lu sans autorisation explicite. Vous pouvez continuer à ajouter vos abonnements à la main.";
+function selectCustomIcon(icon) {
+  customCategoryIconInput.value = normalizeIconText(icon, getServiceInitials(customCategoryNameInput.value || "Autre"));
+  updateCustomIconButtons();
 }
 
-function handleAccountCreate() {
+function updateCustomIconButtons() {
+  customIconButtons.forEach((button) => {
+    button.classList.toggle("selected", normalizeIconText(button.dataset.customIcon) === normalizeIconText(customCategoryIconInput.value, ""));
+  });
+}
+
+function normalizeIconInput(input) {
+  const cursorPosition = input.selectionStart;
+  input.value = normalizeIconText(input.value, "");
+  input.setSelectionRange(Math.min(cursorPosition, input.value.length), Math.min(cursorPosition, input.value.length));
+  if (input === customCategoryIconInput) updateCustomIconButtons();
+}
+
+function updateMailImportStatus() {
+  if (!mailImportConsent.checked) {
+    mailImportStatus.textContent = "Aucun e-mail n'est lu sans autorisation explicite. Vous pouvez continuer à ajouter vos abonnements à la main.";
+    return;
+  }
+
+  mailImportStatus.textContent = firebaseState.user
+    ? "Compte connecté : l'import e-mail pourra être ajouté ensuite via OAuth Gmail/Outlook avec permissions minimales."
+    : "Connectez-vous d'abord : l'import e-mail devra ensuite passer par OAuth Gmail/Outlook avant de lire des messages.";
+}
+
+async function handleAccountCreate() {
+  if (!ensureFirebaseReady()) return;
+
   const name = document.querySelector("#accountName").value.trim();
   const email = document.querySelector("#accountEmail").value.trim();
   const password = document.querySelector("#accountPassword").value;
 
   if (!name || !email || !password) {
-    accountStatus.textContent = "Complétez le nom, l'e-mail et le mot de passe pour préparer la création de compte.";
+    accountStatus.textContent = "Complétez le nom, l'e-mail et le mot de passe pour créer le compte.";
     return;
   }
 
-  localStorage.setItem(PROFILE_KEY, JSON.stringify({ name, email, provider: "email", createdAt: new Date().toISOString() }));
-  accountStatus.textContent = "Profil local préparé. Pour de vrais comptes sécurisés, branchez cette interface à Firebase Auth, Supabase Auth ou un backend avec sessions chiffrées : SubPilot ne stocke pas le mot de passe en local.";
-  document.querySelector("#accountPassword").value = "";
+  const { createUserWithEmailAndPassword, updateProfile } = firebaseState.modules;
+  accountStatus.textContent = "Création du compte…";
+  try {
+    const credential = await createUserWithEmailAndPassword(firebaseState.auth, email, password);
+    if (name) await updateProfile(credential.user, { displayName: name });
+    document.querySelector("#accountPassword").value = "";
+    await syncCloudData("Compte créé et synchronisé.");
+  } catch (error) {
+    accountStatus.textContent = getFriendlyFirebaseError(error);
+  }
 }
 
-function handleGoogleSignIn() {
-  accountStatus.textContent = "Connexion Google prête côté interface. Elle nécessite une configuration OAuth sécurisée côté backend / fournisseur d'authentification avant activation en production.";
+async function handleEmailSignIn() {
+  if (!ensureFirebaseReady()) return;
+
+  const email = document.querySelector("#accountEmail").value.trim();
+  const password = document.querySelector("#accountPassword").value;
+
+  if (!email || !password) {
+    accountStatus.textContent = "Saisissez votre e-mail et votre mot de passe pour vous connecter.";
+    return;
+  }
+
+  const { signInWithEmailAndPassword } = firebaseState.modules;
+  accountStatus.textContent = "Connexion…";
+  try {
+    await signInWithEmailAndPassword(firebaseState.auth, email, password);
+    document.querySelector("#accountPassword").value = "";
+  } catch (error) {
+    accountStatus.textContent = getFriendlyFirebaseError(error);
+  }
 }
 
-function renderAccountStatus() {
-  const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || "null");
-  accountStatus.textContent = profile
-    ? `Profil local : ${profile.name} (${profile.email}). Les données restent sur cet appareil tant qu'un backend sécurisé n'est pas branché.`
-    : "Aucun compte connecté. Les comptes individuels nécessitent un backend sécurisé pour isoler réellement les espaces utilisateurs.";
+async function handleGoogleSignIn() {
+  if (!ensureFirebaseReady()) return;
+
+  const { signInWithPopup, provider } = firebaseState.modules;
+  accountStatus.textContent = "Ouverture de Google…";
+  try {
+    await signInWithPopup(firebaseState.auth, provider);
+  } catch (error) {
+    accountStatus.textContent = getFriendlyFirebaseError(error);
+  }
+}
+
+async function handleSignOut() {
+  if (!firebaseState.auth || !firebaseState.modules) return;
+
+  await firebaseState.modules.signOut(firebaseState.auth);
+  renderAccountStatus("Déconnecté. Les données locales restent disponibles sur cet appareil.");
+}
+
+function handleSyncNow() {
+  if (!ensureFirebaseReady(true)) return;
+  syncCloudData("Synchronisation manuelle terminée.");
+}
+
+function ensureFirebaseReady(requireUser = false) {
+  if (!firebaseState.ready) {
+    accountStatus.textContent = "Firebase est encore en cours de chargement.";
+    return false;
+  }
+
+  if (!firebaseState.configured) {
+    accountStatus.textContent = "Firebase n'est pas configuré : remplissez firebase-config.js avec la configuration Web de votre projet Firebase.";
+    return false;
+  }
+
+  if (requireUser && !firebaseState.user) {
+    accountStatus.textContent = "Connectez-vous avant de synchroniser.";
+    return false;
+  }
+
+  return true;
+}
+
+function renderAccountStatus(message) {
+  const user = firebaseState.user;
+  const firebaseProblem = firebaseState.error ? ` Erreur : ${getFriendlyFirebaseError(firebaseState.error)}` : "";
+
+  createAccountButton.disabled = !firebaseState.configured;
+  emailSignInButton.disabled = !firebaseState.configured;
+  googleSignInButton.disabled = !firebaseState.configured;
+  signOutButton.hidden = !user;
+  syncNowButton.hidden = !user;
+
+  if (message) {
+    accountStatus.textContent = message;
+  } else if (!firebaseState.ready) {
+    accountStatus.textContent = "Chargement de Firebase…";
+  } else if (!firebaseState.configured) {
+    accountStatus.textContent = `Firebase n'est pas encore configuré. Remplissez firebase-config.js, activez Email/Password et Google dans Firebase Authentication, puis publiez à nouveau.${firebaseProblem}`;
+  } else if (user) {
+    accountStatus.textContent = `Connecté : ${user.displayName || user.email}. Vos données sont synchronisées dans votre espace cloud.`;
+  } else {
+    accountStatus.textContent = "Firebase est prêt. Créez un compte ou connectez-vous avec Google pour synchroniser vos données.";
+  }
+
   updateMailImportStatus();
+}
+
+function getFriendlyFirebaseError(error) {
+  const code = error?.code || "";
+  const messages = {
+    "auth/email-already-in-use": "Cet e-mail possède déjà un compte. Utilisez Se connecter.",
+    "auth/invalid-email": "Adresse e-mail invalide.",
+    "auth/weak-password": "Mot de passe trop faible : utilisez au moins 6 caractères.",
+    "auth/user-not-found": "Aucun compte trouvé pour cet e-mail.",
+    "auth/wrong-password": "Mot de passe incorrect.",
+    "auth/invalid-credential": "Identifiants incorrects ou expirés.",
+    "auth/popup-closed-by-user": "Fenêtre Google fermée avant la fin de la connexion.",
+    "permission-denied": "Accès Firestore refusé : vérifiez les règles de sécurité.",
+  };
+
+  return messages[code] || error?.message || "Erreur inconnue";
 }
 
 function createSubscription(subscription) {
@@ -880,7 +1160,7 @@ function createSubscription(subscription) {
     currency: subscription.currency || "EUR",
     frequency: subscription.frequency || "monthly",
     category,
-    serviceIcon: normalizeIconText(subscription.serviceIcon || subscription.emoji || getServiceInitials(subscription.name)),
+    serviceIcon: normalizeIconText(subscription.serviceIcon || subscription.emoji, getServiceInitials(subscription.name)),
     nextDate: subscription.nextDate || getDateInDays(7),
     priority: subscription.priority || "keep",
     note: subscription.note || "",

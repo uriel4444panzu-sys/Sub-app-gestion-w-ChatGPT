@@ -1054,3 +1054,48 @@ textarea:focus {
     display: grid;
   }
 }
+
+.icon-picker {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.icon-picker::-webkit-scrollbar {
+  display: none;
+}
+
+.icon-picker button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #dbeafe;
+  border-radius: 15px;
+  background: #fff;
+  color: var(--primary-dark);
+  font-size: 0.82rem;
+  font-weight: 950;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.icon-picker button:hover,
+.icon-picker button.selected {
+  transform: translateY(-1px);
+  border-color: rgba(79, 70, 229, 0.45);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+}
+
+.custom-category-help {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.sync-button {
+  margin-top: 12px;
+}

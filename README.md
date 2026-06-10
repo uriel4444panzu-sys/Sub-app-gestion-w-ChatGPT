@@ -13,7 +13,7 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Bouton **Ajouter au calendrier** sur chaque abonnement pour télécharger un fichier `.ics` avec des événements distincts à J-7, J-3 et J-1.
 - Priorités d'action : à garder, à réévaluer ou à résilier.
 - Recherche par nom, catégorie ou priorité.
-- Sauvegarde locale dans le navigateur avec `localStorage`.
+- Sauvegarde locale dans le navigateur avec `localStorage`, et synchronisation cloud Firebase quand `firebase-config.js` est configuré.
 - Installation sur téléphone comme une PWA, avec icône SVG texte uniquement, mode plein écran `standalone` et cache hors connexion.
 
 ## Utilisation locale
@@ -28,7 +28,7 @@ Puis ouvrez <http://localhost:8000> sur votre ordinateur ou votre mobile connect
 
 ## Comptes, Google et import e-mail
 
-La version actuelle prépare l'interface de création de compte, de connexion Google et d'import automatique via e-mail, mais elle ne stocke pas de mots de passe dans la PWA statique. Pour une version réellement sécurisée, il faudra brancher l'application à un backend ou à un fournisseur d'authentification comme Firebase Auth ou Supabase Auth.
+SubPilot peut désormais utiliser de vrais comptes avec **Firebase Authentication** et synchroniser les données dans **Cloud Firestore**. Tant que `firebase-config.js` n'est pas rempli, l'application reste en mode local uniquement.
 
 Des comptes individuels sont pertinents pour :
 
@@ -36,6 +36,35 @@ Des comptes individuels sont pertinents pour :
 - sauvegarder ses données si le téléphone est changé ;
 - isoler strictement les données de chaque utilisateur ;
 - autoriser plus tard un import e-mail via OAuth Gmail/Outlook avec consentement explicite.
+
+### Configuration Firebase
+
+1. Créez un projet Firebase.
+2. Ajoutez une application Web dans la console Firebase.
+3. Copiez la configuration Web dans `firebase-config.js`.
+4. Activez **Authentication > Sign-in method > Email/Password**.
+5. Activez **Authentication > Sign-in method > Google** et ajoutez le domaine GitHub Pages dans les domaines autorisés.
+6. Activez **Firestore Database**.
+7. Publiez à nouveau l'application.
+
+Les données utilisateur sont stockées dans Firestore sous :
+
+```text
+users/<uid>/data/app
+```
+
+Exemple de règles Firestore minimales pour isoler chaque espace utilisateur :
+
+```text
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/data/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
 
 Le scrapping e-mail ne doit jamais lire une boîte mail sans autorisation. La bonne approche est un accès OAuth limité, révocable, et traité côté serveur sécurisé.
 
@@ -45,9 +74,9 @@ Un compte admin n'est pas indispensable pour la première version si l'applicati
 
 ## Catégories et icônes
 
-SubPilot propose davantage de catégories par défaut et permet de créer une catégorie personnalisée depuis le choix **Autre** : nom, courte icône texte et couleur.
+SubPilot propose davantage de catégories par défaut et permet de créer une catégorie personnalisée depuis le choix **Autre** : nom, sigle visuel court et couleur. L’utilisateur n’a pas besoin d’ouvrir un clavier emoji : il choisit une icône dans un petit sélecteur cohérent avec l’identité visuelle, ou saisit un sigle de 1 à 3 caractères.
 
-Pour éviter les risques liés aux marques et droits d'auteur, l'application utilise actuellement des icônes générées sous forme d'initiales stylisées plutôt que des logos officiels. Les vrais logos pourront être ajoutés plus tard seulement si l'application utilise une source autorisée ou les logos fournis explicitement par l'utilisateur/service.
+Pour éviter les risques liés aux marques et droits d'auteur, l'application utilise actuellement des icônes générées sous forme d'initiales/sigles stylisés plutôt que des emojis ou des logos officiels. Les vrais logos pourront être ajoutés plus tard seulement si l'application utilise une source autorisée ou les logos fournis explicitement par l'utilisateur/service.
 
 ## Ajouter les renouvellements au calendrier
 

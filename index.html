@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=16" />
+    <link rel="stylesheet" href="styles.css?v=18" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -187,8 +187,8 @@
                 <input id="name" name="name" type="text" placeholder="Netflix, salle de sport..." required />
               </label>
               <label>
-                Icône du service
-                <input id="serviceIcon" name="serviceIcon" type="text" maxlength="3" placeholder="NF, SP, AI..." />
+                Sigle du service
+                <input id="serviceIcon" name="serviceIcon" type="text" maxlength="3" inputmode="text" placeholder="NF, SP, AI..." />
               </label>
             </div>
             <div class="form-row">
@@ -226,13 +226,24 @@
                 <input id="customCategoryName" type="text" placeholder="Animaux, outils créatifs..." />
               </label>
               <label>
-                Icône
-                <input id="customCategoryIcon" type="text" maxlength="3" placeholder="AN" />
+                Icône visuelle
+                <input id="customCategoryIcon" type="text" maxlength="3" inputmode="text" placeholder="AN" />
               </label>
               <label>
                 Couleur
                 <input id="customCategoryColor" type="color" value="#4f46e5" />
               </label>
+              <div class="icon-picker" aria-label="Choisir une icône visuelle">
+                <button type="button" data-custom-icon="TV">TV</button>
+                <button type="button" data-custom-icon="AI">AI</button>
+                <button type="button" data-custom-icon="€">€</button>
+                <button type="button" data-custom-icon="5G">5G</button>
+                <button type="button" data-custom-icon="CL">CL</button>
+                <button type="button" data-custom-icon="GY">GY</button>
+                <button type="button" data-custom-icon="ED">ED</button>
+                <button type="button" data-custom-icon="+">+</button>
+              </div>
+              <p class="helper-text custom-category-help">Pas besoin de clavier emoji : choisissez un sigle court, une couleur et SubPilot le transforme en icône cohérente avec l'app.</p>
             </div>
             <div class="form-row">
               <label>
@@ -339,8 +350,8 @@
             </div>
           </div>
           <p class="helper-text">
-            Les comptes permettent de retrouver ses abonnements sur plusieurs appareils et d'isoler chaque espace utilisateur.
-            La création réelle doit être branchée à un backend sécurisé : SubPilot ne stocke pas les mots de passe dans cette PWA statique.
+            Les comptes Firebase permettent de retrouver ses abonnements sur plusieurs appareils et d'isoler chaque espace utilisateur.
+            Configurez Firebase dans <code>firebase-config.js</code>, puis créez un compte e-mail/mot de passe ou connectez-vous avec Google.
           </p>
           <div class="account-grid">
             <label>
@@ -358,19 +369,22 @@
           </div>
           <div class="account-actions">
             <button type="button" class="primary-button" id="createAccountButton">Créer mon compte</button>
+            <button type="button" class="ghost-button" id="emailSignInButton">Se connecter</button>
             <button type="button" class="google-button" id="googleSignInButton">Continuer avec Google</button>
+            <button type="button" class="delete-button" id="signOutButton" hidden>Déconnexion</button>
           </div>
           <p id="accountStatus" class="helper-text status-text"></p>
+          <button type="button" class="ghost-button sync-button" id="syncNowButton">Synchroniser maintenant</button>
         </section>
 
         <section class="panel security-panel" aria-labelledby="securityTitle">
           <p class="eyebrow">Sécurité</p>
           <h3 id="securityTitle">Ce qu'il faudra pour la version connectée</h3>
           <ul>
-            <li>Authentification avec sessions sécurisées ou fournisseur type Firebase/Supabase Auth.</li>
-            <li>Données séparées par identifiant utilisateur côté serveur.</li>
-            <li>Connexion Google via OAuth, sans jamais récupérer le mot de passe Google.</li>
-            <li>Accès e-mail uniquement après consentement explicite, avec permissions minimales.</li>
+            <li>Authentification Firebase avec e-mail/mot de passe ou Google.</li>
+            <li>Données stockées dans Firestore sous <code>users/&lt;uid&gt;/data/app</code>.</li>
+            <li>Règles Firestore à configurer pour que chaque utilisateur lise uniquement son document.</li>
+            <li>Accès e-mail futur uniquement après consentement explicite, avec permissions minimales.</li>
           </ul>
         </section>
       </section>
@@ -383,6 +397,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=16"></script>
+    <script src="app.js?v=18"></script>
   </body>
 </html>
