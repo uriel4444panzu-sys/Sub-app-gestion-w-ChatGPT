@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=19" />
+    <link rel="stylesheet" href="styles.css?v=20" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -27,6 +27,15 @@
           </div>
         </div>
         <p class="auth-intro">Connectez-vous pour retrouver vos abonnements, votre budget et vos catégories sur tous vos appareils.</p>
+
+        <article class="quick-profile" id="authQuickProfile" hidden>
+          <div class="profile-avatar small" id="authQuickAvatar">SP</div>
+          <div>
+            <strong id="authQuickName">Profil enregistré</strong>
+            <span id="authQuickEmail">Connexion rapide</span>
+          </div>
+          <button type="button" class="primary-button small" id="quickLoginButton">Connexion</button>
+        </article>
 
         <div class="auth-mode-toggle" role="tablist" aria-label="Choix du mode d'authentification">
           <button type="button" class="active" data-auth-mode="signup" aria-selected="true">Créer un compte</button>
@@ -417,54 +426,60 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">Espace personnel</p>
-            <h2 id="accountTitle">Compte & synchronisation</h2>
+            <h2 id="accountTitle">Mon profil</h2>
           </div>
         </div>
 
-        <section class="panel account-panel" aria-labelledby="accountFormTitle">
-          <div class="section-heading tight">
+        <section class="panel profile-panel" aria-labelledby="profileTitle">
+          <div class="profile-hero">
+            <div class="profile-avatar" id="profileAvatar">SP</div>
             <div>
-              <p class="eyebrow">Compte utilisateur</p>
-              <h3 id="accountFormTitle">Préparer un compte sécurisé</h3>
+              <p class="eyebrow">Compte connecté</p>
+              <h3 id="profileTitle"><span id="profileName">Profil SubPilot</span></h3>
+              <p id="profileEmail" class="helper-text">-</p>
             </div>
           </div>
-          <p class="helper-text">
-            Les comptes Firebase permettent de retrouver ses abonnements sur plusieurs appareils et d'isoler chaque espace utilisateur.
-            Configurez Firebase dans <code>firebase-config.js</code>, puis créez un compte e-mail/mot de passe ou connectez-vous avec Google.
-          </p>
-          <div class="account-grid">
-            <label>
-              Nom
-              <input id="accountName" type="text" autocomplete="name" placeholder="Votre prénom" />
-            </label>
-            <label>
-              E-mail
-              <input id="accountEmail" type="email" autocomplete="email" placeholder="vous@email.com" />
-            </label>
-            <label>
-              Mot de passe
-              <input id="accountPassword" type="password" autocomplete="new-password" placeholder="Jamais stocké localement" />
-            </label>
+          <div class="profile-actions">
+            <input id="avatarFileInput" type="file" accept="image/*" hidden />
+            <input id="avatarCameraInput" type="file" accept="image/*" capture="user" hidden />
+            <button type="button" class="ghost-button" id="avatarUploadButton">Choisir une photo</button>
+            <button type="button" class="ghost-button" id="avatarCameraButton">Prendre une photo</button>
+            <button type="button" class="delete-button" id="signOutButton">Déconnexion</button>
           </div>
-          <div class="account-actions">
-            <button type="button" class="primary-button" id="createAccountButton">Créer mon compte</button>
-            <button type="button" class="ghost-button" id="emailSignInButton">Se connecter</button>
-            <button type="button" class="google-button" id="googleSignInButton">Continuer avec Google</button>
-            <button type="button" class="delete-button" id="signOutButton" hidden>Déconnexion</button>
-          </div>
-          <p id="accountStatus" class="helper-text status-text"></p>
-          <button type="button" class="ghost-button sync-button" id="syncNowButton">Synchroniser maintenant</button>
+          <p id="profilePhotoStatus" class="helper-text status-text">Utilisez la galerie ou l'appareil photo ; le navigateur vous demandera l'autorisation avant d'ouvrir la caméra.</p>
         </section>
 
-        <section class="panel security-panel" aria-labelledby="securityTitle">
-          <p class="eyebrow">Sécurité</p>
-          <h3 id="securityTitle">Ce qu'il faudra pour la version connectée</h3>
-          <ul>
-            <li>Authentification Firebase avec e-mail/mot de passe ou Google.</li>
-            <li>Données stockées dans Firestore sous <code>users/&lt;uid&gt;/data/app</code>.</li>
-            <li>Règles Firestore à configurer pour que chaque utilisateur lise uniquement son document.</li>
-            <li>Accès e-mail futur uniquement après consentement explicite, avec permissions minimales.</li>
-          </ul>
+        <section class="panel profile-details" aria-labelledby="profileDetailsTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Informations</p>
+              <h3 id="profileDetailsTitle">Données du formulaire</h3>
+            </div>
+          </div>
+          <dl class="profile-grid">
+            <div>
+              <dt>Prénom</dt>
+              <dd id="profileFirstName">-</dd>
+            </div>
+            <div>
+              <dt>Nom</dt>
+              <dd id="profileLastName">-</dd>
+            </div>
+            <div>
+              <dt>Sexe</dt>
+              <dd id="profileGender">Préfère ne pas répondre</dd>
+            </div>
+            <div>
+              <dt>Date de naissance</dt>
+              <dd id="profileBirthDate">-</dd>
+            </div>
+            <div>
+              <dt>Méthode de connexion</dt>
+              <dd id="profileProvider">-</dd>
+            </div>
+          </dl>
+          <button type="button" class="ghost-button sync-button" id="syncNowButton">Synchroniser maintenant</button>
+          <p id="accountStatus" class="helper-text status-text"></p>
         </section>
       </section>
     </main>
@@ -476,6 +491,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=19"></script>
+    <script src="app.js?v=20"></script>
   </body>
 </html>

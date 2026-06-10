@@ -1,6 +1,7 @@
 const STORAGE_KEY = "subpilot-subscriptions";
 const BUDGET_KEY = "subpilot-monthly-budget";
 const CUSTOM_CATEGORIES_KEY = "subpilot-custom-categories";
+const REMEMBERED_PROFILE_KEY = "subpilot-remembered-profile";
 const CALENDAR_REMINDER_DAYS = [7, 3, 1];
 const FIREBASE_SDK_VERSION = "12.7.0";
 const MINIMUM_ACCOUNT_AGE = 13;
@@ -13,6 +14,7 @@ let firebaseState = {
   ready: false,
   configured: false,
   user: null,
+  profile: null,
   auth: null,
   db: null,
   modules: null,
@@ -125,12 +127,27 @@ const customCategoryColorInput = document.querySelector("#customCategoryColor");
 const customIconButtons = document.querySelectorAll("[data-custom-icon]");
 const mailImportConsent = document.querySelector("#mailImportConsent");
 const mailImportStatus = document.querySelector("#mailImportStatus");
-const createAccountButton = document.querySelector("#createAccountButton");
-const emailSignInButton = document.querySelector("#emailSignInButton");
-const googleSignInButton = document.querySelector("#googleSignInButton");
 const signOutButton = document.querySelector("#signOutButton");
 const syncNowButton = document.querySelector("#syncNowButton");
 const accountStatus = document.querySelector("#accountStatus");
+const authQuickProfile = document.querySelector("#authQuickProfile");
+const authQuickAvatar = document.querySelector("#authQuickAvatar");
+const authQuickName = document.querySelector("#authQuickName");
+const authQuickEmail = document.querySelector("#authQuickEmail");
+const quickLoginButton = document.querySelector("#quickLoginButton");
+const profileAvatar = document.querySelector("#profileAvatar");
+const profileName = document.querySelector("#profileName");
+const profileEmail = document.querySelector("#profileEmail");
+const profileFirstName = document.querySelector("#profileFirstName");
+const profileLastName = document.querySelector("#profileLastName");
+const profileGender = document.querySelector("#profileGender");
+const profileBirthDate = document.querySelector("#profileBirthDate");
+const profileProvider = document.querySelector("#profileProvider");
+const profilePhotoStatus = document.querySelector("#profilePhotoStatus");
+const avatarFileInput = document.querySelector("#avatarFileInput");
+const avatarCameraInput = document.querySelector("#avatarCameraInput");
+const avatarUploadButton = document.querySelector("#avatarUploadButton");
+const avatarCameraButton = document.querySelector("#avatarCameraButton");
 const authGate = document.querySelector("#authGate");
 const appShell = document.querySelector("#appShell");
 const authStatus = document.querySelector("#authStatus");
@@ -167,11 +184,13 @@ customIconButtons.forEach((button) => {
   button.addEventListener("click", () => selectCustomIcon(button.dataset.customIcon));
 });
 mailImportConsent.addEventListener("change", updateMailImportStatus);
-createAccountButton.addEventListener("click", handleAccountCreate);
-emailSignInButton.addEventListener("click", handleEmailSignIn);
-googleSignInButton.addEventListener("click", handleGoogleSignIn);
 signOutButton.addEventListener("click", handleSignOut);
 syncNowButton.addEventListener("click", handleSyncNow);
+quickLoginButton.addEventListener("click", handleQuickLogin);
+avatarUploadButton.addEventListener("click", () => avatarFileInput.click());
+avatarCameraButton.addEventListener("click", () => avatarCameraInput.click());
+avatarFileInput.addEventListener("change", handleAvatarSelection);
+avatarCameraInput.addEventListener("change", handleAvatarSelection);
 signupForm.addEventListener("submit", handleSignupSubmit);
 loginForm.addEventListener("submit", handleLoginSubmit);
 authGoogleButton.addEventListener("click", handleGoogleSignIn);
@@ -259,6 +278,7 @@ function initializeFirebaseAuth() {
         ready: true,
         configured: true,
         user: null,
+        profile: null,
         auth,
         db,
         modules: { ...services.authModule, ...services.firestoreModule, provider },
@@ -293,6 +313,7 @@ function handleFirebaseUserChange(user) {
   firebaseState.user = user;
 
   if (!user) {
+    firebaseState.profile = null;
     clearDisplayedAccountData();
     renderAccountStatus();
     return;
@@ -308,6 +329,11 @@ async function loadCloudData() {
 
   setAccountStatus("Synchronisation du compte en cours…");
   setAuthStatus("Connexion réussie, chargement de vos données…");
+  const profile = await loadUserProfile(firebaseState.user);
+  firebaseState.profile = profile;
+  rememberProfile(profile);
+  renderProfile(profile);
+
   const { doc, getDoc } = firebaseState.modules;
   const reference = doc(firebaseState.db, "users", firebaseState.user.uid, "data", "app");
   const snapshot = await getDoc(reference);
@@ -1117,14 +1143,6 @@ async function handleLoginSubmit(event) {
   await signInWithEmail(getLoginFormData(), authStatus);
 }
 
-async function handleAccountCreate() {
-  await createFirebaseAccount(getLegacyAccountFormData(), accountStatus);
-}
-
-async function handleEmailSignIn() {
-  await signInWithEmail(getLegacyLoginFormData(), accountStatus);
-}
-
 async function createFirebaseAccount(formData, statusTarget) {
   if (!ensureFirebaseReady(false, statusTarget)) return;
 
@@ -1212,9 +1230,23 @@ function handleSyncNow() {
   syncCloudData("Synchronisation manuelle terminée.");
 }
 
+async function loadUserProfile(user) {
+  const fallbackProfile = createProfileFromFirebaseUser(user);
+  if (!firebaseState.configured || !user) return fallbackProfile;
+
+  const { doc, getDoc, setDoc } = firebaseState.modules;
+  const reference = doc(firebaseState.db, "users", user.uid, "profile", "details");
+  const snapshot = await getDoc(reference);
+  if (snapshot.exists()) return { ...fallbackProfile, ...snapshot.data(), uid: user.uid };
+
+  await setDoc(reference, fallbackProfile, { merge: true });
+  return fallbackProfile;
+}
+
 async function saveUserProfile(user, formData) {
   const { doc, setDoc } = firebaseState.modules;
   const profile = {
+    uid: user.uid,
     firstName: formData.firstName,
     lastName: formData.lastName,
     displayName: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -1222,27 +1254,188 @@ async function saveUserProfile(user, formData) {
     birthDate: formData.birthDate,
     email: user.email,
     provider: "password",
+    photoURL: user.photoURL || "",
     updatedAt: new Date().toISOString(),
   };
 
   await setDoc(doc(firebaseState.db, "users", user.uid, "profile", "details"), profile, { merge: true });
+  firebaseState.profile = profile;
+  rememberProfile(profile);
+  renderProfile(profile);
+  return profile;
 }
 
 async function saveGoogleProfile(user) {
-  if (!user) return;
+  if (!user) return null;
 
   const { doc, setDoc } = firebaseState.modules;
-  const [firstName = "", ...lastNameParts] = (user.displayName || "").split(" ");
-  await setDoc(doc(firebaseState.db, "users", user.uid, "profile", "details"), {
+  const fallbackProfile = createProfileFromFirebaseUser(user, "google");
+  const currentProfile = await loadUserProfile(user);
+  const profile = {
+    ...fallbackProfile,
+    gender: currentProfile.gender || "",
+    birthDate: currentProfile.birthDate || "",
+    avatarDataUrl: currentProfile.avatarDataUrl || "",
+    updatedAt: new Date().toISOString(),
+  };
+
+  await setDoc(doc(firebaseState.db, "users", user.uid, "profile", "details"), profile, { merge: true });
+  firebaseState.profile = profile;
+  rememberProfile(profile);
+  renderProfile(profile);
+  return profile;
+}
+
+function createProfileFromFirebaseUser(user, provider = getProviderLabelFromUser(user)) {
+  const name = user.displayName || user.email?.split("@")[0] || "Utilisateur SubPilot";
+  const [firstName = "", ...lastNameParts] = name.split(" ");
+  return {
+    uid: user.uid,
     firstName,
     lastName: lastNameParts.join(" "),
-    displayName: user.displayName || user.email,
+    displayName: name,
     gender: "",
     birthDate: "",
-    email: user.email,
-    provider: "google",
+    email: user.email || "",
+    provider,
+    photoURL: user.photoURL || "",
+    avatarDataUrl: "",
     updatedAt: new Date().toISOString(),
+  };
+}
+
+function getProviderLabelFromUser(user) {
+  return user?.providerData?.some((provider) => provider.providerId === "google.com") ? "google" : "password";
+}
+
+function rememberProfile(profile) {
+  if (!profile) return;
+  const safeProfile = {
+    uid: profile.uid,
+    firstName: profile.firstName || "",
+    lastName: profile.lastName || "",
+    displayName: profile.displayName || `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
+    email: profile.email || "",
+    provider: profile.provider || "password",
+    photoURL: profile.photoURL || "",
+    avatarDataUrl: profile.avatarDataUrl || "",
+  };
+  localStorage.setItem(REMEMBERED_PROFILE_KEY, JSON.stringify(safeProfile));
+}
+
+function loadRememberedProfile() {
+  return parseJson(localStorage.getItem(REMEMBERED_PROFILE_KEY), null);
+}
+
+function handleQuickLogin() {
+  const rememberedProfile = loadRememberedProfile();
+  switchAuthMode("login");
+  if (rememberedProfile?.email) document.querySelector("#loginEmail").value = rememberedProfile.email;
+  document.querySelector("#loginPassword").focus();
+}
+
+async function handleAvatarSelection(event) {
+  const [file] = event.target.files || [];
+  event.target.value = "";
+  if (!file) return;
+  if (!firebaseState.user) {
+    profilePhotoStatus.textContent = "Connectez-vous pour modifier votre photo de profil.";
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    profilePhotoStatus.textContent = "Choisissez une image valide pour votre photo de profil.";
+    return;
+  }
+
+  profilePhotoStatus.textContent = "Préparation de la photo…";
+  try {
+    const avatarDataUrl = await createAvatarDataUrl(file);
+    await updateProfileAvatar(avatarDataUrl);
+    profilePhotoStatus.textContent = "Photo de profil mise à jour.";
+  } catch (error) {
+    profilePhotoStatus.textContent = `Impossible de mettre à jour la photo : ${getFriendlyFirebaseError(error)}.`;
+  }
+}
+
+function createAvatarDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("error", () => reject(new Error("Lecture de l'image impossible.")));
+    reader.addEventListener("load", () => {
+      const image = new Image();
+      image.addEventListener("error", () => reject(new Error("Image invalide.")));
+      image.addEventListener("load", () => {
+        const canvas = document.createElement("canvas");
+        const size = Math.min(320, image.width, image.height);
+        const sourceX = (image.width - size) / 2;
+        const sourceY = (image.height - size) / 2;
+        canvas.width = 320;
+        canvas.height = 320;
+        const context = canvas.getContext("2d");
+        context.drawImage(image, sourceX, sourceY, size, size, 0, 0, 320, 320);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      });
+      image.src = reader.result;
+    });
+    reader.readAsDataURL(file);
+  });
+}
+
+async function updateProfileAvatar(avatarDataUrl) {
+  const { doc, setDoc } = firebaseState.modules;
+  const profile = {
+    ...(firebaseState.profile || createProfileFromFirebaseUser(firebaseState.user)),
+    avatarDataUrl,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await setDoc(doc(firebaseState.db, "users", firebaseState.user.uid, "profile", "details"), {
+    avatarDataUrl,
+    updatedAt: profile.updatedAt,
   }, { merge: true });
+  firebaseState.profile = profile;
+  rememberProfile(profile);
+  renderProfile(profile);
+}
+
+function renderProfile(profile) {
+  const safeProfile = profile || createProfileFromFirebaseUser(firebaseState.user || { uid: "", email: "" });
+  const displayName = safeProfile.displayName || `${safeProfile.firstName || ""} ${safeProfile.lastName || ""}`.trim() || "Profil SubPilot";
+  profileName.textContent = displayName;
+  profileEmail.textContent = safeProfile.email || "Adresse e-mail non disponible";
+  profileFirstName.textContent = safeProfile.firstName || "-";
+  profileLastName.textContent = safeProfile.lastName || "-";
+  profileGender.textContent = safeProfile.gender || "Préfère ne pas répondre";
+  profileBirthDate.textContent = safeProfile.birthDate ? formatExactDate(safeProfile.birthDate) : "-";
+  profileProvider.textContent = safeProfile.provider === "google" ? "Google" : "E-mail et mot de passe";
+  renderAvatar(profileAvatar, safeProfile, "SP");
+}
+
+function renderAuthQuickProfile() {
+  const rememberedProfile = loadRememberedProfile();
+  const shouldShowQuickProfile = Boolean(rememberedProfile && !firebaseState.user && firebaseState.configured);
+  authQuickProfile.hidden = !shouldShowQuickProfile;
+  if (!shouldShowQuickProfile) return;
+
+  authQuickName.textContent = rememberedProfile.displayName || `${rememberedProfile.firstName || ""} ${rememberedProfile.lastName || ""}`.trim() || "Profil enregistré";
+  authQuickEmail.textContent = rememberedProfile.email || "Connexion rapide";
+  renderAvatar(authQuickAvatar, rememberedProfile, "SP");
+}
+
+function renderAvatar(element, profile, fallbackText) {
+  const image = profile?.avatarDataUrl || profile?.photoURL || "";
+  element.textContent = image ? "" : getProfileInitials(profile) || fallbackText;
+  element.classList.toggle("has-image", Boolean(image));
+  element.style.backgroundImage = image ? `url("${image}")` : "";
+}
+
+function getProfileInitials(profile) {
+  const first = profile?.firstName?.trim()?.[0] || "";
+  const last = profile?.lastName?.trim()?.[0] || "";
+  const initials = `${first}${last}`.toUpperCase();
+  if (initials) return initials;
+  return (profile?.displayName || profile?.email || "SP").slice(0, 2).toUpperCase();
 }
 
 function getSignupFormData() {
@@ -1261,29 +1454,6 @@ function getLoginFormData() {
   return {
     email: document.querySelector("#loginEmail").value.trim(),
     password: document.querySelector("#loginPassword").value,
-  };
-}
-
-function getLegacyAccountFormData() {
-  const fullName = document.querySelector("#accountName").value.trim();
-  const [firstName = "", ...lastNameParts] = fullName.split(" ");
-  const password = document.querySelector("#accountPassword").value;
-
-  return {
-    firstName,
-    lastName: lastNameParts.join(" ") || " ",
-    gender: "",
-    birthDate: getAdultFallbackBirthDate(),
-    email: document.querySelector("#accountEmail").value.trim(),
-    password,
-    passwordConfirm: password,
-  };
-}
-
-function getLegacyLoginFormData() {
-  return {
-    email: document.querySelector("#accountEmail").value.trim(),
-    password: document.querySelector("#accountPassword").value,
   };
 }
 
@@ -1319,7 +1489,7 @@ function getAdultFallbackBirthDate() {
 }
 
 function clearPasswordFields() {
-  ["#authPassword", "#authPasswordConfirm", "#loginPassword", "#accountPassword"].forEach((selector) => {
+  ["#authPassword", "#authPasswordConfirm", "#loginPassword"].forEach((selector) => {
     const input = document.querySelector(selector);
     if (input) input.value = "";
   });
@@ -1363,17 +1533,20 @@ function ensureFirebaseReady(requireUser = false, statusTarget = accountStatus) 
 
 function renderAccountStatus(message) {
   const user = firebaseState.user;
+  const profile = firebaseState.profile || (user ? createProfileFromFirebaseUser(user) : null);
   const firebaseProblem = firebaseState.error ? ` Erreur : ${getFriendlyFirebaseError(firebaseState.error)}` : "";
   const shouldShowAuth = !firebaseState.ready || (firebaseState.configured && !user);
 
   authGate.hidden = !shouldShowAuth;
   appShell.hidden = shouldShowAuth;
-  createAccountButton.disabled = !firebaseState.configured;
-  emailSignInButton.disabled = !firebaseState.configured;
-  googleSignInButton.disabled = !firebaseState.configured;
   authGoogleButton.disabled = !firebaseState.configured;
   signOutButton.hidden = !user;
   syncNowButton.hidden = !user;
+  avatarUploadButton.disabled = !user;
+  avatarCameraButton.disabled = !user;
+
+  if (profile) renderProfile(profile);
+  renderAuthQuickProfile();
 
   if (message) {
     accountStatus.textContent = message;
@@ -1385,7 +1558,7 @@ function renderAccountStatus(message) {
     accountStatus.textContent = `Firebase n'est pas encore configuré. Remplissez firebase-config.js, activez Email/Password et Google dans Firebase Authentication, puis publiez à nouveau.${firebaseProblem}`;
     authStatus.textContent = accountStatus.textContent;
   } else if (user) {
-    accountStatus.textContent = `Connecté : ${user.displayName || user.email}. Vos données sont synchronisées dans votre espace cloud.`;
+    accountStatus.textContent = `Connecté : ${profile?.displayName || user.displayName || user.email}. Vos données sont synchronisées dans votre espace cloud.`;
     authStatus.textContent = "Connexion réussie.";
   } else {
     accountStatus.textContent = "Connectez-vous pour accéder à SubPilot.";

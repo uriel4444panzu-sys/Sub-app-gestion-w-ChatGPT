@@ -14,6 +14,8 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Priorités d'action : à garder, à réévaluer ou à résilier.
 - Recherche par nom, catégorie ou priorité.
 - Page d’inscription/connexion au lancement avec création de compte, connexion e-mail/mot de passe, Google, mot de passe oublié et synchronisation Firebase.
+- Onglet **Compte** dédié au profil connecté : informations du formulaire, photo de profil modifiable depuis la galerie ou l’appareil photo, synchronisation manuelle et déconnexion.
+- Connexion rapide : SubPilot mémorise le dernier profil utilisé sur l’appareil pour afficher une carte avec photo, nom et bouton **Connexion** sans mélanger les données entre comptes.
 - Sauvegarde locale dans le navigateur avec `localStorage`, et synchronisation cloud Firebase quand `firebase-config.js` est configuré.
 - Installation sur téléphone comme une PWA, avec icône SVG texte uniquement, mode plein écran `standalone` et cache hors connexion.
 
@@ -44,13 +46,15 @@ Quand Firebase est configuré, SubPilot affiche d’abord une page d’accueil/a
 
 Le formulaire d’inscription demande : prénom, nom, sexe optionnel, date de naissance, e-mail, mot de passe et confirmation. SubPilot bloque l’inscription si l’utilisateur a moins de 13 ans ou si les mots de passe ne correspondent pas. Le mot de passe n’est jamais écrit en clair dans Firestore : il est géré par Firebase Authentication.
 
+Après connexion, l’onglet **Compte** n’affiche plus de formulaire secondaire : il sert de tableau de bord personnel avec prénom, nom, sexe, date de naissance, e-mail, méthode de connexion et photo de profil. Pour les comptes Google, SubPilot récupère le nom, l’e-mail et la photo fournis par Google quand ils sont disponibles ; les champs non fournis restent simplement vides ou “Préfère ne pas répondre”.
+
 Les profils sont enregistrés dans Firestore sous :
 
 ```text
 users/<uid>/profile/details
 ```
 
-Si des données locales existent sur l’appareil au moment de la connexion, SubPilot demande si l’utilisateur veut les importer dans le compte. En cas de refus, les données locales restent intactes et les données du compte connecté sont chargées séparément.
+Si des données locales existent sur l’appareil au moment de la connexion, SubPilot demande si l’utilisateur veut les importer dans le compte. En cas de refus, les données locales restent intactes et les données du compte connecté sont chargées séparément. Le dernier profil utilisé est aussi mémorisé localement dans `subpilot-remembered-profile` uniquement pour faciliter la reconnexion sur cet appareil ; aucun mot de passe n’est stocké.
 
 Le lien **Mot de passe oublié ?** utilise Firebase Auth pour envoyer un e-mail de réinitialisation et affiche toujours le message générique :
 
