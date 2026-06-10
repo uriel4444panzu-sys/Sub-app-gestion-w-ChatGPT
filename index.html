@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="SubPilot" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+    <title>SubPilot - Gestion d'abonnements</title>
+    <link rel="stylesheet" href="styles.css?v=22" />
+  </head>
+  <body>
+    <div class="ambient-orb orb-one" aria-hidden="true"></div>
+    <div class="ambient-orb orb-two" aria-hidden="true"></div>
+
+
+    <section class="auth-gate" id="authGate" aria-labelledby="authTitle">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <div class="app-mark" aria-hidden="true">✦</div>
+          <div>
+            <p class="eyebrow">Bienvenue sur</p>
+            <h1 id="authTitle">SubPilot</h1>
+          </div>
+        </div>
+        <p class="auth-intro">Connectez-vous pour retrouver vos abonnements, votre budget et vos catégories sur tous vos appareils.</p>
+
+        <article class="quick-profile" id="authQuickProfile" hidden>
+          <div class="profile-avatar small" id="authQuickAvatar">SP</div>
+          <div>
+            <strong id="authQuickName">Profil enregistré</strong>
+            <span id="authQuickEmail">Connexion rapide</span>
+          </div>
+          <button type="button" class="primary-button small" id="quickLoginButton">Connexion</button>
+        </article>
+
+        <div class="auth-mode-toggle" role="tablist" aria-label="Choix du mode d'authentification">
+          <button type="button" class="active" data-auth-mode="signup" aria-selected="true">Créer un compte</button>
+          <button type="button" data-auth-mode="login" aria-selected="false">Se connecter</button>
+        </div>
+
+        <form class="auth-form" id="signupForm" data-auth-panel="signup">
+          <div class="form-row">
+            <label>
+              Prénom
+              <input id="authFirstName" type="text" autocomplete="given-name" required />
+            </label>
+            <label>
+              Nom
+              <input id="authLastName" type="text" autocomplete="family-name" required />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>
+              Sexe
+              <select id="authGender">
+                <option value="">Préfère ne pas répondre</option>
+                <option value="Homme">Homme</option>
+                <option value="Femme">Femme</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </label>
+            <label>
+              Date de naissance
+              <input id="authBirthDate" type="date" autocomplete="bday" required />
+            </label>
+          </div>
+          <label>
+            Adresse email
+            <input id="authEmail" type="email" autocomplete="email" required />
+          </label>
+          <div class="form-row">
+            <label>
+              Mot de passe
+              <input id="authPassword" type="password" autocomplete="new-password" required />
+            </label>
+            <label>
+              Confirmation
+              <input id="authPasswordConfirm" type="password" autocomplete="new-password" required />
+            </label>
+          </div>
+          <button type="submit" class="primary-button">Créer mon compte</button>
+        </form>
+
+        <form class="auth-form" id="loginForm" data-auth-panel="login" hidden>
+          <label>
+            Adresse email
+            <input id="loginEmail" type="email" autocomplete="email" />
+          </label>
+          <label>
+            Mot de passe
+            <input id="loginPassword" type="password" autocomplete="current-password" />
+          </label>
+          <button type="submit" class="primary-button">Se connecter</button>
+          <button type="button" class="link-button" id="forgotPasswordButton">Mot de passe oublié ?</button>
+        </form>
+
+        <div class="auth-divider"><span>ou</span></div>
+        <button type="button" class="google-button full" id="authGoogleButton">Continuer avec Google</button>
+        <p id="authStatus" class="helper-text status-text">Chargement de l'authentification…</p>
+      </div>
+    </section>
+
+    <main class="app-shell" id="appShell" hidden>
+      <nav class="tab-bar" aria-label="Navigation principale">
+        <button class="tab-button active" type="button" data-tab="dashboard" aria-selected="true" aria-controls="dashboardPanel">
+          <span>⌁</span>
+          Tableau
+        </button>
+        <button class="tab-button" type="button" data-tab="subscriptions" aria-selected="false" aria-controls="subscriptionsPanel">
+          <span>◈</span>
+          Abonnements
+        </button>
+        <button class="tab-button add-tab" type="button" data-tab="add" aria-selected="false" aria-controls="addPanel">
+          <span>＋</span>
+          Ajouter
+        </button>
+        <button class="tab-button" type="button" data-tab="budget" aria-selected="false" aria-controls="budgetPanel">
+          <span>◌</span>
+          Budget
+        </button>
+        <button class="tab-button" type="button" data-tab="account" aria-selected="false" aria-controls="accountPanel">
+          <span>◎</span>
+          Compte
+        </button>
+      </nav>
+
+      <section class="tab-panel dashboard-panel active" id="dashboardPanel" data-panel="dashboard" aria-labelledby="dashboardTitle">
+        <div class="section-heading dashboard-heading">
+          <div>
+            <p class="eyebrow">Vue d'ensemble</p>
+            <h2 id="dashboardTitle">Tableau de bord</h2>
+          </div>
+          <button type="button" class="ghost-button" data-tab-target="add">Ajouter</button>
+        </div>
+
+      <header class="hero-card dashboard-hero" aria-labelledby="app-title">
+        <div class="brand-row">
+          <div class="app-mark" aria-hidden="true">✦</div>
+          <div>
+            <p class="eyebrow">Pilotage des abonnements</p>
+            <h1 id="app-title">SubPilot</h1>
+          </div>
+        </div>
+        <p class="hero-text">
+          Une vision claire, rapide et agréable de vos dépenses récurrentes — pensée pour une utilisation quotidienne sur mobile.
+        </p>
+        <div class="hero-metrics" aria-live="polite">
+          <div>
+            <span>Total mensuel</span>
+            <strong id="monthlyTotal">0,00 €</strong>
+          </div>
+          <div>
+            <span>Budget utilisé</span>
+            <strong id="budgetUsageHero">0%</strong>
+          </div>
+        </div>
+        <div class="install-card" id="installCard">
+          <div>
+            <p class="eyebrow">Application mobile</p>
+            <strong>Ajoutez SubPilot à votre écran d'accueil</strong>
+            <p id="installHelp">Installez l'app pour l'ouvrir comme une application classique, même hors connexion.</p>
+          </div>
+          <button type="button" class="install-button" id="installButton">Installer</button>
+        </div>
+      </header>
+
+        <section class="insights-grid" aria-label="Indicateurs principaux">
+          <article class="insight-card">
+            <span class="card-label">Annuel estimé</span>
+            <strong id="yearlyTotal">0,00 €</strong>
+          </article>
+          <article class="insight-card warning">
+            <span class="card-label">Prochain paiement</span>
+            <strong id="nextPayment">Aucun</strong>
+          </article>
+          <article class="insight-card">
+            <span class="card-label">Catégorie dominante</span>
+            <strong id="topCategory">-</strong>
+          </article>
+        </section>
+
+        <section class="panel compact-panel" aria-labelledby="compactListTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Résumé compact</p>
+              <h3 id="compactListTitle">Renouvellements à venir</h3>
+            </div>
+          </div>
+          <div id="compactSubscriptionList" class="compact-list"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="categoryTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Répartition</p>
+              <h3 id="categoryTitle">Où part votre budget ?</h3>
+            </div>
+          </div>
+          <div id="categoryBreakdown" class="category-breakdown"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="subscriptionsPanel" data-panel="subscriptions" hidden aria-labelledby="subscriptionsTitle">
+        <div class="section-heading list-heading">
+          <div>
+            <p class="eyebrow">Gestion</p>
+            <h2 id="subscriptionsTitle">Tous les abonnements</h2>
+          </div>
+          <label class="search-label">
+            <span>Rechercher</span>
+            <input id="searchInput" type="search" placeholder="Nom, catégorie, priorité" />
+          </label>
+        </div>
+        <section class="panel calendar-help" aria-labelledby="calendarHelpTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Calendrier</p>
+              <h3 id="calendarHelpTitle">Ajouter les renouvellements au calendrier</h3>
+            </div>
+          </div>
+          <p>
+            Pour chaque abonnement, vous pouvez ajouter des événements à votre calendrier afin de recevoir des rappels avant le renouvellement.
+            SubPilot prépare automatiquement des rappels 7 jours avant, 3 jours avant et 1 jour avant, à 08:00.
+          </p>
+          <p class="calendar-format">Exemple : <code>Netflix se renouvelle dans 3 jours - 13,49 €</code>.</p>
+        </section>
+        <div class="category-legend" id="categoryLegend" aria-label="Légende des catégories"></div>
+        <div id="subscriptionList" class="subscription-list"></div>
+      </section>
+
+      <section class="tab-panel" id="addPanel" data-panel="add" hidden aria-labelledby="addTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Ajout guidé</p>
+            <h2 id="addTitle">Ajouter un abonnement</h2>
+          </div>
+          <button type="button" class="ghost-button" id="resetButton">Réinitialiser</button>
+        </div>
+
+        <section class="panel suggestions-panel" aria-labelledby="popularTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Suggestions populaires</p>
+              <h3 id="popularTitle">Démarrer plus vite</h3>
+            </div>
+          </div>
+          <div id="popularServices" class="popular-services"></div>
+        </section>
+
+        <section class="panel mail-import-card" aria-labelledby="mailImportTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Automatisation</p>
+              <h3 id="mailImportTitle">Ajouter depuis mes e-mails</h3>
+            </div>
+          </div>
+          <label class="toggle-row">
+            <input id="mailImportConsent" type="checkbox" />
+            <span>Je souhaite autoriser SubPilot à rechercher mes abonnements dans mes e-mails quand mon compte sécurisé sera connecté.</span>
+          </label>
+          <p id="mailImportStatus" class="helper-text"></p>
+        </section>
+
+        <section class="panel" aria-labelledby="formTitle">
+          <h3 class="visually-hidden" id="formTitle">Formulaire d'abonnement</h3>
+          <form id="subscriptionForm" class="subscription-form">
+            <input type="hidden" id="subscriptionId" />
+            <div class="form-row">
+              <label>
+                Nom
+                <input id="name" name="name" type="text" placeholder="Netflix, salle de sport..." required />
+              </label>
+              <label>
+                Sigle du service
+                <input id="serviceIcon" name="serviceIcon" type="text" maxlength="3" inputmode="text" placeholder="NF, SP, AI..." />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Prix
+                <input id="price" name="price" type="number" min="0" step="0.01" placeholder="12.99" required />
+              </label>
+              <label>
+                Devise
+                <select id="currency" name="currency">
+                  <option value="EUR">€ EUR</option>
+                  <option value="USD">$ USD</option>
+                  <option value="GBP">£ GBP</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Fréquence
+                <select id="frequency" name="frequency">
+                  <option value="monthly">Mensuel</option>
+                  <option value="yearly">Annuel</option>
+                  <option value="weekly">Hebdomadaire</option>
+                  <option value="quarterly">Trimestriel</option>
+                </select>
+              </label>
+              <label>
+                Catégorie
+                <select id="category" name="category"></select>
+              </label>
+            </div>
+            <div class="custom-category-panel" id="customCategoryPanel" hidden>
+              <label>
+                Nom de la catégorie
+                <input id="customCategoryName" type="text" placeholder="Animaux, outils créatifs..." />
+              </label>
+              <label>
+                Icône visuelle
+                <input id="customCategoryIcon" type="text" maxlength="3" inputmode="text" placeholder="AN" />
+              </label>
+              <label>
+                Couleur
+                <input id="customCategoryColor" type="color" value="#4f46e5" />
+              </label>
+              <div class="icon-picker" aria-label="Choisir une icône visuelle">
+                <button type="button" data-custom-icon="TV">TV</button>
+                <button type="button" data-custom-icon="AI">AI</button>
+                <button type="button" data-custom-icon="€">€</button>
+                <button type="button" data-custom-icon="5G">5G</button>
+                <button type="button" data-custom-icon="CL">CL</button>
+                <button type="button" data-custom-icon="GY">GY</button>
+                <button type="button" data-custom-icon="ED">ED</button>
+                <button type="button" data-custom-icon="+">+</button>
+              </div>
+              <p class="helper-text custom-category-help">Pas besoin de clavier emoji : choisissez un sigle court, une couleur et SubPilot le transforme en icône cohérente avec l'app.</p>
+            </div>
+            <div class="form-row">
+              <label>
+                Prochain paiement
+                <input id="nextDate" name="nextDate" type="date" required />
+              </label>
+              <label>
+                Priorité
+                <select id="priority" name="priority">
+                  <option value="keep">À garder</option>
+                  <option value="review">À réévaluer</option>
+                  <option value="cancel">À résilier</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Note
+              <textarea id="note" name="note" rows="3" placeholder="Pourquoi je le paie ? Utilisé par qui ?"></textarea>
+            </label>
+            <button type="submit" class="primary-button" id="submitButton">Ajouter l'abonnement</button>
+          </form>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="budgetPanel" data-panel="budget" hidden aria-labelledby="budgetTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Cap financier</p>
+            <h2 id="budgetTitle">Budget abonnements</h2>
+          </div>
+        </div>
+
+        <section class="budget-layout">
+          <article class="panel budget-card">
+            <label>
+              Budget mensuel souhaité
+              <div class="budget-input-row">
+                <input id="budgetInput" type="number" min="0" step="1" placeholder="120" />
+                <button type="button" class="primary-button small" id="saveBudgetButton">Sauver</button>
+              </div>
+            </label>
+            <div class="budget-visual" aria-label="Graphique de budget">
+              <div class="donut" id="budgetDonut" style="--value: 0%; --status-color: #14b8a6">
+                <span id="budgetPercent">0%</span>
+              </div>
+              <div class="budget-copy">
+                <strong id="budgetStatus">Définissez votre budget</strong>
+                <p id="budgetText">Ajoutez un plafond pour visualiser la place prise par vos abonnements.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel simulator-card" aria-labelledby="simulatorTitle">
+            <div class="section-heading tight">
+              <div>
+                <p class="eyebrow">Avant de souscrire</p>
+                <h3 id="simulatorTitle">Simulateur</h3>
+              </div>
+            </div>
+            <div class="simulator-grid">
+              <label>
+                Prix théorique
+                <input id="simulationPrice" type="number" min="0" step="0.01" placeholder="9.99" />
+              </label>
+              <label>
+                Fréquence
+                <select id="simulationFrequency">
+                  <option value="monthly">Mensuel</option>
+                  <option value="yearly">Annuel</option>
+                  <option value="weekly">Hebdomadaire</option>
+                  <option value="quarterly">Trimestriel</option>
+                </select>
+              </label>
+            </div>
+            <div class="simulation-visual" aria-label="Graphique de simulation">
+              <div class="donut simulator-donut" id="simulationDonut" style="--value: 0%; --status-color: #14b8a6">
+                <span id="simulationPercent">0%</span>
+              </div>
+              <div class="simulation-caption">
+                <strong id="simulationCaptionTitle">Impact estimé</strong>
+                <p id="simulationCaptionText">Le graphique montrera la part du budget après ajout théorique.</p>
+              </div>
+            </div>
+            <div class="simulation-result" id="simulationResult">
+              Saisissez un prix pour voir son impact sur votre budget.
+            </div>
+          </article>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="accountPanel" data-panel="account" hidden aria-labelledby="accountTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Espace personnel</p>
+            <h2 id="accountTitle">Mon profil</h2>
+          </div>
+        </div>
+
+        <section class="panel profile-panel" aria-labelledby="profileTitle">
+          <div class="profile-hero">
+            <div class="profile-avatar" id="profileAvatar">SP</div>
+            <div>
+              <p class="eyebrow">Compte connecté</p>
+              <h3 id="profileTitle"><span id="profileName">Profil SubPilot</span></h3>
+              <p id="profileEmail" class="helper-text">-</p>
+            </div>
+          </div>
+          <div class="profile-actions">
+            <label class="ghost-button file-button">
+              Choisir une photo
+              <input id="avatarFileInput" class="visually-hidden" type="file" accept="image/*" />
+            </label>
+            <label class="ghost-button file-button">
+              Prendre une photo
+              <input id="avatarCameraInput" class="visually-hidden" type="file" accept="image/*" capture="user" />
+            </label>
+            <button type="button" class="delete-button" id="signOutButton">Déconnexion</button>
+          </div>
+          <p id="profilePhotoStatus" class="helper-text status-text">Utilisez la galerie ou l'appareil photo ; le navigateur vous demandera l'autorisation avant d'ouvrir la caméra.</p>
+        </section>
+
+        <section class="panel profile-details" aria-labelledby="profileDetailsTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Informations personnelles</p>
+              <h3 id="profileDetailsTitle">Mes informations</h3>
+            </div>
+          </div>
+          <p class="helper-text profile-note">Complétez ou corrigez votre profil ici. Ces informations restent liées uniquement à votre compte SubPilot.</p>
+          <form class="profile-form" id="profileDetailsForm">
+            <div class="profile-grid">
+              <label>
+                Prénom
+                <input id="profileFirstName" type="text" autocomplete="given-name" />
+              </label>
+              <label>
+                Nom
+                <input id="profileLastName" type="text" autocomplete="family-name" />
+              </label>
+              <label>
+                Sexe
+                <select id="profileGender">
+                  <option value="">Préfère ne pas répondre</option>
+                  <option value="Homme">Homme</option>
+                  <option value="Femme">Femme</option>
+                  <option value="Autre">Autre</option>
+                </select>
+              </label>
+              <label>
+                Date de naissance
+                <input id="profileBirthDate" type="date" autocomplete="bday" />
+              </label>
+              <div class="profile-readonly">
+                <span>Adresse email</span>
+                <strong id="profileAccountEmail">-</strong>
+              </div>
+            </div>
+            <div class="profile-actions secondary-actions">
+              <button type="submit" class="primary-button small">Enregistrer mes infos</button>
+              <button type="button" class="ghost-button sync-button" id="syncNowButton">Synchroniser maintenant</button>
+            </div>
+          </form>
+          <p id="accountStatus" class="helper-text status-text"></p>
+        </section>
+      </section>
+    </main>
+
+    <template id="emptyStateTemplate">
+      <article class="empty-state">
+        <strong>Aucun abonnement trouvé</strong>
+        <p>Ajoutez votre premier abonnement pour visualiser vos dépenses et vos alertes.</p>
+      </article>
+    </template>
+
+    <script src="app.js?v=22"></script>
+  </body>
+</html>
