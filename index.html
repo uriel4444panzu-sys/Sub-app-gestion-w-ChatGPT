@@ -10,13 +10,92 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=18" />
+    <link rel="stylesheet" href="styles.css?v=19" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
     <div class="ambient-orb orb-two" aria-hidden="true"></div>
 
-    <main class="app-shell">
+
+    <section class="auth-gate" id="authGate" aria-labelledby="authTitle">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <div class="app-mark" aria-hidden="true">✦</div>
+          <div>
+            <p class="eyebrow">Bienvenue sur</p>
+            <h1 id="authTitle">SubPilot</h1>
+          </div>
+        </div>
+        <p class="auth-intro">Connectez-vous pour retrouver vos abonnements, votre budget et vos catégories sur tous vos appareils.</p>
+
+        <div class="auth-mode-toggle" role="tablist" aria-label="Choix du mode d'authentification">
+          <button type="button" class="active" data-auth-mode="signup" aria-selected="true">Créer un compte</button>
+          <button type="button" data-auth-mode="login" aria-selected="false">Se connecter</button>
+        </div>
+
+        <form class="auth-form" id="signupForm" data-auth-panel="signup">
+          <div class="form-row">
+            <label>
+              Prénom
+              <input id="authFirstName" type="text" autocomplete="given-name" required />
+            </label>
+            <label>
+              Nom
+              <input id="authLastName" type="text" autocomplete="family-name" required />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>
+              Sexe
+              <select id="authGender">
+                <option value="">Préfère ne pas répondre</option>
+                <option value="Homme">Homme</option>
+                <option value="Femme">Femme</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </label>
+            <label>
+              Date de naissance
+              <input id="authBirthDate" type="date" autocomplete="bday" required />
+            </label>
+          </div>
+          <label>
+            Adresse email
+            <input id="authEmail" type="email" autocomplete="email" required />
+          </label>
+          <div class="form-row">
+            <label>
+              Mot de passe
+              <input id="authPassword" type="password" autocomplete="new-password" required />
+            </label>
+            <label>
+              Confirmation
+              <input id="authPasswordConfirm" type="password" autocomplete="new-password" required />
+            </label>
+          </div>
+          <button type="submit" class="primary-button">Créer mon compte</button>
+        </form>
+
+        <form class="auth-form" id="loginForm" data-auth-panel="login" hidden>
+          <label>
+            Adresse email
+            <input id="loginEmail" type="email" autocomplete="email" />
+          </label>
+          <label>
+            Mot de passe
+            <input id="loginPassword" type="password" autocomplete="current-password" />
+          </label>
+          <button type="submit" class="primary-button">Se connecter</button>
+          <button type="button" class="link-button" id="forgotPasswordButton">Mot de passe oublié ?</button>
+        </form>
+
+        <div class="auth-divider"><span>ou</span></div>
+        <button type="button" class="google-button full" id="authGoogleButton">Continuer avec Google</button>
+        <p id="authStatus" class="helper-text status-text">Chargement de l'authentification…</p>
+      </div>
+    </section>
+
+    <main class="app-shell" id="appShell" hidden>
       <nav class="tab-bar" aria-label="Navigation principale">
         <button class="tab-button active" type="button" data-tab="dashboard" aria-selected="true" aria-controls="dashboardPanel">
           <span>⌁</span>
@@ -397,6 +476,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=18"></script>
+    <script src="app.js?v=19"></script>
   </body>
 </html>

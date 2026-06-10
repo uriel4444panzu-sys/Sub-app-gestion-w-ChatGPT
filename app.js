@@ -3,6 +3,7 @@ const BUDGET_KEY = "subpilot-monthly-budget";
 const CUSTOM_CATEGORIES_KEY = "subpilot-custom-categories";
 const CALENDAR_REMINDER_DAYS = [7, 3, 1];
 const FIREBASE_SDK_VERSION = "12.7.0";
+const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 const CALENDAR_ALERT_HOUR = 8;
 const CALENDAR_EVENT_DURATION_MINUTES = 15;
@@ -18,6 +19,7 @@ let firebaseState = {
   error: null,
 };
 let syncInProgress = false;
+let pendingAuthMode = "signup";
 
 const defaultCategories = [
   { name: "Streaming", icon: "TV", color: "#7c3aed" },
@@ -129,6 +131,14 @@ const googleSignInButton = document.querySelector("#googleSignInButton");
 const signOutButton = document.querySelector("#signOutButton");
 const syncNowButton = document.querySelector("#syncNowButton");
 const accountStatus = document.querySelector("#accountStatus");
+const authGate = document.querySelector("#authGate");
+const appShell = document.querySelector("#appShell");
+const authStatus = document.querySelector("#authStatus");
+const signupForm = document.querySelector("#signupForm");
+const loginForm = document.querySelector("#loginForm");
+const authModeButtons = document.querySelectorAll("[data-auth-mode]");
+const authGoogleButton = document.querySelector("#authGoogleButton");
+const forgotPasswordButton = document.querySelector("#forgotPasswordButton");
 
 const loadedSubscriptions = loadSubscriptions();
 const normalizedSubscriptions = normalizeSubscriptions(loadedSubscriptions);
@@ -162,6 +172,13 @@ emailSignInButton.addEventListener("click", handleEmailSignIn);
 googleSignInButton.addEventListener("click", handleGoogleSignIn);
 signOutButton.addEventListener("click", handleSignOut);
 syncNowButton.addEventListener("click", handleSyncNow);
+signupForm.addEventListener("submit", handleSignupSubmit);
+loginForm.addEventListener("submit", handleLoginSubmit);
+authGoogleButton.addEventListener("click", handleGoogleSignIn);
+forgotPasswordButton.addEventListener("click", handlePasswordReset);
+authModeButtons.forEach((button) => {
+  button.addEventListener("click", () => switchAuthMode(button.dataset.authMode));
+});
 
 document.querySelectorAll("[data-tab]").forEach((button) => {
   button.addEventListener("click", () => switchTab(button.dataset.tab));
@@ -276,6 +293,7 @@ function handleFirebaseUserChange(user) {
   firebaseState.user = user;
 
   if (!user) {
+    clearDisplayedAccountData();
     renderAccountStatus();
     return;
   }
@@ -289,32 +307,78 @@ async function loadCloudData() {
   if (!firebaseState.configured || !firebaseState.user) return;
 
   setAccountStatus("Synchronisation du compte en cours…");
+  setAuthStatus("Connexion réussie, chargement de vos données…");
   const { doc, getDoc } = firebaseState.modules;
   const reference = doc(firebaseState.db, "users", firebaseState.user.uid, "data", "app");
   const snapshot = await getDoc(reference);
+  const cloudData = snapshot.exists() ? snapshot.data() : createEmptyAccountData();
+  const localData = readLocalAppData();
+  const hasLocalData = hasMeaningfulLocalData(localData);
 
-  if (snapshot.exists()) {
-    const data = snapshot.data();
-    subscriptions = (data.subscriptions || []).map((item) => createSubscription(item));
-    monthlyBudget = Number(data.monthlyBudget) || monthlyBudget;
-    categories = [...defaultCategories, ...(data.customCategories || []).map((category) => ({
+  if (hasLocalData) {
+    const shouldImport = window.confirm(
+      "Des données locales ont été trouvées sur cet appareil. Voulez-vous les importer dans ce compte ?",
+    );
+
+    if (shouldImport) {
+      applyAccountData(localData);
+      await syncCloudData("Données locales importées dans votre compte.");
+      return;
+    }
+  }
+
+  applyAccountData(cloudData);
+  renderAccountStatus(snapshot.exists() ? "Compte synchronisé avec le cloud." : "Compte connecté. Aucun abonnement cloud pour le moment.");
+}
+
+function readLocalAppData() {
+  return {
+    subscriptions: parseJson(localStorage.getItem(STORAGE_KEY), []).map((item) => createSubscription(item)),
+    monthlyBudget: Number(localStorage.getItem(BUDGET_KEY)) || 120,
+    customCategories: parseJson(localStorage.getItem(CUSTOM_CATEGORIES_KEY), []).map((category) => ({
       name: category.name,
       icon: normalizeIconText(category.icon, getServiceInitials(category.name)),
       color: normalizeColor(category.color),
       custom: true,
-    }))];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
-    localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
-    saveCustomCategories(false);
-    hydrateCategorySelect();
-    renderCategoryLegend();
-    resetForm();
-    render();
-    renderAccountStatus("Compte synchronisé avec le cloud.");
-    return;
-  }
+    })),
+  };
+}
 
-  await syncCloudData("Compte créé : vos données locales ont été envoyées dans votre espace sécurisé.");
+function createEmptyAccountData() {
+  return { subscriptions: [], monthlyBudget: 120, customCategories: [] };
+}
+
+function hasMeaningfulLocalData(data) {
+  return Boolean(
+    data.subscriptions.length ||
+      data.customCategories.length ||
+      localStorage.getItem(BUDGET_KEY),
+  );
+}
+
+function applyAccountData(data) {
+  subscriptions = (data.subscriptions || []).map((item) => createSubscription(item));
+  monthlyBudget = Number(data.monthlyBudget) || 120;
+  categories = [...defaultCategories, ...(data.customCategories || []).map((category) => ({
+    name: category.name,
+    icon: normalizeIconText(category.icon, getServiceInitials(category.name)),
+    color: normalizeColor(category.color),
+    custom: true,
+  }))];
+  hydrateCategorySelect();
+  renderCategoryLegend();
+  resetForm();
+  render();
+}
+
+function clearDisplayedAccountData() {
+  subscriptions = [];
+  monthlyBudget = 120;
+  categories = [...defaultCategories, ...loadCustomCategories()];
+  hydrateCategorySelect();
+  renderCategoryLegend();
+  resetForm();
+  render();
 }
 
 async function syncCloudData(successMessage = "Synchronisation terminée.") {
@@ -342,6 +406,10 @@ async function syncCloudData(successMessage = "Synchronisation terminée.") {
 
 function setAccountStatus(message) {
   accountStatus.textContent = message;
+}
+
+function setAuthStatus(message) {
+  authStatus.textContent = message;
 }
 
 function normalizeSubscriptions(items) {
@@ -572,8 +640,11 @@ function resetForm() {
 
 function saveBudget() {
   monthlyBudget = Number(budgetInput.value) || 0;
-  localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
-  syncCloudData();
+  if (firebaseState.user) {
+    syncCloudData();
+  } else {
+    localStorage.setItem(BUDGET_KEY, String(monthlyBudget));
+  }
   renderInsights();
   renderBudget();
 }
@@ -590,13 +661,25 @@ function loadSubscriptions() {
 }
 
 function saveSubscriptions() {
+  if (firebaseState.user) {
+    syncCloudData();
+    return;
+  }
+
   localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
-  syncCloudData();
 }
 
 function loadBudget() {
   return Number(localStorage.getItem(BUDGET_KEY)) || 120;
 }
+function parseJson(value, fallback) {
+  try {
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 
 function render() {
   renderInsights();
@@ -952,8 +1035,12 @@ function loadCustomCategories() {
 
 function saveCustomCategories(shouldSync = true) {
   const customCategories = categories.filter((category) => category.custom);
+  if (firebaseState.user) {
+    if (shouldSync) syncCloudData();
+    return;
+  }
+
   localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(customCategories));
-  if (shouldSync) syncCloudData();
 }
 
 function getSubscriptionIcon(subscription) {
@@ -1020,88 +1107,254 @@ function updateMailImportStatus() {
     : "Connectez-vous d'abord : l'import e-mail devra ensuite passer par OAuth Gmail/Outlook avant de lire des messages.";
 }
 
+async function handleSignupSubmit(event) {
+  event.preventDefault();
+  await createFirebaseAccount(getSignupFormData(), authStatus);
+}
+
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+  await signInWithEmail(getLoginFormData(), authStatus);
+}
+
 async function handleAccountCreate() {
-  if (!ensureFirebaseReady()) return;
+  await createFirebaseAccount(getLegacyAccountFormData(), accountStatus);
+}
 
-  const name = document.querySelector("#accountName").value.trim();
-  const email = document.querySelector("#accountEmail").value.trim();
-  const password = document.querySelector("#accountPassword").value;
+async function handleEmailSignIn() {
+  await signInWithEmail(getLegacyLoginFormData(), accountStatus);
+}
 
-  if (!name || !email || !password) {
-    accountStatus.textContent = "Complétez le nom, l'e-mail et le mot de passe pour créer le compte.";
+async function createFirebaseAccount(formData, statusTarget) {
+  if (!ensureFirebaseReady(false, statusTarget)) return;
+
+  const validationError = validateSignupData(formData);
+  if (validationError) {
+    statusTarget.textContent = validationError;
     return;
   }
 
   const { createUserWithEmailAndPassword, updateProfile } = firebaseState.modules;
-  accountStatus.textContent = "Création du compte…";
+  statusTarget.textContent = "Création du compte…";
   try {
-    const credential = await createUserWithEmailAndPassword(firebaseState.auth, email, password);
-    if (name) await updateProfile(credential.user, { displayName: name });
-    document.querySelector("#accountPassword").value = "";
+    const credential = await createUserWithEmailAndPassword(firebaseState.auth, formData.email, formData.password);
+    const displayName = `${formData.firstName} ${formData.lastName}`.trim();
+    if (displayName) await updateProfile(credential.user, { displayName });
+    await saveUserProfile(credential.user, formData);
+    clearPasswordFields();
     await syncCloudData("Compte créé et synchronisé.");
   } catch (error) {
-    accountStatus.textContent = getFriendlyFirebaseError(error);
+    statusTarget.textContent = getFriendlyFirebaseError(error);
   }
 }
 
-async function handleEmailSignIn() {
-  if (!ensureFirebaseReady()) return;
+async function signInWithEmail(formData, statusTarget) {
+  if (!ensureFirebaseReady(false, statusTarget)) return;
 
-  const email = document.querySelector("#accountEmail").value.trim();
-  const password = document.querySelector("#accountPassword").value;
-
-  if (!email || !password) {
-    accountStatus.textContent = "Saisissez votre e-mail et votre mot de passe pour vous connecter.";
+  if (!isValidEmail(formData.email) || !formData.password) {
+    statusTarget.textContent = "Saisissez un e-mail valide et votre mot de passe.";
     return;
   }
 
   const { signInWithEmailAndPassword } = firebaseState.modules;
-  accountStatus.textContent = "Connexion…";
+  statusTarget.textContent = "Connexion…";
   try {
-    await signInWithEmailAndPassword(firebaseState.auth, email, password);
-    document.querySelector("#accountPassword").value = "";
+    await signInWithEmailAndPassword(firebaseState.auth, formData.email, formData.password);
+    clearPasswordFields();
   } catch (error) {
-    accountStatus.textContent = getFriendlyFirebaseError(error);
+    statusTarget.textContent = getFriendlyFirebaseError(error);
   }
 }
 
 async function handleGoogleSignIn() {
-  if (!ensureFirebaseReady()) return;
+  const statusTarget = authGate.hidden ? accountStatus : authStatus;
+  if (!ensureFirebaseReady(false, statusTarget)) return;
 
   const { signInWithPopup, provider } = firebaseState.modules;
-  accountStatus.textContent = "Ouverture de Google…";
+  statusTarget.textContent = "Ouverture de Google…";
   try {
-    await signInWithPopup(firebaseState.auth, provider);
+    const credential = await signInWithPopup(firebaseState.auth, provider);
+    await saveGoogleProfile(credential.user);
   } catch (error) {
-    accountStatus.textContent = getFriendlyFirebaseError(error);
+    statusTarget.textContent = getFriendlyFirebaseError(error);
   }
+}
+
+async function handlePasswordReset() {
+  if (!ensureFirebaseReady(false, authStatus)) return;
+
+  const email = document.querySelector("#loginEmail").value.trim() || document.querySelector("#authEmail").value.trim();
+  if (!isValidEmail(email)) {
+    authStatus.textContent = "Saisissez une adresse email valide pour réinitialiser le mot de passe.";
+    return;
+  }
+
+  try {
+    await firebaseState.modules.sendPasswordResetEmail(firebaseState.auth, email);
+  } catch {
+    // Firebase can reveal whether an account exists depending on project settings.
+    // Keep the same message in every case to avoid account enumeration.
+  }
+
+  authStatus.textContent = "Un email de réinitialisation a été envoyé si ce compte existe.";
 }
 
 async function handleSignOut() {
   if (!firebaseState.auth || !firebaseState.modules) return;
 
   await firebaseState.modules.signOut(firebaseState.auth);
+  clearDisplayedAccountData();
   renderAccountStatus("Déconnecté. Les données locales restent disponibles sur cet appareil.");
 }
 
 function handleSyncNow() {
-  if (!ensureFirebaseReady(true)) return;
+  if (!ensureFirebaseReady(true, accountStatus)) return;
   syncCloudData("Synchronisation manuelle terminée.");
 }
 
-function ensureFirebaseReady(requireUser = false) {
+async function saveUserProfile(user, formData) {
+  const { doc, setDoc } = firebaseState.modules;
+  const profile = {
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    displayName: `${formData.firstName} ${formData.lastName}`.trim(),
+    gender: formData.gender || "",
+    birthDate: formData.birthDate,
+    email: user.email,
+    provider: "password",
+    updatedAt: new Date().toISOString(),
+  };
+
+  await setDoc(doc(firebaseState.db, "users", user.uid, "profile", "details"), profile, { merge: true });
+}
+
+async function saveGoogleProfile(user) {
+  if (!user) return;
+
+  const { doc, setDoc } = firebaseState.modules;
+  const [firstName = "", ...lastNameParts] = (user.displayName || "").split(" ");
+  await setDoc(doc(firebaseState.db, "users", user.uid, "profile", "details"), {
+    firstName,
+    lastName: lastNameParts.join(" "),
+    displayName: user.displayName || user.email,
+    gender: "",
+    birthDate: "",
+    email: user.email,
+    provider: "google",
+    updatedAt: new Date().toISOString(),
+  }, { merge: true });
+}
+
+function getSignupFormData() {
+  return {
+    firstName: document.querySelector("#authFirstName").value.trim(),
+    lastName: document.querySelector("#authLastName").value.trim(),
+    gender: document.querySelector("#authGender").value,
+    birthDate: document.querySelector("#authBirthDate").value,
+    email: document.querySelector("#authEmail").value.trim(),
+    password: document.querySelector("#authPassword").value,
+    passwordConfirm: document.querySelector("#authPasswordConfirm").value,
+  };
+}
+
+function getLoginFormData() {
+  return {
+    email: document.querySelector("#loginEmail").value.trim(),
+    password: document.querySelector("#loginPassword").value,
+  };
+}
+
+function getLegacyAccountFormData() {
+  const fullName = document.querySelector("#accountName").value.trim();
+  const [firstName = "", ...lastNameParts] = fullName.split(" ");
+  const password = document.querySelector("#accountPassword").value;
+
+  return {
+    firstName,
+    lastName: lastNameParts.join(" ") || " ",
+    gender: "",
+    birthDate: getAdultFallbackBirthDate(),
+    email: document.querySelector("#accountEmail").value.trim(),
+    password,
+    passwordConfirm: password,
+  };
+}
+
+function getLegacyLoginFormData() {
+  return {
+    email: document.querySelector("#accountEmail").value.trim(),
+    password: document.querySelector("#accountPassword").value,
+  };
+}
+
+function validateSignupData(formData) {
+  if (!formData.firstName || !formData.lastName || !formData.birthDate || !formData.email || !formData.password) {
+    return "Complétez les champs obligatoires pour créer votre compte.";
+  }
+
+  if (!isValidEmail(formData.email)) return "Adresse email invalide.";
+  if (formData.password !== formData.passwordConfirm) return "Les mots de passe ne correspondent pas.";
+  if (!isAtLeastMinimumAge(formData.birthDate)) return "Vous devez avoir au moins 13 ans pour utiliser SubPilot.";
+  return "";
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isAtLeastMinimumAge(dateValue) {
+  const birthDate = parseDateOnly(dateValue);
+  if (!birthDate) return false;
+
+  const minimumDate = new Date();
+  minimumDate.setFullYear(minimumDate.getFullYear() - MINIMUM_ACCOUNT_AGE);
+  minimumDate.setHours(0, 0, 0, 0);
+  return birthDate <= minimumDate;
+}
+
+function getAdultFallbackBirthDate() {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - 18);
+  return formatDateOnly(date);
+}
+
+function clearPasswordFields() {
+  ["#authPassword", "#authPasswordConfirm", "#loginPassword", "#accountPassword"].forEach((selector) => {
+    const input = document.querySelector(selector);
+    if (input) input.value = "";
+  });
+}
+
+function switchAuthMode(mode) {
+  pendingAuthMode = mode;
+  authModeButtons.forEach((button) => {
+    const isActive = button.dataset.authMode === mode;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+  document.querySelectorAll("[data-auth-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.authPanel !== mode;
+  });
+  authStatus.textContent = firebaseState.configured
+    ? mode === "signup"
+      ? "Créez votre compte sécurisé pour synchroniser SubPilot."
+      : "Connectez-vous pour retrouver vos abonnements."
+    : "Firebase n'est pas encore configuré.";
+}
+
+function ensureFirebaseReady(requireUser = false, statusTarget = accountStatus) {
   if (!firebaseState.ready) {
-    accountStatus.textContent = "Firebase est encore en cours de chargement.";
+    statusTarget.textContent = "Firebase est encore en cours de chargement.";
     return false;
   }
 
   if (!firebaseState.configured) {
-    accountStatus.textContent = "Firebase n'est pas configuré : remplissez firebase-config.js avec la configuration Web de votre projet Firebase.";
+    statusTarget.textContent = "Firebase n'est pas configuré : remplissez firebase-config.js avec la configuration Web de votre projet Firebase.";
     return false;
   }
 
   if (requireUser && !firebaseState.user) {
-    accountStatus.textContent = "Connectez-vous avant de synchroniser.";
+    statusTarget.textContent = "Connectez-vous avant de synchroniser.";
     return false;
   }
 
@@ -1111,23 +1364,34 @@ function ensureFirebaseReady(requireUser = false) {
 function renderAccountStatus(message) {
   const user = firebaseState.user;
   const firebaseProblem = firebaseState.error ? ` Erreur : ${getFriendlyFirebaseError(firebaseState.error)}` : "";
+  const shouldShowAuth = !firebaseState.ready || (firebaseState.configured && !user);
 
+  authGate.hidden = !shouldShowAuth;
+  appShell.hidden = shouldShowAuth;
   createAccountButton.disabled = !firebaseState.configured;
   emailSignInButton.disabled = !firebaseState.configured;
   googleSignInButton.disabled = !firebaseState.configured;
+  authGoogleButton.disabled = !firebaseState.configured;
   signOutButton.hidden = !user;
   syncNowButton.hidden = !user;
 
   if (message) {
     accountStatus.textContent = message;
+    authStatus.textContent = message;
   } else if (!firebaseState.ready) {
     accountStatus.textContent = "Chargement de Firebase…";
+    authStatus.textContent = "Chargement de Firebase…";
   } else if (!firebaseState.configured) {
     accountStatus.textContent = `Firebase n'est pas encore configuré. Remplissez firebase-config.js, activez Email/Password et Google dans Firebase Authentication, puis publiez à nouveau.${firebaseProblem}`;
+    authStatus.textContent = accountStatus.textContent;
   } else if (user) {
     accountStatus.textContent = `Connecté : ${user.displayName || user.email}. Vos données sont synchronisées dans votre espace cloud.`;
+    authStatus.textContent = "Connexion réussie.";
   } else {
-    accountStatus.textContent = "Firebase est prêt. Créez un compte ou connectez-vous avec Google pour synchroniser vos données.";
+    accountStatus.textContent = "Connectez-vous pour accéder à SubPilot.";
+    authStatus.textContent = pendingAuthMode === "signup"
+      ? "Créez votre compte sécurisé pour synchroniser SubPilot."
+      : "Connectez-vous pour retrouver vos abonnements.";
   }
 
   updateMailImportStatus();

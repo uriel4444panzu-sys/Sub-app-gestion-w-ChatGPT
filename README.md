@@ -13,6 +13,7 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Bouton **Ajouter au calendrier** sur chaque abonnement pour télécharger un fichier `.ics` avec des événements distincts à J-7, J-3 et J-1.
 - Priorités d'action : à garder, à réévaluer ou à résilier.
 - Recherche par nom, catégorie ou priorité.
+- Page d’inscription/connexion au lancement avec création de compte, connexion e-mail/mot de passe, Google, mot de passe oublié et synchronisation Firebase.
 - Sauvegarde locale dans le navigateur avec `localStorage`, et synchronisation cloud Firebase quand `firebase-config.js` est configuré.
 - Installation sur téléphone comme une PWA, avec icône SVG texte uniquement, mode plein écran `standalone` et cache hors connexion.
 
@@ -37,6 +38,26 @@ Des comptes individuels sont pertinents pour :
 - isoler strictement les données de chaque utilisateur ;
 - autoriser plus tard un import e-mail via OAuth Gmail/Outlook avec consentement explicite.
 
+### Page d’inscription et migration des anciennes données
+
+Quand Firebase est configuré, SubPilot affiche d’abord une page d’accueil/authentification. L’utilisateur doit créer un compte ou se connecter avant d’accéder à l’application.
+
+Le formulaire d’inscription demande : prénom, nom, sexe optionnel, date de naissance, e-mail, mot de passe et confirmation. SubPilot bloque l’inscription si l’utilisateur a moins de 13 ans ou si les mots de passe ne correspondent pas. Le mot de passe n’est jamais écrit en clair dans Firestore : il est géré par Firebase Authentication.
+
+Les profils sont enregistrés dans Firestore sous :
+
+```text
+users/<uid>/profile/details
+```
+
+Si des données locales existent sur l’appareil au moment de la connexion, SubPilot demande si l’utilisateur veut les importer dans le compte. En cas de refus, les données locales restent intactes et les données du compte connecté sont chargées séparément.
+
+Le lien **Mot de passe oublié ?** utilise Firebase Auth pour envoyer un e-mail de réinitialisation et affiche toujours le message générique :
+
+```text
+Un email de réinitialisation a été envoyé si ce compte existe.
+```
+
 ### Configuration Firebase
 
 1. Créez un projet Firebase.
@@ -59,8 +80,11 @@ Exemple de règles Firestore minimales pour isoler chaque espace utilisateur :
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{userId}/data/{document=**} {
+    match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }
