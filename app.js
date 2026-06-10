@@ -26,6 +26,14 @@ let firebaseState = {
 };
 let syncInProgress = false;
 let pendingAuthMode = "signup";
+// L'application reste verrouillée derrière le portail tant que l'utilisateur
+// n'a pas explicitement cliqué sur « Connexion » (même si une session Firebase
+// est mémorisée). Aucun accès n'est possible sans cette action volontaire.
+let appUnlocked = false;
+// Quand une inscription est en cours, la création de compte gère elle-même le
+// profil et la reprise des données : on évite que loadCloudData ne s'exécute en
+// parallèle (condition de course sur le document du compte).
+let signupInProgress = false;
 
 const defaultCategories = [
   { name: "Streaming", icon: "TV", color: "#7c3aed" },
@@ -169,6 +177,7 @@ let activeTab = "dashboard";
 hydrateCategorySelect();
 renderCategoryLegend();
 renderPopularServices();
+if (loadRememberedProfile()) switchAuthMode("login");
 renderAccountStatus();
 initializeFirebaseAuth();
 if (normalizedSubscriptions.changed) saveSubscriptions();
@@ -334,10 +343,14 @@ function handleFirebaseUserChange(user) {
 
   if (!user) {
     firebaseState.profile = null;
+    appUnlocked = false;
     clearDisplayedAccountData();
     renderAccountStatus();
     return;
   }
+
+  // L'inscription gère elle-même profil + reprise des données.
+  if (signupInProgress) return;
 
   loadCloudData().catch((error) => {
     renderAccountStatus(getFriendlyFirebaseError(error));
@@ -357,24 +370,33 @@ async function loadCloudData() {
   const { doc, getDoc } = firebaseState.modules;
   const reference = doc(firebaseState.db, "users", firebaseState.user.uid, "data", "app");
   const snapshot = await getDoc(reference);
-  const cloudData = snapshot.exists() ? snapshot.data() : createEmptyAccountData();
   const localData = readLocalAppData();
   const hasLocalData = hasMeaningfulLocalData(localData);
 
-  if (hasLocalData) {
-    const shouldImport = window.confirm(
-      "Des données locales ont été trouvées sur cet appareil. Voulez-vous les importer dans ce compte ?",
-    );
-
-    if (shouldImport) {
+  if (!snapshot.exists()) {
+    // Nouveau compte : on rattache automatiquement les données déjà saisies sur
+    // cet appareil pour qu'aucun utilisateur ne perde son travail en s'inscrivant.
+    if (hasLocalData) {
       applyAccountData(localData);
-      await syncCloudData("Données locales importées dans votre compte.");
-      return;
+      await syncCloudData("Vos données ont été conservées et liées à votre nouveau compte.");
+      clearLocalAppData();
+    } else {
+      applyAccountData(createEmptyAccountData());
+      renderAccountStatus(appUnlocked ? "Bienvenue, votre espace personnel est prêt." : undefined);
     }
+    return;
   }
 
-  applyAccountData(cloudData);
-  renderAccountStatus(snapshot.exists() ? "Vos informations sont à jour." : "Bienvenue, votre espace personnel est prêt.");
+  // Compte existant : les données du cloud font foi sur tous les appareils.
+  applyAccountData(snapshot.data());
+  if (hasLocalData) clearLocalAppData();
+  renderAccountStatus(appUnlocked ? "Vos informations sont à jour." : undefined);
+}
+
+function clearLocalAppData() {
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(BUDGET_KEY);
+  localStorage.removeItem(CUSTOM_CATEGORIES_KEY);
 }
 
 function readLocalAppData() {
@@ -1183,15 +1205,32 @@ async function createFirebaseAccount(formData, statusTarget) {
 
   const { createUserWithEmailAndPassword, updateProfile } = firebaseState.modules;
   statusTarget.textContent = "Création du compte…";
+  signupInProgress = true;
+  appUnlocked = true;
   try {
     const credential = await createUserWithEmailAndPassword(firebaseState.auth, formData.email, formData.password);
     const displayName = `${formData.firstName} ${formData.lastName}`.trim();
     if (displayName) await updateProfile(credential.user, { displayName });
+    firebaseState.user = credential.user;
     await saveUserProfile(credential.user, formData);
     clearPasswordFields();
-    await syncCloudData("Compte créé, bienvenue sur SubPilot.");
+
+    // On rattache les données déjà saisies sur l'appareil au nouveau compte
+    // pour qu'aucun utilisateur ne perde son travail en s'inscrivant ; sinon on
+    // démarre sur un espace vierge (pas de données de démonstration).
+    const localData = readLocalAppData();
+    const hasLocalData = hasMeaningfulLocalData(localData);
+    applyAccountData(hasLocalData ? localData : createEmptyAccountData());
+    await syncCloudData(hasLocalData
+      ? "Compte créé, vos données ont été conservées. Bienvenue sur SubPilot !"
+      : "Compte créé, bienvenue sur SubPilot !");
+    clearLocalAppData();
+    renderAccountStatus();
   } catch (error) {
+    appUnlocked = false;
     statusTarget.textContent = getFriendlyFirebaseError(error);
+  } finally {
+    signupInProgress = false;
   }
 }
 
@@ -1210,10 +1249,12 @@ async function signInWithEmail(formData, statusTarget) {
 
   const { signInWithEmailAndPassword } = firebaseState.modules;
   statusTarget.textContent = "Connexion…";
+  appUnlocked = true;
   try {
     await signInWithEmailAndPassword(firebaseState.auth, formData.email, formData.password);
     clearPasswordFields();
   } catch (error) {
+    appUnlocked = false;
     statusTarget.textContent = getFriendlyFirebaseError(error);
   }
 }
@@ -1229,10 +1270,12 @@ async function handleGoogleSignIn() {
 
   const { signInWithPopup, provider } = firebaseState.modules;
   statusTarget.textContent = "Ouverture de Google…";
+  appUnlocked = true;
   try {
     const credential = await signInWithPopup(firebaseState.auth, provider);
     await saveGoogleProfile(credential.user);
   } catch (error) {
+    appUnlocked = false;
     statusTarget.textContent = getFriendlyFirebaseError(error);
   }
 }
@@ -1262,6 +1305,8 @@ async function handlePasswordReset() {
 }
 
 async function handleSignOut() {
+  appUnlocked = false;
+
   if (firebaseState.localMode) {
     firebaseState.user = null;
     firebaseState.profile = null;
@@ -1275,7 +1320,7 @@ async function handleSignOut() {
 
   await firebaseState.modules.signOut(firebaseState.auth);
   clearDisplayedAccountData();
-  renderAccountStatus("Déconnecté. Les données locales restent disponibles sur cet appareil.");
+  renderAccountStatus("Déconnecté. Reconnectez-vous pour accéder à SubPilot.");
 }
 
 function handleSyncNow() {
@@ -1438,7 +1483,7 @@ async function hashLocalPassword(password, salt) {
   return `fallback-${hash}`;
 }
 
-function applyLocalSession(account, { reloadData = false } = {}) {
+function applyLocalSession(account, { reloadData = false, unlock = false } = {}) {
   firebaseState.user = {
     uid: account.uid,
     email: account.email,
@@ -1448,6 +1493,7 @@ function applyLocalSession(account, { reloadData = false } = {}) {
     local: true,
   };
   firebaseState.profile = account.profile || null;
+  if (unlock) appUnlocked = true;
   localStorage.setItem(LOCAL_SESSION_KEY, account.uid);
   if (account.profile) {
     rememberProfile(account.profile);
@@ -1493,7 +1539,7 @@ async function createLocalAccount(formData, statusTarget) {
   accounts.push({ uid, email, salt, passwordHash, profile, createdAt: new Date().toISOString() });
   saveLocalAccounts(accounts);
   clearPasswordFields();
-  applyLocalSession({ uid, email, profile });
+  applyLocalSession({ uid, email, profile }, { unlock: true });
   renderAccountStatus("Compte créé, bienvenue sur SubPilot. Vos données restent sur cet appareil.");
 }
 
@@ -1513,7 +1559,7 @@ async function signInLocally(formData, statusTarget) {
   }
 
   clearPasswordFields();
-  applyLocalSession(account, { reloadData: true });
+  applyLocalSession(account, { reloadData: true, unlock: true });
   renderAccountStatus(`Connecté : ${account.profile?.displayName || account.email}.`);
 }
 
@@ -1531,6 +1577,23 @@ function persistLocalProfile(profile) {
 
 function handleQuickLogin() {
   const rememberedProfile = loadRememberedProfile();
+
+  // Session déjà valide (Firebase l'a mémorisée ou compte local actif) :
+  // un seul clic suffit pour accéder à l'application, sans ressaisir le mot de passe.
+  if (firebaseState.user) {
+    appUnlocked = true;
+    renderAccountStatus("Bon retour parmi nous !");
+    return;
+  }
+
+  // Compte Google reconnu : on relance directement la fenêtre Google.
+  if (rememberedProfile?.provider === "google" && firebaseState.configured) {
+    handleGoogleSignIn();
+    return;
+  }
+
+  // Sinon : connexion rapide par e-mail pré-rempli, l'utilisateur n'a plus qu'à
+  // saisir son mot de passe.
   switchAuthMode("login");
   if (rememberedProfile?.email) document.querySelector("#loginEmail").value = rememberedProfile.email;
   document.querySelector("#loginPassword").focus();
@@ -1664,9 +1727,12 @@ function renderProfile(profile) {
   renderAvatar(profileAvatar, safeProfile, "SP");
 }
 
-function renderAuthQuickProfile() {
-  const rememberedProfile = loadRememberedProfile();
-  const shouldShowQuickProfile = Boolean(rememberedProfile && !firebaseState.user);
+function renderAuthQuickProfile(gateVisible = !firebaseState.user) {
+  // La carte de connexion rapide s'affiche dès que l'application reconnaît un
+  // compte déjà utilisé sur cet appareil et que le portail est visible : photo,
+  // nom/prénom et bouton « Connexion » pour un accès en un clic.
+  const rememberedProfile = firebaseState.profile || loadRememberedProfile();
+  const shouldShowQuickProfile = Boolean(rememberedProfile) && gateVisible;
   authQuickProfile.hidden = !shouldShowQuickProfile;
   if (!shouldShowQuickProfile) return;
 
@@ -1794,7 +1860,12 @@ function renderAccountStatus(message) {
   const user = firebaseState.user;
   const profile = firebaseState.profile || (user ? createProfileFromFirebaseUser(user) : null);
   const firebaseProblem = firebaseState.error ? ` Erreur : ${getFriendlyFirebaseError(firebaseState.error)}` : "";
-  const shouldShowAuth = !firebaseState.ready || !user;
+  // L'accès n'est accordé que si l'utilisateur est connecté ET a explicitement
+  // déverrouillé l'application via « Connexion ». Une session simplement
+  // mémorisée par Firebase ne suffit pas à ouvrir l'app automatiquement.
+  const sessionPending = Boolean(user) && !appUnlocked;
+  const shouldShowAuth = !firebaseState.ready || !user || !appUnlocked;
+  const gateVisible = firebaseState.ready && shouldShowAuth;
 
   authGate.hidden = !shouldShowAuth;
   appShell.hidden = shouldShowAuth;
@@ -1802,7 +1873,7 @@ function renderAccountStatus(message) {
   signOutButton.hidden = !user;
   syncNowButton.hidden = !user;
   if (profile) renderProfile(profile);
-  renderAuthQuickProfile();
+  renderAuthQuickProfile(gateVisible);
 
   if (message) {
     accountStatus.textContent = message;
@@ -1810,6 +1881,11 @@ function renderAccountStatus(message) {
   } else if (!firebaseState.ready) {
     accountStatus.textContent = "Chargement de la connexion sécurisée…";
     authStatus.textContent = "Chargement de la connexion sécurisée…";
+  } else if (sessionPending) {
+    const name = profile?.firstName || profile?.displayName || user.displayName || "";
+    authStatus.textContent = name
+      ? `Bon retour, ${name} ! Cliquez sur Connexion pour accéder à SubPilot.`
+      : "Cliquez sur Connexion pour accéder à SubPilot.";
   } else if (user) {
     accountStatus.textContent = `Connecté : ${profile?.displayName || user.displayName || user.email}. Vous pouvez modifier votre profil, gérer votre photo ou vous déconnecter ici.`;
     authStatus.textContent = "Connexion réussie.";
