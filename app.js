@@ -373,9 +373,11 @@ function handleFirebaseUserChange(user) {
   // L'inscription gère elle-même profil + reprise des données.
   if (signupInProgress) return;
 
-  loadCloudData().catch((error) => {
-    renderAccountStatus(getFriendlyFirebaseError(error));
-  });
+  loadCloudData()
+    .then(() => autoEnableNotificationsIfGranted())
+    .catch((error) => {
+      renderAccountStatus(getFriendlyFirebaseError(error));
+    });
 }
 
 async function loadCloudData() {
@@ -1521,6 +1523,36 @@ async function enableWebPushNotifications() {
     updateNotificationsUI();
   } catch (error) {
     notificationsStatus.textContent = `Activation impossible : ${error?.message || "erreur inconnue"}.`;
+  }
+}
+
+// Si l'utilisateur a déjà autorisé les notifications une fois (permission
+// accordée dans le navigateur), on ré-enregistre silencieusement son jeton pour
+// le compte courant à chaque connexion : les notifications restent ainsi
+// actives en permanence, sans avoir à recliquer sur « Activer ».
+async function autoEnableNotificationsIfGranted() {
+  if (!isCloudUser() || !webPushSupported() || !firebaseState.vapidKey) return;
+  if (Notification.permission !== "granted") return;
+
+  try {
+    const messaging = await ensureMessaging();
+    if (!messaging) return;
+
+    const registration = await navigator.serviceWorker.register("./firebase-messaging-sw.js", {
+      scope: "./firebase-cloud-messaging-push-scope",
+    });
+    const token = await messagingState.getToken(messaging, {
+      vapidKey: firebaseState.vapidKey,
+      serviceWorkerRegistration: registration,
+    });
+    if (!token) return;
+
+    await savePushToken(token);
+    localStorage.setItem("subpilot-push-enabled", "1");
+    listenForForegroundMessages();
+    updateNotificationsUI();
+  } catch {
+    // Silencieux : la réactivation automatique ne doit jamais gêner l'utilisateur.
   }
 }
 
