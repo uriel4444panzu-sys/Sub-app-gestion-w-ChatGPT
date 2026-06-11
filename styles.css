@@ -903,41 +903,16 @@ textarea:focus {
   }
 }
 
-.calendar-help {
+.reminders-info {
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(238, 242, 255, 0.88)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(236, 254, 255, 0.9)),
     var(--surface);
 }
 
-.calendar-help p {
-  margin: 0;
+.reminders-info p {
+  margin: 0 0 14px;
   color: #475569;
   line-height: 1.55;
-}
-
-.calendar-help p + p {
-  margin-top: 10px;
-}
-
-.calendar-help code {
-  display: inline-block;
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  padding: 4px 7px;
-  border-radius: 9px;
-  background: #f8fafc;
-  color: var(--primary-dark);
-  font-size: 0.82rem;
-  font-weight: 800;
-}
-
-.calendar-format {
-  font-size: 0.86rem;
-}
-
-.calendar-button {
-  background: #ecfeff;
-  color: #0f766e;
 }
 
 /* Account, custom categories and service icon refinements */

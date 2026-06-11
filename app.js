@@ -4,13 +4,10 @@ const CUSTOM_CATEGORIES_KEY = "subpilot-custom-categories";
 const REMEMBERED_PROFILE_KEY = "subpilot-remembered-profile";
 const LOCAL_ACCOUNTS_KEY = "subpilot-local-accounts";
 const LOCAL_SESSION_KEY = "subpilot-local-session";
-const CALENDAR_REMINDER_DAYS = [7, 3, 1];
 const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
-const CALENDAR_ALERT_HOUR = 8;
-const CALENDAR_EVENT_DURATION_MINUTES = 15;
 
 let deferredInstallPrompt = null;
 let firebaseState = {
@@ -588,78 +585,6 @@ function formatDateOnly(date) {
     .join("-");
 }
 
-function createCalendarReminderEvents(subscription) {
-  const amount = formatMoney(subscription.price, subscription.currency);
-  const now = new Date();
-
-  return CALENDAR_REMINDER_DAYS
-    .map((daysBefore) => {
-      const startDate = getCalendarDateTimeDaysBefore(subscription.nextDate, daysBefore);
-      const label = daysBefore === 1 ? "demain" : `dans ${daysBefore} jours`;
-
-      return {
-        daysBefore,
-        startDate,
-        endDate: addMinutes(startDate, CALENDAR_EVENT_DURATION_MINUTES),
-        title: `${subscription.name} se renouvelle ${label} - ${amount}`,
-      };
-    })
-    .filter((event) => event.startDate > now);
-}
-
-function createCalendarFile(subscription, events) {
-  const dtstamp = formatIcsUtcDateTime(new Date());
-  const lines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//SubPilot//Subscription Calendar Reminders//FR",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-  ];
-
-  events.forEach((event) => {
-    lines.push(
-      "BEGIN:VEVENT",
-      `UID:${createCalendarUid(subscription, event)}`,
-      `DTSTAMP:${dtstamp}`,
-      `DTSTART:${formatIcsLocalDateTime(event.startDate)}`,
-      `DTEND:${formatIcsLocalDateTime(event.endDate)}`,
-      `SUMMARY:${escapeIcsText(event.title)}`,
-      `DESCRIPTION:${escapeIcsText(`Rappel SubPilot pour ${subscription.name}.`)}`,
-      "BEGIN:VALARM",
-      "ACTION:DISPLAY",
-      "TRIGGER:PT0M",
-      `DESCRIPTION:${escapeIcsText(event.title)}`,
-      "END:VALARM",
-      "END:VEVENT",
-    );
-  });
-
-  lines.push("END:VCALENDAR");
-  return `${lines.join("\r\n")}\r\n`;
-}
-
-function downloadCalendarFile(subscriptionId) {
-  const subscription = subscriptions.find((item) => item.id === subscriptionId);
-  if (!subscription) return;
-
-  const events = createCalendarReminderEvents(subscription);
-  if (!events.length) {
-    window.alert("Aucun événement J-7, J-3 ou J-1 à ajouter : les dates de rappel sont déjà passées.");
-    return;
-  }
-
-  const calendarContent = createCalendarFile(subscription, events);
-  const blob = new Blob([calendarContent], { type: "text/calendar;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${slugifyFileName(subscription.name)}-rappels-renouvellement.ics`;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
-}
 
 function switchTab(tabName) {
   activeTab = tabName;
@@ -883,7 +808,6 @@ function renderSubscriptions() {
       ${subscription.note ? `<p class="subscription-note">${escapeHtml(subscription.note)}</p>` : ""}
       <div class="card-actions">
         <span class="priority-pill ${subscription.priority}">${priorityLabels[subscription.priority]}</span>
-        <button type="button" class="calendar-button" data-action="calendar" data-id="${subscription.id}">Ajouter au calendrier</button>
         <button type="button" class="edit-button" data-action="edit" data-id="${subscription.id}">Modifier</button>
         <button type="button" class="delete-button" data-action="delete" data-id="${subscription.id}">Supprimer</button>
       </div>
@@ -894,7 +818,6 @@ function renderSubscriptions() {
   container.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => {
       const id = button.dataset.id;
-      if (button.dataset.action === "calendar") downloadCalendarFile(id);
       if (button.dataset.action === "edit") editSubscription(id);
       if (button.dataset.action === "delete") deleteSubscription(id);
     });
@@ -2312,54 +2235,6 @@ function formatMoney(amount, currency = "EUR") {
   }).format(amount);
 }
 
-function getCalendarDateTimeDaysBefore(dateValue, daysBefore) {
-  const [year, month, day] = dateValue.split("-").map(Number);
-  const date = new Date(year, month - 1, day, CALENDAR_ALERT_HOUR, 0, 0);
-  date.setDate(date.getDate() - daysBefore);
-  return date;
-}
-
-function addMinutes(date, minutes) {
-  return new Date(date.getTime() + minutes * 60_000);
-}
-
-function formatIcsLocalDateTime(date) {
-  const parts = [
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-    date.getHours(),
-    date.getMinutes(),
-    date.getSeconds(),
-  ].map((part) => String(part).padStart(2, "0"));
-
-  return `${parts[0]}${parts[1]}${parts[2]}T${parts[3]}${parts[4]}${parts[5]}`;
-}
-
-function formatIcsUtcDateTime(date) {
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-}
-
-function escapeIcsText(value) {
-  return String(value)
-    .replace(/\\/g, "\\\\")
-    .replace(/\n/g, "\\n")
-    .replace(/,/g, "\\,")
-    .replace(/;/g, "\\;");
-}
-
-function createCalendarUid(subscription, event) {
-  return `${subscription.id}-${event.daysBefore}-${formatIcsLocalDateTime(event.startDate)}@subpilot.local`;
-}
-
-function slugifyFileName(value) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "abonnement";
-}
 
 function getDaysUntil(dateValue) {
   const date = new Date(`${dateValue}T00:00:00`);
