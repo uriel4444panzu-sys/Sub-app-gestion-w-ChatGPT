@@ -17,13 +17,17 @@ const REMINDER_DAYS = [7, 3, 1];
 exports.sendRenewalReminders = onSchedule(
   { schedule: "every day 08:00", timeZone: "Europe/Paris" },
   async () => {
-    const usersSnapshot = await db.collection("users").get();
-    logger.info(`Vérification des renouvellements pour ${usersSnapshot.size} utilisateur(s).`);
-    for (const userDoc of usersSnapshot.docs) {
+    logger.info("sendRenewalReminders v2 — listDocuments");
+    // `listDocuments()` renvoie aussi les documents « fantômes » (un compte
+    // users/{uid} qui ne contient que des sous-collections data/messaging
+    // n'apparaît PAS dans un simple collection("users").get()).
+    const userRefs = await db.collection("users").listDocuments();
+    logger.info(`Vérification des renouvellements pour ${userRefs.length} utilisateur(s).`);
+    for (const userRef of userRefs) {
       try {
-        await processUser(userDoc.id);
+        await processUser(userRef.id);
       } catch (error) {
-        logger.error(`Échec du traitement de ${userDoc.id}`, error);
+        logger.error(`Échec du traitement de ${userRef.id}`, error);
       }
     }
   },
