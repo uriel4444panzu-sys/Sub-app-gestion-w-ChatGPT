@@ -11,8 +11,8 @@
 // l'appareil. Renseignez la configuration ci-dessous pour activer la
 // synchronisation cloud entre plusieurs appareils.
 export const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  appId: "",
+  apiKey: "AIzaSyDHJToTW_c22GvBniopKdL6JVcQ_1qYl1E",
+  authDomain: "subpilot-bd743.firebaseapp.com",
+  projectId: "subpilot-bd743",
+  appId: "1:151154301775:web:43656447524294aecd433a",
 };
