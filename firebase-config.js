@@ -14,5 +14,13 @@ export const firebaseConfig = {
   apiKey: "AIzaSyDHJToTW_c22GvBniopKdL6JVcQ_1qYl1E",
   authDomain: "subpilot-bd743.firebaseapp.com",
   projectId: "subpilot-bd743",
+  messagingSenderId: "151154301775",
   appId: "1:151154301775:web:43656447524294aecd433a",
 };
+
+// Clé « Web Push certificate » (paire de clés VAPID) pour les notifications push.
+// À générer dans la console Firebase :
+//   Paramètres du projet > Cloud Messaging > Web configuration > Générer une paire de clés.
+// Copiez ici la clé publique. Tant qu'elle reste vide, les notifications push
+// sont simplement désactivées (le reste de l'app fonctionne normalement).
+export const firebaseVapidKey = "";

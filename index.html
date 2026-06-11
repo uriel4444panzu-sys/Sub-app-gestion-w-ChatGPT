@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=29" />
+    <link rel="stylesheet" href="styles.css?v=30" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -496,6 +496,20 @@
           </form>
           <p id="accountStatus" class="helper-text status-text"></p>
         </section>
+
+        <section class="panel notifications-card" aria-labelledby="notificationsTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Rappels</p>
+              <h3 id="notificationsTitle">Notifications push</h3>
+            </div>
+          </div>
+          <p class="helper-text">Activez les notifications pour être prévenu avant chaque renouvellement d'abonnement, même lorsque l'application est fermée.</p>
+          <div class="profile-actions">
+            <button type="button" class="primary-button small" id="enableNotificationsButton">Activer les notifications</button>
+          </div>
+          <p id="notificationsStatus" class="helper-text status-text"></p>
+        </section>
       </section>
     </main>
 
@@ -517,6 +531,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=29"></script>
+    <script src="app.js?v=30"></script>
   </body>
 </html>

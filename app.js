@@ -34,6 +34,8 @@ let appUnlocked = false;
 // profil et la reprise des données : on évite que loadCloudData ne s'exécute en
 // parallèle (condition de course sur le document du compte).
 let signupInProgress = false;
+// Modules Firebase Cloud Messaging chargés à la demande (notifications push).
+let messagingState = null;
 
 const defaultCategories = [
   { name: "Streaming", icon: "TV", color: "#7c3aed" },
@@ -142,6 +144,8 @@ const mailImportAnalyzeButton = document.querySelector("#mailImportAnalyze");
 const mailImportClearButton = document.querySelector("#mailImportClear");
 const mailImportStatus = document.querySelector("#mailImportStatus");
 const signOutButton = document.querySelector("#signOutButton");
+const enableNotificationsButton = document.querySelector("#enableNotificationsButton");
+const notificationsStatus = document.querySelector("#notificationsStatus");
 const accountStatus = document.querySelector("#accountStatus");
 const authQuickProfile = document.querySelector("#authQuickProfile");
 const authQuickAvatar = document.querySelector("#authQuickAvatar");
@@ -186,6 +190,7 @@ renderCategoryLegend();
 renderPopularServices();
 if (loadRememberedProfile()) switchAuthMode("login");
 renderAccountStatus();
+updateNotificationsUI();
 initializeFirebaseAuth();
 if (normalizedSubscriptions.changed) saveSubscriptions();
 
@@ -205,6 +210,7 @@ customIconButtons.forEach((button) => {
 mailImportAnalyzeButton.addEventListener("click", handleMailImportAnalyze);
 mailImportClearButton.addEventListener("click", clearMailImport);
 signOutButton.addEventListener("click", handleSignOut);
+enableNotificationsButton.addEventListener("click", enableWebPushNotifications);
 quickLoginButton.addEventListener("click", handleQuickLogin);
 profileDetailsForm.addEventListener("submit", handleProfileDetailsSubmit);
 avatarFileInput.addEventListener("change", handleAvatarSelection);
@@ -303,14 +309,17 @@ function initializeFirebaseAuth() {
         configured: true,
         user: null,
         profile: null,
+        app,
         auth,
         db,
+        vapidKey: services.vapidKey || "",
         modules: { ...services.authModule, ...services.firestoreModule, provider },
         error: null,
       };
 
       services.authModule.onAuthStateChanged(auth, handleFirebaseUserChange);
       renderAccountStatus();
+      updateNotificationsUI();
     })
     .catch((error) => {
       enableLocalAuthMode(error);
@@ -337,6 +346,7 @@ function enableLocalAuthMode(error) {
 function loadFirebaseServices() {
   return import(`./firebase-config.js?v=${FIREBASE_CONFIG_VERSION}&t=${Date.now()}`).then((configModule) => {
     const config = configModule.firebaseConfig || {};
+    const vapidKey = configModule.firebaseVapidKey || "";
     const configured = isFirebaseConfigComplete(config);
     if (!configured) return { configured, config };
 
@@ -344,7 +354,7 @@ function loadFirebaseServices() {
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-app.js`),
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-auth.js`),
       import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-firestore.js`),
-    ]).then(([appModule, authModule, firestoreModule]) => ({ configured, config, appModule, authModule, firestoreModule }));
+    ]).then(([appModule, authModule, firestoreModule]) => ({ configured, config, vapidKey, appModule, authModule, firestoreModule }));
   });
 }
 
@@ -1507,6 +1517,126 @@ async function handleSignOut() {
   await firebaseState.modules.signOut(firebaseState.auth);
   clearDisplayedAccountData();
   renderAccountStatus("Déconnecté. Reconnectez-vous pour accéder à SubPilot.");
+}
+
+// --- Notifications push (Firebase Cloud Messaging) ---------------------------
+
+function webPushSupported() {
+  return "Notification" in window && "serviceWorker" in navigator && window.isSecureContext;
+}
+
+function updateNotificationsUI() {
+  if (!enableNotificationsButton) return;
+
+  if (!webPushSupported()) {
+    enableNotificationsButton.disabled = true;
+    notificationsStatus.textContent = "Les notifications ne sont pas prises en charge par ce navigateur.";
+    return;
+  }
+
+  if (Notification.permission === "denied") {
+    enableNotificationsButton.disabled = true;
+    notificationsStatus.textContent = "Notifications bloquées. Réautorisez-les dans les réglages de votre navigateur.";
+    return;
+  }
+
+  const alreadyEnabled = Notification.permission === "granted" && localStorage.getItem("subpilot-push-enabled") === "1";
+  enableNotificationsButton.disabled = false;
+  enableNotificationsButton.textContent = alreadyEnabled ? "Notifications activées ✓" : "Activer les notifications";
+  if (!notificationsStatus.textContent) {
+    notificationsStatus.textContent = alreadyEnabled
+      ? "Vous recevrez un rappel avant chaque renouvellement."
+      : "";
+  }
+}
+
+async function enableWebPushNotifications() {
+  if (!isCloudUser()) {
+    notificationsStatus.textContent = "Connectez-vous avec votre compte pour activer les notifications.";
+    return;
+  }
+  if (!webPushSupported()) {
+    notificationsStatus.textContent = "Les notifications ne sont pas prises en charge par ce navigateur.";
+    return;
+  }
+  if (!firebaseState.vapidKey) {
+    notificationsStatus.textContent = "Notifications pas encore configurées : ajoutez la clé Web Push (VAPID) dans firebase-config.js.";
+    return;
+  }
+
+  notificationsStatus.textContent = "Demande d'autorisation…";
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      notificationsStatus.textContent = "Autorisation refusée. Vous pouvez réessayer à tout moment.";
+      updateNotificationsUI();
+      return;
+    }
+
+    const messaging = await ensureMessaging();
+    if (!messaging) {
+      notificationsStatus.textContent = "Les notifications ne sont pas disponibles sur cet appareil.";
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.register("./firebase-messaging-sw.js", {
+      scope: "./firebase-cloud-messaging-push-scope",
+    });
+    const token = await messagingState.getToken(messaging, {
+      vapidKey: firebaseState.vapidKey,
+      serviceWorkerRegistration: registration,
+    });
+    if (!token) {
+      notificationsStatus.textContent = "Impossible d'obtenir le jeton de notification. Réessayez.";
+      return;
+    }
+
+    await savePushToken(token);
+    localStorage.setItem("subpilot-push-enabled", "1");
+    listenForForegroundMessages();
+    notificationsStatus.textContent = "Notifications activées ✓ Vous serez prévenu avant chaque renouvellement.";
+    updateNotificationsUI();
+  } catch (error) {
+    notificationsStatus.textContent = `Activation impossible : ${error?.message || "erreur inconnue"}.`;
+  }
+}
+
+async function ensureMessaging() {
+  if (messagingState?.messaging) return messagingState.messaging;
+  if (!firebaseState.app) return null;
+
+  const module = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}/firebase-messaging.js`);
+  const supported = await module.isSupported().catch(() => false);
+  if (!supported) return null;
+
+  const messaging = module.getMessaging(firebaseState.app);
+  messagingState = { messaging, getToken: module.getToken, onMessage: module.onMessage, listening: false };
+  return messaging;
+}
+
+function listenForForegroundMessages() {
+  if (!messagingState || messagingState.listening) return;
+  messagingState.listening = true;
+  messagingState.onMessage(messagingState.messaging, (payload) => {
+    const title = payload.notification?.title || payload.data?.title || "SubPilot";
+    const body = payload.notification?.body || payload.data?.body || "";
+    if (Notification.permission === "granted") {
+      new Notification(title, { body, icon: "./assets/icon.svg" });
+    }
+  });
+}
+
+async function savePushToken(token) {
+  const { doc, setDoc, arrayUnion } = firebaseState.modules;
+  await setDoc(
+    doc(firebaseState.db, "users", firebaseState.user.uid, "messaging", "web"),
+    {
+      tokens: arrayUnion(token),
+      userAgent: String(navigator.userAgent || "").slice(0, 240),
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true },
+  );
 }
 
 async function loadUserProfile(user) {
