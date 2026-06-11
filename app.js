@@ -6,6 +6,9 @@ const LOCAL_ACCOUNTS_KEY = "subpilot-local-accounts";
 const LOCAL_SESSION_KEY = "subpilot-local-session";
 const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
+// Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
+// vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
+const APP_VERSION = "40";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 
@@ -194,6 +197,8 @@ let activeTab = "dashboard";
 hydrateCategorySelect();
 renderCategoryLegend();
 renderPopularServices();
+const appVersionEl = document.querySelector("#appVersion");
+if (appVersionEl) appVersionEl.textContent = `SubPilot v${APP_VERSION}`;
 if (loadRememberedProfile()) switchAuthMode("login");
 renderAccountStatus();
 updateNotificationsUI();
@@ -290,6 +295,16 @@ async function installApp() {
 
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || !["http:", "https:"].includes(window.location.protocol)) return;
+
+  // Recharge une seule fois lorsqu'une nouvelle version du service worker prend
+  // le contrôle : garantit que l'appareil charge bien la dernière version
+  // (utile notamment sur les PWA iOS qui « reprennent » l'ancienne version).
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
 
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js").catch(() => {
