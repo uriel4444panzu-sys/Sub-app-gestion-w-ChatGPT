@@ -297,7 +297,11 @@ function initializeFirebaseAuth() {
       }
 
       const app = services.appModule.initializeApp(services.config);
-      const auth = services.authModule.getAuth(app);
+      // On force la persistance de session en localStorage : l'IndexedDB par
+      // défaut de Firebase n'est pas fiable sur certains contextes mobiles/PWA
+      // (la session était perdue à la fermeture de l'app). Le localStorage, lui,
+      // survit bien — d'où une vraie persistance « rester connecté ».
+      const auth = createPersistentAuth(services.authModule, app);
       const db = services.firestoreModule.getFirestore(app);
       const provider = new services.authModule.GoogleAuthProvider();
 
@@ -321,6 +325,28 @@ function initializeFirebaseAuth() {
     .catch((error) => {
       enableLocalAuthMode(error);
     });
+}
+
+// Crée l'instance Auth en privilégiant la persistance localStorage (fiable sur
+// mobile/PWA) avec l'IndexedDB en secours, tout en conservant le résolveur
+// nécessaire à la connexion Google par popup. Repli sur getAuth si besoin.
+function createPersistentAuth(authModule, app) {
+  const {
+    initializeAuth,
+    getAuth,
+    browserLocalPersistence,
+    indexedDBLocalPersistence,
+    browserPopupRedirectResolver,
+  } = authModule;
+
+  try {
+    return initializeAuth(app, {
+      persistence: [browserLocalPersistence, indexedDBLocalPersistence].filter(Boolean),
+      popupRedirectResolver: browserPopupRedirectResolver,
+    });
+  } catch {
+    return getAuth(app);
+  }
 }
 
 // Mode de secours : quand Firebase n'est pas configuré (ou indisponible),
