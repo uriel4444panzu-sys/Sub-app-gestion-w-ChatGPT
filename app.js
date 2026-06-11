@@ -140,7 +140,6 @@ const customIconButtons = document.querySelectorAll("[data-custom-icon]");
 const mailImportConsent = document.querySelector("#mailImportConsent");
 const mailImportStatus = document.querySelector("#mailImportStatus");
 const signOutButton = document.querySelector("#signOutButton");
-const syncNowButton = document.querySelector("#syncNowButton");
 const accountStatus = document.querySelector("#accountStatus");
 const authQuickProfile = document.querySelector("#authQuickProfile");
 const authQuickAvatar = document.querySelector("#authQuickAvatar");
@@ -159,6 +158,12 @@ const profileDetailsForm = document.querySelector("#profileDetailsForm");
 const profilePhotoStatus = document.querySelector("#profilePhotoStatus");
 const avatarFileInput = document.querySelector("#avatarFileInput");
 const avatarCameraInput = document.querySelector("#avatarCameraInput");
+const chooseFromGalleryButton = document.querySelector("#chooseFromGalleryButton");
+const takePhotoButton = document.querySelector("#takePhotoButton");
+const permissionModal = document.querySelector("#permissionModal");
+const permissionMessage = document.querySelector("#permissionMessage");
+const permissionAllowButton = document.querySelector("#permissionAllow");
+const permissionCancelButton = document.querySelector("#permissionCancel");
 const authGate = document.querySelector("#authGate");
 const appShell = document.querySelector("#appShell");
 const authStatus = document.querySelector("#authStatus");
@@ -197,11 +202,17 @@ customIconButtons.forEach((button) => {
 });
 mailImportConsent.addEventListener("change", updateMailImportStatus);
 signOutButton.addEventListener("click", handleSignOut);
-syncNowButton.addEventListener("click", handleSyncNow);
 quickLoginButton.addEventListener("click", handleQuickLogin);
 profileDetailsForm.addEventListener("submit", handleProfileDetailsSubmit);
 avatarFileInput.addEventListener("change", handleAvatarSelection);
 avatarCameraInput.addEventListener("change", handleAvatarSelection);
+chooseFromGalleryButton.addEventListener("click", () => requestMediaPermission("gallery"));
+takePhotoButton.addEventListener("click", () => requestMediaPermission("camera"));
+permissionAllowButton.addEventListener("click", grantPendingMediaPermission);
+permissionCancelButton.addEventListener("click", closePermissionModal);
+permissionModal.addEventListener("click", (event) => {
+  if (event.target === permissionModal) closePermissionModal();
+});
 signupForm.addEventListener("submit", handleSignupSubmit);
 loginForm.addEventListener("submit", handleLoginSubmit);
 authGoogleButton.addEventListener("click", handleGoogleSignIn);
@@ -1323,15 +1334,6 @@ async function handleSignOut() {
   renderAccountStatus("Déconnecté. Reconnectez-vous pour accéder à SubPilot.");
 }
 
-function handleSyncNow() {
-  if (!ensureFirebaseReady(true, accountStatus)) return;
-  if (firebaseState.localMode) {
-    renderAccountStatus("Vos données sont enregistrées sur cet appareil. Configurez Firebase pour synchroniser entre vos appareils.");
-    return;
-  }
-  syncCloudData("Vos données sont à jour.");
-}
-
 async function loadUserProfile(user) {
   const fallbackProfile = createProfileFromFirebaseUser(user);
   if (!firebaseState.configured || !user) return fallbackProfile;
@@ -1360,10 +1362,12 @@ async function saveUserProfile(user, formData) {
     updatedAt: new Date().toISOString(),
   };
 
-  await setDoc(doc(firebaseState.db, "users", user.uid, "profile", "details"), profile, { merge: true });
+  // On pré-remplit immédiatement le profil avec les informations saisies à
+  // l'inscription, puis on les enregistre dans le cloud.
   firebaseState.profile = profile;
   rememberProfile(profile);
   renderProfile(profile);
+  await setDoc(doc(firebaseState.db, "users", user.uid, "profile", "details"), profile, { merge: true });
   return profile;
 }
 
@@ -1381,10 +1385,12 @@ async function saveGoogleProfile(user) {
     updatedAt: new Date().toISOString(),
   };
 
-  await setDoc(doc(firebaseState.db, "users", user.uid, "profile", "details"), profile, { merge: true });
+  // On pré-remplit immédiatement le profil avec les informations fournies par
+  // Google (nom, prénom, e-mail, photo), puis on les enregistre dans le cloud.
   firebaseState.profile = profile;
   rememberProfile(profile);
   renderProfile(profile);
+  await setDoc(doc(firebaseState.db, "users", user.uid, "profile", "details"), profile, { merge: true });
   return profile;
 }
 
@@ -1643,6 +1649,45 @@ async function handleProfileDetailsSubmit(event) {
   }
 }
 
+// Avant tout accès à l'appareil photo, à la galerie ou aux fichiers, SubPilot
+// demande explicitement l'autorisation de l'utilisateur via cette fenêtre.
+let pendingMediaPermission = null;
+
+function requestMediaPermission(kind) {
+  if (!firebaseState.user) {
+    profilePhotoStatus.textContent = "Connectez-vous pour modifier votre photo de profil.";
+    return;
+  }
+
+  pendingMediaPermission = kind;
+  permissionMessage.textContent = kind === "camera"
+    ? "SubPilot souhaite accéder à votre appareil photo pour prendre votre photo de profil. Autorisez-vous cet accès ?"
+    : "SubPilot souhaite accéder à vos photos et fichiers pour choisir votre image de profil. Autorisez-vous cet accès ?";
+  permissionModal.hidden = false;
+  permissionAllowButton.focus();
+}
+
+function closePermissionModal() {
+  permissionModal.hidden = true;
+  pendingMediaPermission = null;
+}
+
+function grantPendingMediaPermission() {
+  const kind = pendingMediaPermission;
+  permissionModal.hidden = true;
+  pendingMediaPermission = null;
+  if (!kind) return;
+
+  // L'ouverture est déclenchée de façon synchrone, dans le geste utilisateur du
+  // clic « Autoriser », afin que le navigateur ouvre bien l'appareil photo ou le
+  // sélecteur de fichiers (qui demanderont à leur tour l'autorisation système).
+  if (kind === "camera") {
+    avatarCameraInput.click();
+  } else {
+    avatarFileInput.click();
+  }
+}
+
 async function handleAvatarSelection(event) {
   const [file] = event.target.files || [];
   event.target.value = "";
@@ -1871,7 +1916,6 @@ function renderAccountStatus(message) {
   appShell.hidden = shouldShowAuth;
   authGoogleButton.disabled = !firebaseState.configured;
   signOutButton.hidden = !user;
-  syncNowButton.hidden = !user;
   if (profile) renderProfile(profile);
   renderAuthQuickProfile(gateVisible);
 
