@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=26" />
+    <link rel="stylesheet" href="styles.css?v=27" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -440,17 +440,13 @@
             </div>
           </div>
           <div class="profile-actions">
-            <label class="ghost-button file-button">
-              Choisir une photo
-              <input id="avatarFileInput" class="visually-hidden" type="file" accept="image/*" />
-            </label>
-            <label class="ghost-button file-button">
-              Prendre une photo
-              <input id="avatarCameraInput" class="visually-hidden" type="file" accept="image/*" capture="user" />
-            </label>
+            <button type="button" class="ghost-button" id="chooseFromGalleryButton">Choisir une photo</button>
+            <button type="button" class="ghost-button" id="takePhotoButton">Prendre une photo</button>
             <button type="button" class="delete-button" id="signOutButton">Déconnexion</button>
           </div>
-          <p id="profilePhotoStatus" class="helper-text status-text">Utilisez la galerie ou l'appareil photo ; le navigateur vous demandera l'autorisation avant d'ouvrir la caméra.</p>
+          <input id="avatarFileInput" class="visually-hidden" type="file" accept="image/*" />
+          <input id="avatarCameraInput" class="visually-hidden" type="file" accept="image/*" capture="user" />
+          <p id="profilePhotoStatus" class="helper-text status-text">Gérez votre photo de profil et votre session en toute sécurité. SubPilot vous demandera votre autorisation avant d'accéder à votre appareil photo, à votre galerie ou à vos fichiers.</p>
         </section>
 
         <section class="panel profile-details" aria-labelledby="profileDetailsTitle">
@@ -491,13 +487,23 @@
             </div>
             <div class="profile-actions secondary-actions">
               <button type="submit" class="primary-button small">Enregistrer mes infos</button>
-              <button type="button" class="ghost-button sync-button" id="syncNowButton">Synchroniser maintenant</button>
             </div>
           </form>
           <p id="accountStatus" class="helper-text status-text"></p>
         </section>
       </section>
     </main>
+
+    <div class="modal-overlay" id="permissionModal" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="permissionTitle" aria-describedby="permissionMessage">
+        <h3 id="permissionTitle">Autorisation requise</h3>
+        <p id="permissionMessage" class="helper-text">SubPilot souhaite accéder à votre appareil.</p>
+        <div class="modal-actions">
+          <button type="button" class="ghost-button" id="permissionCancel">Annuler</button>
+          <button type="button" class="primary-button small" id="permissionAllow">Autoriser</button>
+        </div>
+      </div>
+    </div>
 
     <template id="emptyStateTemplate">
       <article class="empty-state">
@@ -506,6 +512,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=26"></script>
+    <script src="app.js?v=27"></script>
   </body>
 </html>
