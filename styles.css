@@ -392,6 +392,7 @@ label,
 .search-label span {
   display: grid;
   gap: 7px;
+  min-width: 0;
   color: var(--muted);
   font-size: 0.88rem;
   font-weight: 750;
@@ -408,6 +409,15 @@ textarea {
   padding: 13px 14px;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Les champs date ont une largeur intrinsèque (surtout sur iOS/WebKit) qui
+   déborde de leur cellule : on neutralise l'apparence native pour qu'ils
+   s'alignent exactement sur la taille des autres champs. */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
 }
 
 input:focus,
