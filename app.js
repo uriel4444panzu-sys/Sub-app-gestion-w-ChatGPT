@@ -137,7 +137,9 @@ const customCategoryNameInput = document.querySelector("#customCategoryName");
 const customCategoryIconInput = document.querySelector("#customCategoryIcon");
 const customCategoryColorInput = document.querySelector("#customCategoryColor");
 const customIconButtons = document.querySelectorAll("[data-custom-icon]");
-const mailImportConsent = document.querySelector("#mailImportConsent");
+const mailImportInput = document.querySelector("#mailImportInput");
+const mailImportAnalyzeButton = document.querySelector("#mailImportAnalyze");
+const mailImportClearButton = document.querySelector("#mailImportClear");
 const mailImportStatus = document.querySelector("#mailImportStatus");
 const signOutButton = document.querySelector("#signOutButton");
 const accountStatus = document.querySelector("#accountStatus");
@@ -200,7 +202,8 @@ customCategoryIconInput.addEventListener("input", () => normalizeIconInput(custo
 customIconButtons.forEach((button) => {
   button.addEventListener("click", () => selectCustomIcon(button.dataset.customIcon));
 });
-mailImportConsent.addEventListener("change", updateMailImportStatus);
+mailImportAnalyzeButton.addEventListener("click", handleMailImportAnalyze);
+mailImportClearButton.addEventListener("click", clearMailImport);
 signOutButton.addEventListener("click", handleSignOut);
 quickLoginButton.addEventListener("click", handleQuickLogin);
 profileDetailsForm.addEventListener("submit", handleProfileDetailsSubmit);
@@ -1179,15 +1182,187 @@ function normalizeIconInput(input) {
   if (input === customCategoryIconInput) updateCustomIconButtons();
 }
 
-function updateMailImportStatus() {
-  if (!mailImportConsent.checked) {
-    mailImportStatus.textContent = "Aucun e-mail n'est lu sans autorisation explicite. Vous pouvez continuer à ajouter vos abonnements à la main.";
+// --- Import intelligent depuis un e-mail -------------------------------------
+
+// Services connus : dès qu'un de ces mots-clés apparaît dans l'e-mail, on en
+// déduit le nom, la catégorie et le sigle de l'abonnement.
+const EMAIL_SERVICE_HINTS = [
+  { keywords: ["netflix"], name: "Netflix", category: "Streaming", serviceIcon: "NF" },
+  { keywords: ["spotify"], name: "Spotify", category: "Musique", serviceIcon: "SP" },
+  { keywords: ["deezer"], name: "Deezer", category: "Musique", serviceIcon: "DZ" },
+  { keywords: ["apple music"], name: "Apple Music", category: "Musique", serviceIcon: "AM" },
+  { keywords: ["disney+", "disney plus", "disneyplus"], name: "Disney+", category: "Streaming", serviceIcon: "D+" },
+  { keywords: ["amazon prime", "prime video"], name: "Amazon Prime", category: "Streaming", serviceIcon: "AP" },
+  { keywords: ["youtube premium", "youtube"], name: "YouTube Premium", category: "Streaming", serviceIcon: "YT" },
+  { keywords: ["paramount+", "paramount plus"], name: "Paramount+", category: "Streaming", serviceIcon: "P+" },
+  { keywords: ["crunchyroll"], name: "Crunchyroll", category: "Streaming", serviceIcon: "CR" },
+  { keywords: ["canva"], name: "Canva Pro", category: "Productivité", serviceIcon: "CV" },
+  { keywords: ["notion"], name: "Notion", category: "Productivité", serviceIcon: "NT" },
+  { keywords: ["adobe", "creative cloud"], name: "Adobe", category: "Logiciels", serviceIcon: "AD" },
+  { keywords: ["microsoft 365", "office 365", "microsoft365"], name: "Microsoft 365", category: "Logiciels", serviceIcon: "MS" },
+  { keywords: ["chatgpt", "openai"], name: "ChatGPT", category: "IA", serviceIcon: "AI" },
+  { keywords: ["icloud", "apple one"], name: "iCloud+", category: "Cloud", serviceIcon: "iC" },
+  { keywords: ["google one", "google workspace"], name: "Google One", category: "Cloud", serviceIcon: "G1" },
+  { keywords: ["dropbox"], name: "Dropbox", category: "Cloud", serviceIcon: "DB" },
+  { keywords: ["xbox game pass", "game pass"], name: "Game Pass", category: "Jeux", serviceIcon: "GP" },
+  { keywords: ["playstation plus", "ps plus"], name: "PlayStation Plus", category: "Jeux", serviceIcon: "PS" },
+  { keywords: ["audible"], name: "Audible", category: "Presse", serviceIcon: "AU" },
+  { keywords: ["nordvpn", "expressvpn", "surfshark", "proton vpn"], name: "VPN", category: "Sécurité", serviceIcon: "VPN" },
+];
+
+const FRENCH_MONTHS = {
+  janvier: 1, février: 2, fevrier: 2, mars: 3, avril: 4, mai: 5, juin: 6,
+  juillet: 7, août: 8, aout: 8, septembre: 9, octobre: 10, novembre: 11, décembre: 12, decembre: 12,
+};
+
+function handleMailImportAnalyze() {
+  const text = mailImportInput.value.trim();
+  if (!text) {
+    mailImportStatus.textContent = "Collez d'abord le contenu d'un e-mail à analyser.";
     return;
   }
 
-  mailImportStatus.textContent = firebaseState.user
-    ? "Compte connecté : l'import e-mail pourra être ajouté ensuite via OAuth Gmail/Outlook avec permissions minimales."
-    : "Connectez-vous d'abord : l'import e-mail devra ensuite passer par OAuth Gmail/Outlook avant de lire des messages.";
+  const detection = detectSubscriptionFromEmail(text);
+  if (!detection || (!detection.name && detection.price == null)) {
+    mailImportStatus.textContent = "Aucun abonnement détecté. Vérifiez l'e-mail ou ajoutez l'abonnement manuellement ci-dessous.";
+    return;
+  }
+
+  applyDetectedSubscription(detection);
+  const priceLabel = detection.price != null ? ` (${formatMoney(detection.price, detection.currency)})` : "";
+  mailImportStatus.textContent = `Détecté : ${detection.name || "abonnement"}${priceLabel}. Vérifiez les champs ci-dessous puis cliquez sur « Ajouter l'abonnement ».`;
+  document.querySelector("#name").focus();
+}
+
+function clearMailImport() {
+  mailImportInput.value = "";
+  mailImportStatus.textContent = "";
+}
+
+function applyDetectedSubscription(detection) {
+  resetForm();
+  if (detection.name) document.querySelector("#name").value = detection.name;
+  if (detection.price != null) document.querySelector("#price").value = detection.price;
+  document.querySelector("#currency").value = detection.currency || "EUR";
+  document.querySelector("#frequency").value = detection.frequency || "monthly";
+  categorySelect.value = categories.some((category) => category.name === detection.category)
+    ? detection.category
+    : "Autre";
+  serviceIconInput.value = detection.serviceIcon || "";
+  handleCategoryChange();
+  document.querySelector("#nextDate").value = detection.nextDate || getDateInDays(30);
+  document.querySelector("#note").value = "Importé depuis un e-mail";
+}
+
+function detectSubscriptionFromEmail(rawText) {
+  const text = String(rawText);
+  const lower = text.toLowerCase();
+
+  const service = EMAIL_SERVICE_HINTS.find((hint) => hint.keywords.some((keyword) => lower.includes(keyword)));
+  const price = extractEmailPrice(text, lower);
+  const frequency = detectEmailFrequency(lower);
+  const nextDate = detectEmailNextDate(text, lower);
+
+  return {
+    name: service?.name || "",
+    category: service?.category || "Autre",
+    serviceIcon: service?.serviceIcon || "",
+    price: price?.amount ?? null,
+    currency: price?.currency || "EUR",
+    frequency,
+    nextDate,
+  };
+}
+
+function extractEmailPrice(text, lower) {
+  const regex = /([€$£])\s?(\d{1,4}(?:[.,]\d{1,2})?)|(\d{1,4}(?:[.,]\d{1,2})?)\s?(€|\$|£|eur|euros?|usd|dollars?|gbp|livres?)/gi;
+  const matches = [];
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const symbol = match[1] || match[4] || "";
+    const rawAmount = match[2] || match[3] || "";
+    const amount = Number(rawAmount.replace(",", "."));
+    if (!Number.isFinite(amount) || amount <= 0) continue;
+    matches.push({ amount, currency: normalizeCurrency(symbol), index: match.index });
+  }
+  if (!matches.length) return null;
+
+  // On privilégie le montant proche d'un mot-clé de facturation (total, montant…).
+  const keywordIndex = findKeywordIndex(lower, ["total", "montant", "prix", "payé", "paye", "facturé", "facture", "prélevé", "preleve", "amount", "charged"]);
+  if (keywordIndex >= 0) {
+    matches.sort((a, b) => Math.abs(a.index - keywordIndex) - Math.abs(b.index - keywordIndex));
+  }
+  return matches[0];
+}
+
+function normalizeCurrency(symbol) {
+  const value = String(symbol).toLowerCase();
+  if (value === "$" || value.startsWith("usd") || value.startsWith("dollar")) return "USD";
+  if (value === "£" || value.startsWith("gbp") || value.startsWith("livre")) return "GBP";
+  return "EUR";
+}
+
+function detectEmailFrequency(lower) {
+  if (/(par an|\/\s?an\b|annuel|annuelle|yearly|per year|\/\s?yr)/.test(lower)) return "yearly";
+  if (/(trimestre|trimestriel|quarterly|per quarter)/.test(lower)) return "quarterly";
+  if (/(par semaine|\/\s?semaine|hebdomadaire|weekly|per week)/.test(lower)) return "weekly";
+  return "monthly";
+}
+
+function detectEmailNextDate(text, lower) {
+  const renewalIndex = findKeywordIndex(lower, ["renouvel", "prochain", "prélèvement", "prelevement", "échéance", "echeance", "renew", "next billing", "next payment", "expire"]);
+  const candidates = [];
+
+  const numericRegex = /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b/g;
+  let match;
+  while ((match = numericRegex.exec(text)) !== null) {
+    const day = Number(match[1]);
+    const month = Number(match[2]);
+    const year = normalizeYear(Number(match[3]));
+    candidates.push({ date: buildDate(year, month, day), index: match.index });
+  }
+
+  const isoRegex = /\b(\d{4})-(\d{2})-(\d{2})\b/g;
+  while ((match = isoRegex.exec(text)) !== null) {
+    candidates.push({ date: buildDate(Number(match[1]), Number(match[2]), Number(match[3])), index: match.index });
+  }
+
+  const monthNameRegex = /\b(\d{1,2})\s+([a-zéûôA-Zéèêëàâäîïôöùûü]+)\.?\s+(\d{4})\b/gi;
+  while ((match = monthNameRegex.exec(text)) !== null) {
+    const month = FRENCH_MONTHS[match[2].toLowerCase()];
+    if (!month) continue;
+    candidates.push({ date: buildDate(Number(match[3]), month, Number(match[1])), index: match.index });
+  }
+
+  const validCandidates = candidates.filter((candidate) => candidate.date);
+  if (!validCandidates.length) return "";
+
+  // On préfère une date future, et la plus proche d'un mot-clé de renouvellement.
+  const today = getTodayDateOnly();
+  const future = validCandidates.filter((candidate) => parseDateOnly(candidate.date) >= today);
+  const pool = future.length ? future : validCandidates;
+  if (renewalIndex >= 0) {
+    pool.sort((a, b) => Math.abs(a.index - renewalIndex) - Math.abs(b.index - renewalIndex));
+  }
+  return pool[0].date;
+}
+
+function findKeywordIndex(lower, keywords) {
+  let best = -1;
+  for (const keyword of keywords) {
+    const index = lower.indexOf(keyword);
+    if (index >= 0 && (best === -1 || index < best)) best = index;
+  }
+  return best;
+}
+
+function normalizeYear(year) {
+  return year < 100 ? 2000 + year : year;
+}
+
+function buildDate(year, month, day) {
+  if (!year || !month || !day || month < 1 || month > 12 || day < 1 || day > 31) return "";
+  return formatDateOnly(new Date(year, month - 1, day));
 }
 
 async function handleSignupSubmit(event) {
@@ -1948,8 +2123,6 @@ function renderAccountStatus(message) {
         : "Créez votre compte sécurisé pour synchroniser SubPilot."
       : "Connectez-vous pour retrouver vos abonnements.";
   }
-
-  updateMailImportStatus();
 }
 
 function getFriendlyFirebaseError(error) {
