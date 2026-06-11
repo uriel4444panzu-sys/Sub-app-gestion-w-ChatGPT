@@ -8,7 +8,7 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "40";
+const APP_VERSION = "41";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 
@@ -1180,27 +1180,43 @@ function normalizeIconInput(input) {
 // Services connus : dès qu'un de ces mots-clés apparaît dans l'e-mail, on en
 // déduit le nom, la catégorie et le sigle de l'abonnement.
 const EMAIL_SERVICE_HINTS = [
-  { keywords: ["netflix"], name: "Netflix", category: "Streaming", serviceIcon: "NF" },
-  { keywords: ["spotify"], name: "Spotify", category: "Musique", serviceIcon: "SP" },
-  { keywords: ["deezer"], name: "Deezer", category: "Musique", serviceIcon: "DZ" },
+  { keywords: ["netflix", "netflix.com"], name: "Netflix", category: "Streaming", serviceIcon: "NF" },
+  { keywords: ["spotify", "spotify.com"], name: "Spotify", category: "Musique", serviceIcon: "SP" },
+  { keywords: ["deezer", "deezer.com"], name: "Deezer", category: "Musique", serviceIcon: "DZ" },
   { keywords: ["apple music"], name: "Apple Music", category: "Musique", serviceIcon: "AM" },
-  { keywords: ["disney+", "disney plus", "disneyplus"], name: "Disney+", category: "Streaming", serviceIcon: "D+" },
+  { keywords: ["disney+", "disney plus", "disneyplus", "disneyplus.com"], name: "Disney+", category: "Streaming", serviceIcon: "D+" },
   { keywords: ["amazon prime", "prime video"], name: "Amazon Prime", category: "Streaming", serviceIcon: "AP" },
   { keywords: ["youtube premium", "youtube"], name: "YouTube Premium", category: "Streaming", serviceIcon: "YT" },
   { keywords: ["paramount+", "paramount plus"], name: "Paramount+", category: "Streaming", serviceIcon: "P+" },
-  { keywords: ["crunchyroll"], name: "Crunchyroll", category: "Streaming", serviceIcon: "CR" },
-  { keywords: ["canva"], name: "Canva Pro", category: "Productivité", serviceIcon: "CV" },
-  { keywords: ["notion"], name: "Notion", category: "Productivité", serviceIcon: "NT" },
-  { keywords: ["adobe", "creative cloud"], name: "Adobe", category: "Logiciels", serviceIcon: "AD" },
+  { keywords: ["crunchyroll", "crunchyroll.com"], name: "Crunchyroll", category: "Streaming", serviceIcon: "CR" },
+  { keywords: ["canva", "canva.com"], name: "Canva Pro", category: "Productivité", serviceIcon: "CV" },
+  { keywords: ["notion", "notion.so"], name: "Notion", category: "Productivité", serviceIcon: "NT" },
+  { keywords: ["adobe", "creative cloud", "adobe.com"], name: "Adobe", category: "Logiciels", serviceIcon: "AD" },
   { keywords: ["microsoft 365", "office 365", "microsoft365"], name: "Microsoft 365", category: "Logiciels", serviceIcon: "MS" },
-  { keywords: ["chatgpt", "openai"], name: "ChatGPT", category: "IA", serviceIcon: "AI" },
+  { keywords: ["chatgpt", "openai", "openai.com", "chatgpt.com"], name: "ChatGPT", category: "IA", serviceIcon: "AI" },
+  { keywords: ["claude", "anthropic", "anthropic.com", "claude.ai"], name: "Claude", category: "IA", serviceIcon: "CL" },
   { keywords: ["icloud", "apple one"], name: "iCloud+", category: "Cloud", serviceIcon: "iC" },
   { keywords: ["google one", "google workspace"], name: "Google One", category: "Cloud", serviceIcon: "G1" },
-  { keywords: ["dropbox"], name: "Dropbox", category: "Cloud", serviceIcon: "DB" },
+  { keywords: ["dropbox", "dropbox.com"], name: "Dropbox", category: "Cloud", serviceIcon: "DB" },
   { keywords: ["xbox game pass", "game pass"], name: "Game Pass", category: "Jeux", serviceIcon: "GP" },
   { keywords: ["playstation plus", "ps plus"], name: "PlayStation Plus", category: "Jeux", serviceIcon: "PS" },
-  { keywords: ["audible"], name: "Audible", category: "Presse", serviceIcon: "AU" },
+  { keywords: ["audible", "audible.com", "audible.fr"], name: "Audible", category: "Presse", serviceIcon: "AU" },
   { keywords: ["nordvpn", "expressvpn", "surfshark", "proton vpn"], name: "VPN", category: "Sécurité", serviceIcon: "VPN" },
+  { keywords: ["pixlr", "pixlr.com"], name: "Pixlr", category: "Logiciels", serviceIcon: "PX" },
+];
+
+// Intermédiaires de paiement : le mail vient de leur domaine, pas du service →
+// on cherche alors le nom du marchand dans le texte plutôt que dans le domaine.
+const EMAIL_PROCESSOR_DOMAINS = [
+  "stripe.com", "paddle.com", "paddle.net", "paypal.com", "paypal.fr", "lemonsqueezy.com",
+  "chargebee.com", "fastspring.com", "gumroad.com", "braintreegateway.com", "recurly.com",
+];
+
+// Domaines d'e-mail génériques : à ignorer pour la déduction du service.
+const EMAIL_GENERIC_DOMAINS = [
+  "gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "hotmail.fr", "live.com", "live.fr",
+  "msn.com", "yahoo.com", "yahoo.fr", "icloud.com", "me.com", "proton.me", "protonmail.com",
+  "orange.fr", "free.fr", "sfr.fr", "wanadoo.fr", "laposte.net", "bbox.fr",
 ];
 
 const FRENCH_MONTHS = {
@@ -1256,15 +1272,85 @@ function detectSubscriptionFromEmail(rawText) {
   const frequency = detectEmailFrequency(lower);
   const nextDate = detectEmailNextDate(text, lower);
 
+  let name = service?.name || "";
+  let serviceIcon = service?.serviceIcon || "";
+  const category = service?.category || "Autre";
+
+  // Service non répertorié : on tente de le déduire du texte (nom de marchand
+  // explicite, ou domaine de l'expéditeur/liens) — utile pour les services moins
+  // connus, y compris ceux facturés via Stripe/Paddle/PayPal.
+  if (!name) {
+    const derived = deriveServiceFromEmail(text);
+    if (derived) {
+      name = derived;
+      serviceIcon = getServiceInitials(derived);
+    }
+  }
+
   return {
-    name: service?.name || "",
-    category: service?.category || "Autre",
-    serviceIcon: service?.serviceIcon || "",
+    name,
+    category,
+    serviceIcon,
     price: price?.amount ?? null,
     currency: price?.currency || "EUR",
     frequency,
     nextDate,
   };
+}
+
+// Déduit le nom d'un service non répertorié à partir du texte de l'e-mail.
+function deriveServiceFromEmail(text) {
+  // 1) Nom de marchand explicite (« Votre abonnement X », « Receipt from X »…),
+  //    indispensable quand le mail vient d'un intermédiaire de paiement.
+  const merchant = extractMerchantName(text);
+  if (merchant) return merchant;
+
+  // 2) Déduction depuis un domaine de marque (expéditeur ou liens), en écartant
+  //    les intermédiaires de paiement et les messageries génériques.
+  const brandDomain = extractDomains(text).find((domain) =>
+    !EMAIL_PROCESSOR_DOMAINS.includes(domain) && !EMAIL_GENERIC_DOMAINS.includes(domain),
+  );
+  return brandDomain ? brandFromDomain(brandDomain) : "";
+}
+
+function extractDomains(text) {
+  const domains = [];
+  const emailRegex = /[a-z0-9._%+-]+@([a-z0-9.-]+\.[a-z]{2,})/gi;
+  const urlRegex = /https?:\/\/(?:www\.)?([a-z0-9.-]+\.[a-z]{2,})/gi;
+  let match;
+  while ((match = emailRegex.exec(text)) !== null) domains.push(match[1].toLowerCase());
+  while ((match = urlRegex.exec(text)) !== null) domains.push(match[1].toLowerCase());
+  return [...new Set(domains)];
+}
+
+function brandFromDomain(domain) {
+  const labels = domain.split(".").filter(Boolean);
+  if (labels.length < 2) return "";
+  let root = labels[labels.length - 2];
+  const compoundTld = ["co", "com", "org", "net", "gouv"];
+  if (labels.length >= 3 && compoundTld.includes(root)) root = labels[labels.length - 3];
+  if (!root || root.length < 2) return "";
+  return root.charAt(0).toUpperCase() + root.slice(1);
+}
+
+function extractMerchantName(text) {
+  const patterns = [
+    /merci\s+(?:pour|de)\s+votre\s+abonnement\s+(?:à\s+|au\s+)?([A-Za-zÀ-ÿ][\wÀ-ÿ&.\- ]{1,30})/i,
+    /votre\s+abonnement\s+(?:à\s+|au\s+)?([A-Za-zÀ-ÿ][\wÀ-ÿ&.\- ]{1,30})/i,
+    /your\s+([A-Za-zÀ-ÿ][\wÀ-ÿ&.\- ]{1,30}?)\s+subscription/i,
+    /(?:reçu|recu|facture)\s+(?:de|pour)\s+([A-Za-zÀ-ÿ][\wÀ-ÿ&.\- ]{1,30})/i,
+    /receipt\s+from\s+([A-Za-zÀ-ÿ][\wÀ-ÿ&.\- ]{1,30})/i,
+  ];
+  for (const regex of patterns) {
+    const match = regex.exec(text);
+    if (match && match[1]) return cleanMerchantName(match[1]);
+  }
+  return "";
+}
+
+function cleanMerchantName(value) {
+  const firstSegment = String(value).split(/[\n\r,.;:!?]| - | – | est | sera | a été | au montant /i)[0];
+  return firstSegment.trim().split(/\s+/).slice(0, 3).join(" ").slice(0, 40).trim();
 }
 
 function extractEmailPrice(text, lower) {
