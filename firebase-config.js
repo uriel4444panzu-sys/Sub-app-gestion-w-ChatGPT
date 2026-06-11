@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 // Configuration Firebase publique de SubPilot.
 // 1. Créez un projet Firebase.
 // 2. Activez Authentication > Email/Password et Google.
@@ -19,7 +17,6 @@ export const firebaseConfig = {
   messagingSenderId: "151154301775",
   appId: "1:151154301775:web:43656447524294aecd433a",
 };
->>>>>>> 07a576d5452be59836e9bf5f2f82143c4fdfdc81
 
 // Clé « Web Push certificate » (paire de clés VAPID) pour les notifications push.
 // À générer dans la console Firebase :
