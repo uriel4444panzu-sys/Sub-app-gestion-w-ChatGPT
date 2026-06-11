@@ -1,9 +1,9 @@
-const CACHE_NAME = "subpilot-v33";
+const CACHE_NAME = "subpilot-v34";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=33",
-  "./app.js?v=33",
+  "./styles.css?v=34",
+  "./app.js?v=34",
   "./manifest.webmanifest",
   "./assets/icon.svg",
 ];
