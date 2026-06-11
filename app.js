@@ -1465,7 +1465,9 @@ function updateNotificationsUI() {
     return;
   }
 
-  const alreadyEnabled = Notification.permission === "granted" && localStorage.getItem("subpilot-push-enabled") === "1";
+  // L'état « activé » repose uniquement sur l'autorisation du navigateur, qui
+  // persiste pour toujours une fois accordée (indépendamment de la connexion).
+  const alreadyEnabled = Notification.permission === "granted";
   enableNotificationsButton.disabled = false;
   enableNotificationsButton.textContent = alreadyEnabled ? "Notifications activées ✓" : "Activer les notifications";
   if (!notificationsStatus.textContent) {
@@ -2208,6 +2210,8 @@ function renderAccountStatus(message) {
         : "Créez votre compte sécurisé pour synchroniser SubPilot."
       : "Connectez-vous pour retrouver vos abonnements.";
   }
+
+  updateNotificationsUI();
 }
 
 function getFriendlyFirebaseError(error) {
