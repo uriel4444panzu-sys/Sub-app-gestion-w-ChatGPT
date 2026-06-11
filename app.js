@@ -370,6 +370,11 @@ function handleFirebaseUserChange(user) {
     return;
   }
 
+  // « Rester connecté » : une session Firebase valide (connexion explicite OU
+  // session mémorisée d'une précédente ouverture) déverrouille directement
+  // l'accès, sans réécran de connexion à chaque réouverture de l'application.
+  appUnlocked = true;
+
   // L'inscription gère elle-même profil + reprise des données.
   if (signupInProgress) return;
 
@@ -1775,7 +1780,7 @@ function restoreLocalSession() {
   if (!uid) return;
 
   const account = loadLocalAccounts().find((item) => item.uid === uid);
-  if (account) applyLocalSession(account);
+  if (account) applyLocalSession(account, { unlock: true });
 }
 
 async function createLocalAccount(formData, statusTarget) {
