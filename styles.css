@@ -1445,3 +1445,21 @@ textarea:focus {
   gap: 10px;
   margin-top: 8px;
 }
+
+/* Import d'abonnement depuis un e-mail */
+.mail-import-field {
+  display: block;
+  margin-top: 4px;
+}
+
+.mail-import-field textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.mail-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}

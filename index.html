@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=28" />
+    <link rel="stylesheet" href="styles.css?v=29" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -255,14 +255,19 @@
           <div class="section-heading tight">
             <div>
               <p class="eyebrow">Automatisation</p>
-              <h3 id="mailImportTitle">Ajouter depuis mes e-mails</h3>
+              <h3 id="mailImportTitle">Ajouter depuis un e-mail</h3>
             </div>
           </div>
-          <label class="toggle-row">
-            <input id="mailImportConsent" type="checkbox" />
-            <span>Je souhaite autoriser SubPilot à rechercher mes abonnements dans mes e-mails quand mon compte sécurisé sera connecté.</span>
+          <p class="helper-text">Collez ou transférez ici l'e-mail de confirmation ou la facture d'un abonnement. SubPilot détecte le service, le prix, la fréquence et la prochaine échéance, puis pré-remplit le formulaire ci-dessous pour que vous validiez.</p>
+          <label class="mail-import-field">
+            <span class="visually-hidden">Contenu de l'e-mail</span>
+            <textarea id="mailImportInput" rows="5" placeholder="Exemple : « Votre abonnement Netflix de 13,49 € sera renouvelé le 15/07/2026. »"></textarea>
           </label>
-          <p id="mailImportStatus" class="helper-text"></p>
+          <div class="mail-import-actions">
+            <button type="button" class="primary-button small" id="mailImportAnalyze">Analyser l'e-mail</button>
+            <button type="button" class="ghost-button" id="mailImportClear">Effacer</button>
+          </div>
+          <p id="mailImportStatus" class="helper-text status-text"></p>
         </section>
 
         <section class="panel" aria-labelledby="formTitle">
@@ -512,6 +517,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=28"></script>
+    <script src="app.js?v=29"></script>
   </body>
 </html>
