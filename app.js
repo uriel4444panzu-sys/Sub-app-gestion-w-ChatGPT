@@ -33,6 +33,13 @@ let appUnlocked = false;
 let signupInProgress = false;
 // Modules Firebase Cloud Messaging chargés à la demande (notifications push).
 let messagingState = null;
+// État runtime des notifications (réinitialisé à chaque ouverture de l'app) :
+// pushReady = un jeton push valide a été obtenu et enregistré dans cette session ;
+// pushChecked = une tentative d'enregistrement a déjà eu lieu (évite le clignotement
+// de la bannière au démarrage). On ne se fie pas à Notification.permission seul,
+// car iOS peut indiquer « granted » alors que l'abonnement push est en réalité mort.
+let pushReady = false;
+let pushChecked = false;
 
 const defaultCategories = [
   { name: "Streaming", icon: "TV", color: "#7c3aed" },
@@ -394,6 +401,8 @@ function handleFirebaseUserChange(user) {
   if (!user) {
     firebaseState.profile = null;
     appUnlocked = false;
+    pushReady = false;
+    pushChecked = false;
     clearDisplayedAccountData();
     renderAccountStatus();
     return;
@@ -408,7 +417,7 @@ function handleFirebaseUserChange(user) {
   if (signupInProgress) return;
 
   loadCloudData()
-    .then(() => autoEnableNotificationsIfGranted())
+    .then(() => refreshPushRegistration())
     .catch((error) => {
       renderAccountStatus(getFriendlyFirebaseError(error));
     });
@@ -1487,37 +1496,40 @@ function webPushSupported() {
 function updateNotificationsUI() {
   if (!enableNotificationsButton) return;
 
-  // Bannière de réactivation en un appui : visible uniquement quand l'utilisateur
-  // est dans l'app (connecté) et que l'autorisation est à redonner (cas iOS qui
-  // perd l'autorisation à la fermeture). Le geste reste requis par le navigateur.
+  const supported = webPushSupported();
+  const denied = supported && Notification.permission === "denied";
+
+  // Bannière de réactivation en un appui : visible quand l'utilisateur est dans
+  // l'app (connecté) mais qu'aucun jeton push valide n'a pu être obtenu cette
+  // session (cas iOS qui perd l'abonnement à la fermeture). On attend qu'une
+  // tentative ait eu lieu (pushChecked) pour éviter un clignotement au démarrage.
   if (notifBanner) {
-    const needsReenable = isCloudUser() && appUnlocked && webPushSupported()
-      && Boolean(firebaseState.vapidKey) && Notification.permission === "default";
+    const needsReenable = isCloudUser() && appUnlocked && supported && !denied
+      && Boolean(firebaseState.vapidKey) && pushChecked && !pushReady;
     notifBanner.hidden = !needsReenable;
   }
 
-  if (!webPushSupported()) {
+  if (!supported) {
     enableNotificationsButton.disabled = true;
+    enableNotificationsButton.textContent = "Activez les notifications";
     notificationsStatus.textContent = "Les notifications ne sont pas prises en charge par ce navigateur.";
     return;
   }
 
-  if (Notification.permission === "denied") {
+  if (denied) {
     enableNotificationsButton.disabled = true;
+    enableNotificationsButton.textContent = "Activez les notifications";
     notificationsStatus.textContent = "Notifications bloquées. Réautorisez-les dans les réglages de votre navigateur.";
     return;
   }
 
-  // L'état « activé » repose uniquement sur l'autorisation du navigateur, qui
-  // persiste pour toujours une fois accordée (indépendamment de la connexion).
-  const alreadyEnabled = Notification.permission === "granted";
+  // L'état « activé » reflète l'obtention réelle d'un jeton push valide cette
+  // session, et pas seulement l'autorisation du navigateur (peu fiable sur iOS).
   enableNotificationsButton.disabled = false;
-  enableNotificationsButton.textContent = alreadyEnabled ? "Notifications activées ✓" : "Activer les notifications";
-  if (!notificationsStatus.textContent) {
-    notificationsStatus.textContent = alreadyEnabled
-      ? "Vous recevrez un rappel avant chaque renouvellement."
-      : "";
-  }
+  enableNotificationsButton.textContent = pushReady ? "Notifications activées ✓" : "Activez les notifications";
+  notificationsStatus.textContent = pushReady
+    ? "Vous recevrez un rappel avant chaque renouvellement."
+    : "";
 }
 
 async function enableWebPushNotifications() {
@@ -1543,10 +1555,34 @@ async function enableWebPushNotifications() {
       return;
     }
 
+    const ok = await refreshPushRegistration();
+    notificationsStatus.textContent = ok
+      ? "Notifications activées ✓ Vous serez prévenu avant chaque renouvellement."
+      : "Impossible d'activer les notifications pour le moment. Réessayez.";
+  } catch (error) {
+    notificationsStatus.textContent = `Activation impossible : ${error?.message || "erreur inconnue"}.`;
+  }
+}
+
+// Tente d'obtenir/rafraîchir le jeton push pour le compte courant et enregistre
+// le résultat dans Firestore. Appelée silencieusement à chaque connexion ET lors
+// d'une activation manuelle. Met à jour pushReady/pushChecked puis l'UI.
+async function refreshPushRegistration() {
+  pushChecked = true;
+
+  if (!isCloudUser() || !webPushSupported() || !firebaseState.vapidKey
+    || Notification.permission !== "granted") {
+    pushReady = false;
+    updateNotificationsUI();
+    return false;
+  }
+
+  try {
     const messaging = await ensureMessaging();
     if (!messaging) {
-      notificationsStatus.textContent = "Les notifications ne sont pas disponibles sur cet appareil.";
-      return;
+      pushReady = false;
+      updateNotificationsUI();
+      return false;
     }
 
     const registration = await navigator.serviceWorker.register("./firebase-messaging-sw.js", {
@@ -1557,47 +1593,20 @@ async function enableWebPushNotifications() {
       serviceWorkerRegistration: registration,
     });
     if (!token) {
-      notificationsStatus.textContent = "Impossible d'obtenir le jeton de notification. Réessayez.";
-      return;
+      pushReady = false;
+      updateNotificationsUI();
+      return false;
     }
 
     await savePushToken(token);
-    localStorage.setItem("subpilot-push-enabled", "1");
     listenForForegroundMessages();
-    notificationsStatus.textContent = "Notifications activées ✓ Vous serez prévenu avant chaque renouvellement.";
+    pushReady = true;
     updateNotificationsUI();
-  } catch (error) {
-    notificationsStatus.textContent = `Activation impossible : ${error?.message || "erreur inconnue"}.`;
-  }
-}
-
-// Si l'utilisateur a déjà autorisé les notifications une fois (permission
-// accordée dans le navigateur), on ré-enregistre silencieusement son jeton pour
-// le compte courant à chaque connexion : les notifications restent ainsi
-// actives en permanence, sans avoir à recliquer sur « Activer ».
-async function autoEnableNotificationsIfGranted() {
-  if (!isCloudUser() || !webPushSupported() || !firebaseState.vapidKey) return;
-  if (Notification.permission !== "granted") return;
-
-  try {
-    const messaging = await ensureMessaging();
-    if (!messaging) return;
-
-    const registration = await navigator.serviceWorker.register("./firebase-messaging-sw.js", {
-      scope: "./firebase-cloud-messaging-push-scope",
-    });
-    const token = await messagingState.getToken(messaging, {
-      vapidKey: firebaseState.vapidKey,
-      serviceWorkerRegistration: registration,
-    });
-    if (!token) return;
-
-    await savePushToken(token);
-    localStorage.setItem("subpilot-push-enabled", "1");
-    listenForForegroundMessages();
-    updateNotificationsUI();
+    return true;
   } catch {
-    // Silencieux : la réactivation automatique ne doit jamais gêner l'utilisateur.
+    pushReady = false;
+    updateNotificationsUI();
+    return false;
   }
 }
 
