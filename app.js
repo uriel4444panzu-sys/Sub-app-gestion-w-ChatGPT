@@ -143,6 +143,8 @@ const mailImportStatus = document.querySelector("#mailImportStatus");
 const signOutButton = document.querySelector("#signOutButton");
 const enableNotificationsButton = document.querySelector("#enableNotificationsButton");
 const notificationsStatus = document.querySelector("#notificationsStatus");
+const notifBanner = document.querySelector("#notifBanner");
+const notifBannerButton = document.querySelector("#notifBannerButton");
 const accountStatus = document.querySelector("#accountStatus");
 const authQuickProfile = document.querySelector("#authQuickProfile");
 const authQuickAvatar = document.querySelector("#authQuickAvatar");
@@ -208,6 +210,7 @@ mailImportAnalyzeButton.addEventListener("click", handleMailImportAnalyze);
 mailImportClearButton.addEventListener("click", clearMailImport);
 signOutButton.addEventListener("click", handleSignOut);
 enableNotificationsButton.addEventListener("click", enableWebPushNotifications);
+notifBannerButton.addEventListener("click", enableWebPushNotifications);
 quickLoginButton.addEventListener("click", handleQuickLogin);
 profileDetailsForm.addEventListener("submit", handleProfileDetailsSubmit);
 avatarFileInput.addEventListener("change", handleAvatarSelection);
@@ -1483,6 +1486,15 @@ function webPushSupported() {
 
 function updateNotificationsUI() {
   if (!enableNotificationsButton) return;
+
+  // Bannière de réactivation en un appui : visible uniquement quand l'utilisateur
+  // est dans l'app (connecté) et que l'autorisation est à redonner (cas iOS qui
+  // perd l'autorisation à la fermeture). Le geste reste requis par le navigateur.
+  if (notifBanner) {
+    const needsReenable = isCloudUser() && appUnlocked && webPushSupported()
+      && Boolean(firebaseState.vapidKey) && Notification.permission === "default";
+    notifBanner.hidden = !needsReenable;
+  }
 
   if (!webPushSupported()) {
     enableNotificationsButton.disabled = true;

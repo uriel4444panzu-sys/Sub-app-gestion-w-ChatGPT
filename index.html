@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=37" />
+    <link rel="stylesheet" href="styles.css?v=38" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -127,6 +127,11 @@
           Compte
         </button>
       </nav>
+
+      <div class="notif-banner" id="notifBanner" hidden>
+        <span>🔔 Réactivez les rappels pour être prévenu avant chaque renouvellement.</span>
+        <button type="button" class="primary-button small" id="notifBannerButton">Réactiver</button>
+      </div>
 
       <section class="tab-panel dashboard-panel active" id="dashboardPanel" data-panel="dashboard" aria-labelledby="dashboardTitle">
         <div class="section-heading dashboard-heading">
@@ -530,6 +535,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=37"></script>
+    <script src="app.js?v=38"></script>
   </body>
 </html>
