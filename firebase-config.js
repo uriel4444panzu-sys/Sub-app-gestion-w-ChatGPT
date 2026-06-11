@@ -26,4 +26,4 @@ export const firebaseConfig = {
 //   Paramètres du projet > Cloud Messaging > Web configuration > Générer une paire de clés.
 // Copiez ici la clé publique. Tant qu'elle reste vide, les notifications push
 // sont simplement désactivées (le reste de l'app fonctionne normalement).
-export const firebaseVapidKey = "BIKluutCg9oEWmpIVy7PuO_I4Xs3jJJJW78ugefknn34sY9qyusEtrVfr";
+export const firebaseVapidKey = "BIKluutCg9oEWmpIVy7PuO_I4Xs3jJJJW78ugefknn34sY9qyusEtrVfrpqG1j1wonZEbV_ueUjcIHtoBne7iw0";
