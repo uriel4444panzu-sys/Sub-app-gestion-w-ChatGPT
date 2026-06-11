@@ -1786,11 +1786,15 @@ function renderAuthQuickProfile(gateVisible = !firebaseState.user) {
   renderAvatar(authQuickAvatar, rememberedProfile, "SP");
 }
 
+// Icône de profil générique affichée lorsque l'utilisateur n'a pas de photo.
+const PROFILE_PLACEHOLDER_ICON = `<svg class="avatar-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12.4a4.3 4.3 0 1 0 0-8.6 4.3 4.3 0 0 0 0 8.6Zm0 1.7c-3.6 0-8.6 1.8-8.6 5.3V21h17.2v-1.6c0-3.5-5-5.3-8.6-5.3Z"/></svg>`;
+
 function renderAvatar(element, profile, fallbackText) {
   const image = profile?.avatarDataUrl || profile?.photoURL || "";
-  element.textContent = image ? "" : getProfileInitials(profile) || fallbackText;
   element.classList.toggle("has-image", Boolean(image));
   element.style.backgroundImage = image ? `url("${image}")` : "";
+  // Avec photo : rien par-dessus. Sans photo : icône de profil générique.
+  element.innerHTML = image ? "" : PROFILE_PLACEHOLDER_ICON;
 }
 
 function getProfileInitials(profile) {

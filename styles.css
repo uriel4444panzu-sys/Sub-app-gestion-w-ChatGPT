@@ -1269,6 +1269,16 @@ textarea:focus {
   background-color: #e2e8f0;
 }
 
+.profile-avatar .avatar-icon {
+  width: 58%;
+  height: 58%;
+  opacity: 0.95;
+}
+
+.profile-avatar.has-image .avatar-icon {
+  display: none;
+}
+
 .profile-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1364,6 +1374,20 @@ textarea:focus {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 850;
+  min-width: 0;
+}
+
+/* Empêche le champ date (largeur intrinsèque sur mobile/WebKit) de déborder :
+   il s'aligne ainsi sur la même taille que les autres champs du profil. */
+.profile-grid label input,
+.profile-grid label select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.profile-grid label input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .profile-readonly span {
