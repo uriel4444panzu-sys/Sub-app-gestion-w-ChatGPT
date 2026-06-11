@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=30" />
+    <link rel="stylesheet" href="styles.css?v=31" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -215,18 +215,17 @@
             <input id="searchInput" type="search" placeholder="Nom, catégorie, priorité" />
           </label>
         </div>
-        <section class="panel calendar-help" aria-labelledby="calendarHelpTitle">
+        <section class="panel reminders-info" aria-labelledby="remindersInfoTitle">
           <div class="section-heading tight">
             <div>
-              <p class="eyebrow">Calendrier</p>
-              <h3 id="calendarHelpTitle">Ajouter les renouvellements au calendrier</h3>
+              <p class="eyebrow">Rappels</p>
+              <h3 id="remindersInfoTitle">Rappels automatiques par notification</h3>
             </div>
           </div>
           <p>
-            Pour chaque abonnement, vous pouvez ajouter des événements à votre calendrier afin de recevoir des rappels avant le renouvellement.
-            SubPilot prépare automatiquement des rappels 7 jours avant, 3 jours avant et 1 jour avant, à 08:00.
+            SubPilot vous prévient automatiquement avant chaque renouvellement — 7 jours, 3 jours et 1 jour avant l’échéance — directement par notification, même lorsque l’application est fermée. Vous n’avez plus rien à gérer manuellement.
           </p>
-          <p class="calendar-format">Exemple : <code>Netflix se renouvelle dans 3 jours - 13,49 €</code>.</p>
+          <button type="button" class="ghost-button" data-tab-target="account">Gérer mes notifications</button>
         </section>
         <div class="category-legend" id="categoryLegend" aria-label="Légende des catégories"></div>
         <div id="subscriptionList" class="subscription-list"></div>
@@ -531,6 +530,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=30"></script>
+    <script src="app.js?v=31"></script>
   </body>
 </html>
