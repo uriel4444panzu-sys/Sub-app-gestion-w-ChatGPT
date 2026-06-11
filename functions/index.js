@@ -17,6 +17,7 @@ const REMINDER_DAYS = [7, 3, 1];
 exports.sendRenewalReminders = onSchedule(
   { schedule: "every day 08:00", timeZone: "Europe/Paris" },
   async () => {
+    logger.info("sendRenewalReminders v2 — listDocuments");
     // `listDocuments()` renvoie aussi les documents « fantômes » (un compte
     // users/{uid} qui ne contient que des sous-collections data/messaging
     // n'apparaît PAS dans un simple collection("users").get()).
