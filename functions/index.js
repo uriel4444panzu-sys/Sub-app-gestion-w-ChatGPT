@@ -67,11 +67,13 @@ async function sendReminder(uid, tokens, subscription, days) {
   const response = await getMessaging().sendEachForMulticast(message);
   logger.info(`Rappel « ${subscription.name} » : ${response.successCount}/${tokens.length} envoyé(s) pour ${uid}.`);
 
-  // Nettoyage des jetons invalides (appareils désinscrits).
+  // Nettoyage des jetons invalides (appareils désinscrits) + journalisation du
+  // motif d'échec pour diagnostiquer les non-réceptions.
   const staleTokens = [];
   response.responses.forEach((result, index) => {
     if (result.success) return;
     const code = result.error?.code || "";
+    logger.warn(`Échec d'envoi (${subscription.name}) : code="${code}" message="${result.error?.message || ""}"`);
     if (
       code === "messaging/registration-token-not-registered" ||
       code === "messaging/invalid-argument" ||
