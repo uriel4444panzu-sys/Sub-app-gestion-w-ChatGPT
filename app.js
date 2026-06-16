@@ -8,7 +8,7 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "41";
+const APP_VERSION = "42";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 
@@ -868,6 +868,7 @@ function renderSubscriptions() {
       ${subscription.note ? `<p class="subscription-note">${escapeHtml(subscription.note)}</p>` : ""}
       <div class="card-actions">
         <span class="priority-pill ${subscription.priority}">${priorityLabels[subscription.priority]}</span>
+        <button type="button" class="cancel-button" data-action="cancel" data-id="${subscription.id}">Résilier</button>
         <button type="button" class="edit-button" data-action="edit" data-id="${subscription.id}">Modifier</button>
         <button type="button" class="delete-button" data-action="delete" data-id="${subscription.id}">Supprimer</button>
       </div>
@@ -878,10 +879,62 @@ function renderSubscriptions() {
   container.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => {
       const id = button.dataset.id;
+      if (button.dataset.action === "cancel") handleCancelSubscription(id);
       if (button.dataset.action === "edit") editSubscription(id);
       if (button.dataset.action === "delete") deleteSubscription(id);
     });
   });
+}
+
+// --- Aide à la résiliation (base Firestore « cancellationGuides ») -----------
+
+// Reproduit EXACTEMENT la normalisation du dépôt de la base (NFKD + suppression
+// des accents, tout caractère non a-z0-9 → tiret, minuscules) pour retrouver le
+// bon document : son identifiant est ce « normalizedName ».
+function normalizeServiceName(name) {
+  const ascii = String(name || "").normalize("NFKD").replace(/[̀-ͯ]/g, "");
+  const slug = ascii.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return slug || "unknown-service";
+}
+
+function cancellationSearchUrl(name) {
+  return `https://www.google.com/search?q=${encodeURIComponent(`résilier abonnement ${name}`)}`;
+}
+
+// Meilleur lien de résiliation depuis Firestore, par ordre de préférence ;
+// repli sur une recherche ciblée si le service n'est pas (encore) dans la base.
+async function resolveCancellationUrl(subscription) {
+  const fallback = cancellationSearchUrl(subscription.name);
+  if (!isCloudUser() || !firebaseState.modules || !firebaseState.db) return fallback;
+
+  try {
+    const { doc, getDoc } = firebaseState.modules;
+    const guideId = normalizeServiceName(subscription.name);
+    const snapshot = await getDoc(doc(firebaseState.db, "cancellationGuides", guideId));
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      const url = data.cancellationUrl || data.manageSubscriptionUrl || data.loginUrl || data.helpUrl || data.officialWebsite;
+      if (url) return url;
+    }
+  } catch {
+    // Document absent / non « verified » / accès refusé → on bascule en recherche.
+  }
+  return fallback;
+}
+
+async function handleCancelSubscription(id) {
+  const subscription = subscriptions.find((item) => item.id === id);
+  if (!subscription) return;
+
+  // On ouvre l'onglet de façon synchrone (dans le geste de clic) pour éviter le
+  // blocage des popups, puis on y charge l'URL une fois résolue depuis Firestore.
+  const target = window.open("", "_blank");
+  const url = await resolveCancellationUrl(subscription);
+  if (target && !target.closed) {
+    target.location.href = url;
+  } else {
+    window.location.href = url;
+  }
 }
 
 function renderBudget() {

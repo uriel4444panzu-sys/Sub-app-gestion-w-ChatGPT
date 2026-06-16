@@ -661,6 +661,11 @@ textarea:focus {
   font-weight: 850;
 }
 
+.cancel-button {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+}
+
 .edit-button {
   background: #dbeafe;
   color: #1d4ed8;
