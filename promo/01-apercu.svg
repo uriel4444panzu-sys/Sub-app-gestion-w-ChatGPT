@@ -26,11 +26,9 @@
 
   <!-- Headline -->
   <g transform="translate(90,360)" fill="#fff">
-    <text font-size="92" font-weight="900" letter-spacing="-3">
-      <tspan x="0" y="0">Tous vos abonnements,</tspan>
-      <tspan x="0" y="108">enfin sous contrôle.</tspan>
-    </text>
-    <text x="0" y="220" font-size="40" fill="#cbd5e1" font-weight="500">Suivez vos dépenses récurrentes d'un coup d'œil.</text>
+    <text x="0" y="0" font-size="92" font-weight="900" textLength="900" lengthAdjust="spacingAndGlyphs">Tous vos abonnements,</text>
+    <text x="0" y="108" font-size="92" font-weight="900" textLength="840" lengthAdjust="spacingAndGlyphs">enfin sous contrôle.</text>
+    <text x="0" y="216" font-size="38" fill="#cbd5e1" font-weight="500">Suivez vos dépenses récurrentes d'un coup d'œil.</text>
   </g>
 
   <!-- Phone -->
