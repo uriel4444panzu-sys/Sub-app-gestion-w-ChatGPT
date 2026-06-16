@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="mark3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#a5b4fc"/>
+    </linearGradient>
+    <filter id="shadow3" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="24" stdDeviation="34" flood-color="#0f172a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1920" fill="url(#bg3)"/>
+  <circle cx="960" cy="300" r="320" fill="#ec4899" opacity="0.16"/>
+  <circle cx="120" cy="1620" r="280" fill="#14b8a6" opacity="0.16"/>
+
+  <g transform="translate(90,120)">
+    <rect width="92" height="92" rx="26" fill="url(#mark3)"/>
+    <text x="46" y="64" font-size="54" fill="#fff" text-anchor="middle">✦</text>
+    <text x="120" y="62" font-size="46" font-weight="800" fill="#fff" letter-spacing="-1">SubPilot</text>
+  </g>
+
+  <g transform="translate(90,360)" fill="#fff">
+    <text font-size="92" font-weight="900" letter-spacing="-3">
+      <tspan x="0" y="0">Ne ratez plus</tspan>
+      <tspan x="0" y="108">un renouvellement.</tspan>
+    </text>
+    <text x="0" y="220" font-size="40" fill="#ddd6fe" font-weight="500">Des rappels automatiques avant chaque</text>
+    <text x="0" y="272" font-size="40" fill="#ddd6fe" font-weight="500">prélèvement — même app fermée. 🔔</text>
+  </g>
+
+  <!-- Phone with lockscreen notifications -->
+  <g transform="translate(230,720)" filter="url(#shadow3)">
+    <rect width="620" height="1120" rx="64" fill="#0f172a"/>
+    <rect x="18" y="18" width="584" height="1084" rx="50" fill="#1e1b4b"/>
+    <rect x="250" y="40" width="120" height="22" rx="11" fill="#000"/>
+
+    <text x="310" y="220" font-size="40" fill="#c7d2fe" text-anchor="middle" font-weight="700">9:41</text>
+    <text x="310" y="290" font-size="120" fill="#fff" text-anchor="middle" font-weight="200">sam. 14</text>
+
+    <!-- notif 1 -->
+    <g transform="translate(54,380)">
+      <rect width="512" height="150" rx="34" fill="#ffffff" opacity="0.96"/>
+      <rect x="28" y="30" width="56" height="56" rx="16" fill="url(#mark3)"/>
+      <text x="56" y="68" font-size="30" fill="#fff" text-anchor="middle">✦</text>
+      <text x="104" y="56" font-size="26" font-weight="800" fill="#0f172a">SubPilot · maintenant</text>
+      <text x="104" y="98" font-size="26" fill="#0f172a">Netflix se renouvelle dans 3 jours</text>
+      <text x="104" y="132" font-size="26" fill="#64748b">13,49 € · pensez à vérifier 👀</text>
+    </g>
+
+    <!-- notif 2 -->
+    <g transform="translate(54,556)">
+      <rect width="512" height="150" rx="34" fill="#ffffff" opacity="0.9"/>
+      <rect x="28" y="30" width="56" height="56" rx="16" fill="url(#mark3)"/>
+      <text x="56" y="68" font-size="30" fill="#fff" text-anchor="middle">✦</text>
+      <text x="104" y="56" font-size="26" font-weight="800" fill="#0f172a">SubPilot · hier</text>
+      <text x="104" y="98" font-size="26" fill="#0f172a">Salle de sport se renouvelle demain</text>
+      <text x="104" y="132" font-size="26" fill="#64748b">29,99 € · à réévaluer ?</text>
+    </g>
+
+    <!-- notif 3 -->
+    <g transform="translate(54,732)">
+      <rect width="512" height="150" rx="34" fill="#ffffff" opacity="0.82"/>
+      <rect x="28" y="30" width="56" height="56" rx="16" fill="url(#mark3)"/>
+      <text x="56" y="68" font-size="30" fill="#fff" text-anchor="middle">✦</text>
+      <text x="104" y="56" font-size="26" font-weight="800" fill="#0f172a">SubPilot</text>
+      <text x="104" y="98" font-size="26" fill="#0f172a">Spotify se renouvelle dans 7 jours</text>
+      <text x="104" y="132" font-size="26" fill="#64748b">10,99 €</text>
+    </g>
+  </g>
+</svg>
