@@ -2,20 +2,25 @@ rules_version = '2';
 
 // Règles de sécurité Firestore de SubPilot.
 //
-// À publier dans la console Firebase :
-//   Firestore Database > Règles > coller ce contenu > Publier.
-//
-// L'application enregistre, pour chaque utilisateur :
-//   - users/{userId}/data/app          (abonnements, budget, catégories)
-//   - users/{userId}/profile/details   (nom, prénom, photo, etc.)
-//
-// La règle ci-dessous couvre TOUTE l'arborescence de l'utilisateur
-// (data ET profile) grâce à {document=**}, et garantit que chacun
-// n'accède qu'à ses propres données.
+// ⚠️ À publier dans la console Firebase (Firestore Database > Règles > Publier).
+// Ces règles couvrent À LA FOIS les données utilisateur ET la base d'aide à la
+// résiliation. Publie bien CE contenu complet : si tu ne publies que l'un des
+// deux blocs, l'autre cesse de fonctionner (une seule politique est active).
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Données privées de chaque utilisateur (abonnements, profil, jetons push…).
+    // Chacun n'accède qu'aux siennes.
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Base d'aide à la résiliation : lecture seule, et seulement les fiches
+    // « verified ». L'écriture est réservée aux outils admin (compte de service
+    // Admin SDK, qui contourne ces règles, ou utilisateur avec le claim admin).
+    match /cancellationGuides/{guideId} {
+      allow read: if request.auth != null && resource.data.status == 'verified';
+      allow write: if request.auth != null && request.auth.token.admin == true;
     }
   }
 }
