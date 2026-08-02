@@ -8,7 +8,8 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "43";
+const APP_VERSION = "44";
+const THEME_KEY = "subpilot-theme";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 
@@ -199,6 +200,7 @@ renderCategoryLegend();
 renderPopularServices();
 const appVersionEl = document.querySelector("#appVersion");
 if (appVersionEl) appVersionEl.textContent = `SubPilot v${APP_VERSION}`;
+initializeThemeControls();
 if (loadRememberedProfile()) switchAuthMode("login");
 renderAccountStatus();
 updateNotificationsUI();
@@ -2530,4 +2532,79 @@ function escapeHtml(value) {
     };
     return entities[character];
   });
+}
+
+// ---------------------------------------------------------------------------
+// Gestion du thème (clair / sombre / système)
+// ---------------------------------------------------------------------------
+function getStoredThemePreference() {
+  try {
+    const value = localStorage.getItem(THEME_KEY);
+    if (value === "light" || value === "dark" || value === "system") return value;
+  } catch (error) {
+    /* localStorage indisponible (mode privé) : on retombe sur « system » */
+  }
+  return "system";
+}
+
+function prefersDarkScheme() {
+  return (
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
+}
+
+function resolveEffectiveTheme(preference) {
+  if (preference === "light" || preference === "dark") return preference;
+  return prefersDarkScheme() ? "dark" : "light";
+}
+
+function applyTheme(preference) {
+  const effective = resolveEffectiveTheme(preference);
+  document.documentElement.setAttribute("data-theme", effective);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", effective === "dark" ? "#0b1120" : "#0f172a");
+}
+
+function updateThemeButtons(preference) {
+  document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+    const isActive = button.dataset.themeChoice === preference;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
+
+function setThemePreference(preference) {
+  try {
+    localStorage.setItem(THEME_KEY, preference);
+  } catch (error) {
+    /* stockage indisponible : le thème s'applique tout de même pour la session */
+  }
+  applyTheme(preference);
+  updateThemeButtons(preference);
+}
+
+function initializeThemeControls() {
+  const preference = getStoredThemePreference();
+  applyTheme(preference);
+  updateThemeButtons(preference);
+
+  document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+    button.addEventListener("click", () => {
+      setThemePreference(button.dataset.themeChoice);
+    });
+  });
+
+  // En mode « système », on suit les changements de préférence de l'appareil.
+  if (typeof window.matchMedia === "function") {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => {
+      if (getStoredThemePreference() === "system") applyTheme("system");
+    };
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handler);
+    } else if (typeof media.addListener === "function") {
+      media.addListener(handler);
+    }
+  }
 }
