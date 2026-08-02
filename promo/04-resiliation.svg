@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="bg4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#312e81"/>
+    </linearGradient>
+    <linearGradient id="mark4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#a5b4fc"/>
+    </linearGradient>
+    <linearGradient id="cta" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#3730a3"/>
+    </linearGradient>
+    <filter id="shadow4" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="30" stdDeviation="40" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1920" fill="url(#bg4)"/>
+  <circle cx="940" cy="260" r="320" fill="#14b8a6" opacity="0.16"/>
+  <circle cx="120" cy="1640" r="300" fill="#ec4899" opacity="0.14"/>
+
+  <g transform="translate(90,120)">
+    <rect width="92" height="92" rx="26" fill="url(#mark4)"/>
+    <text x="46" y="64" font-size="54" fill="#fff" text-anchor="middle">✦</text>
+    <text x="120" y="62" font-size="46" font-weight="800" fill="#fff" letter-spacing="-1">SubPilot</text>
+  </g>
+
+  <g transform="translate(90,360)" fill="#fff">
+    <text font-size="92" font-weight="900" letter-spacing="-3">
+      <tspan x="0" y="0">Résiliez sans</tspan>
+      <tspan x="0" y="108">chercher, en 1 clic.</tspan>
+    </text>
+    <text x="0" y="220" font-size="40" fill="#c7d2fe" font-weight="500">SubPilot vous emmène droit à la page de</text>
+    <text x="0" y="272" font-size="40" fill="#c7d2fe" font-weight="500">résiliation du bon service. 🎯</text>
+  </g>
+
+  <g transform="translate(230,740)" filter="url(#shadow4)">
+    <rect width="620" height="1100" rx="64" fill="#0f172a"/>
+    <rect x="18" y="18" width="584" height="1064" rx="50" fill="#f1f5ff"/>
+    <rect x="250" y="40" width="120" height="22" rx="11" fill="#0f172a"/>
+
+    <text x="54" y="150" font-size="30" font-weight="900" fill="#0f172a">Mes abonnements</text>
+
+    <!-- card with résilier highlighted -->
+    <g transform="translate(54,190)">
+      <rect width="512" height="300" rx="36" fill="#ffffff"/>
+      <rect x="32" y="36" width="76" height="76" rx="22" fill="#7c3aed"/>
+      <text x="70" y="86" font-size="30" fill="#fff" font-weight="800" text-anchor="middle">NF</text>
+      <text x="130" y="74" font-size="34" font-weight="900" fill="#0f172a">Netflix</text>
+      <text x="130" y="112" font-size="26" fill="#64748b">Renouvellement le 15/07</text>
+      <rect x="360" y="44" width="120" height="52" rx="26" fill="#eef2ff"/>
+      <text x="420" y="79" font-size="26" font-weight="800" fill="#4f46e5" text-anchor="middle">13,49 €</text>
+
+      <!-- actions -->
+      <rect x="32" y="170" width="190" height="86" rx="43" fill="url(#cta)"/>
+      <text x="127" y="223" font-size="32" font-weight="900" fill="#fff" text-anchor="middle">Résilier</text>
+
+      <rect x="240" y="186" width="120" height="54" rx="27" fill="#dbeafe"/>
+      <text x="300" y="221" font-size="24" font-weight="800" fill="#1d4ed8" text-anchor="middle">Modifier</text>
+
+      <rect x="372" y="186" width="116" height="54" rx="27" fill="#ffe4e6"/>
+      <text x="430" y="221" font-size="24" font-weight="800" fill="#e11d48" text-anchor="middle">Suppr.</text>
+    </g>
+
+    <!-- redirect hint -->
+    <g transform="translate(54,540)">
+      <rect width="512" height="300" rx="36" fill="#0f172a"/>
+      <text x="36" y="78" font-size="26" fill="#a5b4fc" font-weight="800" letter-spacing="1">REDIRECTION</text>
+      <text x="36" y="146" font-size="34" fill="#fff" font-weight="800">Page de résiliation</text>
+      <text x="36" y="192" font-size="30" fill="#94a3b8">netflix.com/cancelplan</text>
+      <rect x="36" y="226" width="440" height="48" rx="24" fill="#14b8a6" opacity="0.18"/>
+      <text x="58" y="259" font-size="26" fill="#5eead4" font-weight="700">✓ Direct, sans chercher</text>
+    </g>
+  </g>
+</svg>

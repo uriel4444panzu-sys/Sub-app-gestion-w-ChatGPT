@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="Logo SubPilot rond">
+  <defs>
+    <linearGradient id="gr" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#312e81"/>
+    </linearGradient>
+    <radialGradient id="glowr" cx="0.5" cy="0.42" r="0.55">
+      <stop offset="0" stop-color="#14b8a6" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#14b8a6" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="circle"><circle cx="512" cy="512" r="512"/></clipPath>
+    <filter id="sr" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="26" flood-color="#0f172a" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Fond circulaire (coins transparents) -->
+  <g clip-path="url(#circle)">
+    <rect width="1024" height="1024" fill="url(#gr)"/>
+    <circle cx="512" cy="430" r="430" fill="url(#glowr)"/>
+  </g>
+
+  <!-- Marque ✦ -->
+  <path d="M512 132 L597 427 L892 512 L597 597 L512 892 L427 597 L132 512 L427 427 Z"
+        fill="#ffffff" filter="url(#sr)"/>
+</svg>

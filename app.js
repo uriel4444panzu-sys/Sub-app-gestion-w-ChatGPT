@@ -8,7 +8,7 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "42";
+const APP_VERSION = "43";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 
@@ -506,7 +506,11 @@ function hasMeaningfulLocalData(data) {
 }
 
 function applyAccountData(data) {
-  subscriptions = (data.subscriptions || []).map((item) => createSubscription(item));
+  // On avance les échéances déjà passées à leur prochaine occurrence (comme au
+  // chargement local) : sinon le tableau de bord affiche « il y a X jours » au
+  // lieu du prochain renouvellement.
+  const normalized = normalizeSubscriptions((data.subscriptions || []).map((item) => createSubscription(item)));
+  subscriptions = normalized.items;
   monthlyBudget = Number(data.monthlyBudget) || 120;
   categories = [...defaultCategories, ...(data.customCategories || []).map((category) => ({
     name: category.name,
@@ -518,6 +522,9 @@ function applyAccountData(data) {
   renderCategoryLegend();
   resetForm();
   render();
+  // On persiste les dates recalculées pour garder la base à jour (affichage +
+  // rappels serveur cohérents).
+  if (normalized.changed) saveSubscriptions();
 }
 
 function clearDisplayedAccountData() {

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920" font-family="Inter, system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#14b8a6"/>
+    </linearGradient>
+    <linearGradient id="mark2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#a5b4fc"/>
+    </linearGradient>
+    <filter id="shadow2" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="30" stdDeviation="40" flood-color="#0f172a" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1920" fill="url(#bg2)"/>
+  <circle cx="120" cy="240" r="300" fill="#a5b4fc" opacity="0.18"/>
+  <circle cx="980" cy="1640" r="300" fill="#4f46e5" opacity="0.18"/>
+
+  <g transform="translate(90,120)">
+    <rect width="92" height="92" rx="26" fill="url(#mark2)"/>
+    <text x="46" y="64" font-size="54" fill="#fff" text-anchor="middle">✦</text>
+    <text x="120" y="62" font-size="46" font-weight="800" fill="#fff" letter-spacing="-1">SubPilot</text>
+  </g>
+
+  <g transform="translate(90,360)" fill="#fff">
+    <text font-size="92" font-weight="900" letter-spacing="-3">
+      <tspan x="0" y="0">Ajoutez un abo</tspan>
+      <tspan x="0" y="108">en un copier-coller.</tspan>
+    </text>
+    <text x="0" y="220" font-size="40" fill="#d1fae5" font-weight="500">Collez un e-mail : SubPilot détecte le service,</text>
+    <text x="0" y="272" font-size="40" fill="#d1fae5" font-weight="500">le prix et la prochaine échéance. ✨</text>
+  </g>
+
+  <g transform="translate(230,760)" filter="url(#shadow2)">
+    <rect width="620" height="1080" rx="64" fill="#0f172a"/>
+    <rect x="18" y="18" width="584" height="1044" rx="50" fill="#f1f5ff"/>
+    <rect x="250" y="40" width="120" height="22" rx="11" fill="#0f172a"/>
+
+    <!-- paste box -->
+    <g transform="translate(54,110)">
+      <text x="0" y="0" font-size="26" font-weight="800" fill="#0f172a">Ajouter depuis un e-mail</text>
+      <rect x="0" y="24" width="512" height="220" rx="28" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      <text x="28" y="76" font-size="23" fill="#475569">« Votre abonnement Netflix de</text>
+      <text x="28" y="112" font-size="23" fill="#475569">13,49 € sera renouvelé le</text>
+      <text x="28" y="148" font-size="23" fill="#475569">15/07/2026. »</text>
+      <rect x="0" y="268" width="300" height="64" rx="32" fill="#4f46e5"/>
+      <text x="150" y="309" font-size="27" font-weight="800" fill="#fff" text-anchor="middle">Analyser l'e-mail</text>
+    </g>
+
+    <!-- detected arrow -->
+    <text x="302" y="520" font-size="40" fill="#14b8a6" text-anchor="middle" font-weight="900">↓</text>
+
+    <!-- prefilled result -->
+    <g transform="translate(54,560)">
+      <rect width="512" height="372" rx="34" fill="#ecfdf5" stroke="#14b8a6" stroke-width="2"/>
+      <text x="28" y="58" font-size="24" font-weight="800" fill="#0f766e">Détecté automatiquement</text>
+
+      <g font-size="26" fill="#0f172a">
+        <text x="28" y="120" fill="#64748b">Service</text>
+        <text x="484" y="120" text-anchor="end" font-weight="800">Netflix</text>
+        <line x1="28" y1="142" x2="484" y2="142" stroke="#d1fae5" stroke-width="2"/>
+
+        <text x="28" y="196" fill="#64748b">Prix</text>
+        <text x="484" y="196" text-anchor="end" font-weight="800">13,49 €</text>
+        <line x1="28" y1="218" x2="484" y2="218" stroke="#d1fae5" stroke-width="2"/>
+
+        <text x="28" y="272" fill="#64748b">Fréquence</text>
+        <text x="484" y="272" text-anchor="end" font-weight="800">Mensuel</text>
+        <line x1="28" y1="294" x2="484" y2="294" stroke="#d1fae5" stroke-width="2"/>
+
+        <text x="28" y="348" fill="#64748b">Échéance</text>
+        <text x="484" y="348" text-anchor="end" font-weight="800">15/07/2026</text>
+      </g>
+    </g>
+  </g>
+</svg>

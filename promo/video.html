@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>SubPilot — Vidéo promo</title>
+<style>
+  :root{
+    --indigo:#4f46e5; --indigo-d:#312e81; --ink:#0f172a; --teal:#14b8a6;
+    --pink:#ec4899; --li:#a5b4fc;
+    --font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --ease: cubic-bezier(.18,.9,.22,1.15);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;background:#000;overflow:hidden;font-family:var(--font);}
+  #fit{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
+  .stage{width:1080px;height:1920px;position:relative;overflow:hidden;color:#fff;transform-origin:center;
+    background:linear-gradient(135deg,#1e1b4b,#4f46e5 50%,#0f766e 130%);
+    background-size:200% 200%;animation:bg 14s ease-in-out infinite;}
+  @keyframes bg{0%{background-position:0% 0%}50%{background-position:100% 70%}100%{background-position:0% 0%}}
+
+  .orb{position:absolute;border-radius:50%;filter:blur(70px);}
+  .o1{width:620px;height:620px;background:var(--teal);top:-180px;right:-160px;opacity:.55;animation:d1 9s ease-in-out infinite;}
+  .o2{width:560px;height:560px;background:var(--pink);bottom:-180px;left:-180px;opacity:.42;animation:d2 11s ease-in-out infinite;}
+  .o3{width:420px;height:420px;background:var(--li);top:40%;left:-160px;opacity:.35;animation:d1 13s ease-in-out infinite;}
+  @keyframes d1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-70px,90px) scale(1.1)}}
+  @keyframes d2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(80px,-70px) scale(1.12)}}
+
+  .scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px;text-align:center;opacity:0;}
+  .run .intro{animation:scIn 3.4s var(--ease) 0s both;}
+  .run .hook {animation:scIn 3.9s var(--ease) 3.1s both;}
+  .run .dash {animation:scIn 4.5s var(--ease) 6.7s both;}
+  .run .imp  {animation:scIn 6.0s var(--ease) 10.9s both;}
+  .run .rem  {animation:scIn 4.4s var(--ease) 16.6s both;}
+  .run .can  {animation:scIn 4.4s var(--ease) 20.7s both;}
+  .run .bud  {animation:scIn 5.0s var(--ease) 24.8s both;}
+  .run .out  {animation:scStay 4s var(--ease) 29.5s both;}
+  @keyframes scIn{
+    0%{opacity:0;transform:translateY(48px) scale(.9)}
+    9%{opacity:1}
+    14%{transform:translateY(-8px) scale(1.03)}
+    20%{transform:translateY(0) scale(1)}
+    85%{opacity:1;transform:translateY(0) scale(1)}
+    100%{opacity:0;transform:translateY(-34px) scale(.96)}
+  }
+  @keyframes scStay{0%{opacity:0;transform:scale(.9)}12%{opacity:1}17%{transform:scale(1.04)}26%{transform:scale(1)}100%{opacity:1;transform:scale(1)}}
+
+  .logo{display:flex;align-items:center;gap:28px;margin-bottom:36px;}
+  .mark{width:158px;height:158px;border-radius:46px;background:linear-gradient(135deg,var(--teal),var(--li));
+    display:grid;place-items:center;box-shadow:0 30px 80px rgba(20,184,166,.5);animation:spinpulse 4s ease-in-out infinite;}
+  .mark svg{width:100px;height:100px;}
+  @keyframes spinpulse{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.08) rotate(8deg)}}
+  .wordmark{font-size:104px;font-weight:900;letter-spacing:-5px;background:linear-gradient(120deg,#fff,#c7d2fe);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .tagline{font-size:46px;color:#dbeafe;font-weight:700;max-width:840px;line-height:1.25;}
+
+  .grad{background:linear-gradient(120deg,var(--teal),#67e8f9 60%,var(--li));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hl{color:#fde047;}
+  h1.big{font-size:96px;font-weight:900;letter-spacing:-3px;line-height:1.02;max-width:940px;text-shadow:0 10px 40px rgba(0,0,0,.3);}
+
+  /* numbered step badge */
+  .step{position:absolute;top:118px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:28px;}
+  .run .step{animation:badgePop .7s var(--ease) var(--bd) both;}
+  @keyframes badgePop{0%{opacity:0;transform:scale(.3) rotate(-18deg)}60%{opacity:1;transform:scale(1.18) rotate(6deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+  .num{width:128px;height:128px;border-radius:36px;background:linear-gradient(135deg,var(--teal),var(--li));display:grid;place-items:center;font-size:74px;font-weight:900;color:#0f172a;box-shadow:0 20px 50px rgba(20,184,166,.45);}
+  .stxt{font-size:52px;font-weight:900;letter-spacing:-1px;text-align:left;max-width:560px;line-height:1.05;}
+
+  /* feature label (non numéroté) */
+  .flabel{position:absolute;top:130px;left:0;right:0;display:flex;justify-content:center;}
+  .run .flabel{animation:badgePop .7s var(--ease) var(--bd) both;}
+  .flabel .pillf{background:linear-gradient(135deg,var(--teal),var(--li));color:#0f172a;font-size:46px;font-weight:900;
+    padding:22px 44px;border-radius:999px;box-shadow:0 18px 46px rgba(20,184,166,.45);letter-spacing:-.5px;}
+
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;max-width:920px;margin-top:54px;}
+  .chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:24px 38px;font-size:40px;font-weight:800;display:flex;gap:16px;align-items:center;opacity:0;backdrop-filter:blur(6px);}
+  .chip small{color:#c7d2fe;font-weight:800;}
+  .run .c1{animation:chipPop .5s var(--ease) 3.5s both, floaty 3s ease-in-out 4.0s infinite;}
+  .run .c2{animation:chipPop .5s var(--ease) 3.7s both, floaty 3.4s ease-in-out 4.2s infinite;}
+  .run .c3{animation:chipPop .5s var(--ease) 3.9s both, floaty 3.2s ease-in-out 4.4s infinite;}
+  .run .c4{animation:chipPop .5s var(--ease) 4.1s both, floaty 3.6s ease-in-out 4.6s infinite;}
+  .run .c5{animation:chipPop .5s var(--ease) 4.3s both, floaty 3.1s ease-in-out 4.8s infinite;}
+  @keyframes chipPop{0%{opacity:0;transform:scale(.4) translateY(20px)}70%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1) translateY(0)}}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+
+  /* phone */
+  .phone{width:560px;height:1040px;border-radius:64px;background:#0b1020;padding:18px;box-shadow:0 60px 130px rgba(0,0,0,.6);margin-top:30px;position:relative;}
+  .screen{width:100%;height:100%;border-radius:48px;background:#f1f5ff;overflow:hidden;position:relative;}
+  .notch{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:150px;height:26px;border-radius:14px;background:#0b1020;z-index:5;}
+  .pad{padding:78px 44px 44px;}
+  .lbl{font-size:30px;font-weight:900;color:var(--ink);}
+  .muted{color:#64748b;}
+
+  @keyframes up{0%{opacity:0;transform:translateY(26px)}100%{opacity:1;transform:translateY(0)}}
+  @keyframes pop{0%{opacity:0;transform:scale(.7)}70%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+
+  /* DASHBOARD */
+  .dhero{background:#0f172a;border-radius:32px;padding:34px;text-align:left;opacity:0;}
+  .run .dhero{animation:pop .6s var(--ease) 7.2s both;}
+  .dhero .k{font-size:24px;font-weight:800;letter-spacing:2px;color:#a5b4fc;}
+  .dhero .v{font-size:78px;font-weight:900;color:#fff;letter-spacing:-2px;margin-top:6px;}
+  .dhero .s{font-size:24px;color:#94a3b8;margin-top:4px;}
+  .dstats{display:flex;gap:16px;margin-top:20px;}
+  .dstat{flex:1;background:#fff;border-radius:24px;padding:22px;text-align:left;opacity:0;}
+  .dstat .sl{font-size:21px;color:#64748b;font-weight:800;}
+  .dstat .sv{font-size:38px;color:var(--ink);font-weight:900;margin-top:6px;}
+  .dstat.warn{background:linear-gradient(135deg,#fffbeb,#fff7ed);}
+  .run .dstats .dstat:nth-child(1){animation:up .4s var(--ease) 7.4s both;}
+  .run .dstats .dstat:nth-child(2){animation:up .4s var(--ease) 7.6s both;}
+  .run .dstats .dstat:nth-child(3){animation:up .4s var(--ease) 7.8s both;}
+  .drow{display:flex;align-items:center;background:#fff;border-radius:24px;padding:20px;margin-top:16px;opacity:0;}
+  .drow .di{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;color:#fff;font-weight:900;font-size:22px;}
+  .drow .dn{margin-left:16px;font-size:28px;font-weight:800;color:var(--ink);}
+  .drow .dp{margin-left:auto;background:#eef2ff;color:var(--indigo);font-weight:900;padding:12px 20px;border-radius:20px;font-size:24px;}
+  .run .dash .drow:nth-of-type(1){animation:up .4s var(--ease) 8.1s both;}
+  .run .dash .drow:nth-of-type(2){animation:up .4s var(--ease) 8.3s both;}
+
+  /* IMPORT */
+  .mailbox{margin-top:20px;background:#fff;border:2px solid #cbd5e1;border-radius:26px;padding:26px;font-size:27px;color:#475569;line-height:1.5;min-height:188px;opacity:0;}
+  .run .mailbox{animation:up .5s var(--ease) 11.4s both;}
+  .btn{margin-top:22px;background:linear-gradient(135deg,var(--indigo),var(--indigo-d));color:#fff;font-size:30px;font-weight:900;padding:26px;border-radius:30px;text-align:center;box-shadow:0 16px 40px rgba(79,70,229,.4);opacity:0;}
+  .run .btn{animation:up .4s var(--ease) 11.9s both, press 1.1s ease 13.0s both;}
+  @keyframes press{0%,30%{transform:scale(1)}45%{transform:scale(.93);filter:brightness(1.3)}60%,100%{transform:scale(1);filter:none}}
+  .detect{margin-top:24px;background:#ecfdf5;border:2px solid var(--teal);border-radius:30px;padding:28px;opacity:0;}
+  .run .detect{animation:pop .6s var(--ease) 13.7s both;}
+  .row{display:flex;justify-content:space-between;font-size:30px;padding:14px 0;border-bottom:2px solid #d1fae5;opacity:0;}
+  .row:last-child{border-bottom:0;}
+  .run .detect .row:nth-child(2){animation:up .35s var(--ease) 14.0s both;}
+  .run .detect .row:nth-child(3){animation:up .35s var(--ease) 14.18s both;}
+  .run .detect .row:nth-child(4){animation:up .35s var(--ease) 14.36s both;}
+  .run .detect .row:nth-child(5){animation:up .35s var(--ease) 14.54s both;}
+  .row b{color:var(--ink);font-weight:900;} .row span{color:#64748b;}
+  .dtitle{color:#0f766e;font-weight:900;font-size:28px;margin-bottom:8px;}
+
+  /* REMINDERS */
+  .lock-time{position:absolute;top:120px;left:0;right:0;text-align:center;color:#e2e8f0;}
+  .notif{position:absolute;left:36px;right:36px;background:#fff;border-radius:30px;padding:26px 28px;display:flex;gap:20px;align-items:flex-start;box-shadow:0 24px 60px rgba(0,0,0,.3);opacity:0;}
+  .notif .ic{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--teal),var(--li));display:grid;place-items:center;flex:0 0 auto;}
+  .notif .ic svg{width:40px;height:40px;}
+  .notif h4{font-size:28px;color:var(--ink);} .notif p{font-size:26px;color:#475569;margin-top:6px;}
+  .n1{top:300px;} .n2{top:472px;} .n3{top:644px;}
+  .run .n1{animation:slide .5s var(--ease) 17.2s both;}
+  .run .n2{animation:slide .5s var(--ease) 17.5s both;}
+  .run .n3{animation:slide .5s var(--ease) 17.8s both;}
+  @keyframes slide{0%{opacity:0;transform:translateX(80px) scale(.96)}70%{opacity:1;transform:translateX(-6px) scale(1)}100%{opacity:1;transform:translateX(0)}}
+
+  /* CANCEL */
+  .subcard{margin-top:30px;background:#fff;border-radius:34px;padding:32px;color:var(--ink);opacity:0;}
+  .run .subcard{animation:up .5s var(--ease) 21.2s both;}
+  .subhead{display:flex;align-items:center;gap:20px;}
+  .subhead .ic{width:78px;height:78px;border-radius:22px;background:#7c3aed;display:grid;place-items:center;color:#fff;font-weight:900;font-size:30px;}
+  .pill{margin-left:auto;background:#eef2ff;color:var(--indigo);font-weight:900;padding:14px 24px;border-radius:24px;font-size:28px;}
+  .resil{margin-top:30px;background:linear-gradient(135deg,var(--indigo),var(--indigo-d));color:#fff;font-weight:900;font-size:34px;padding:28px;border-radius:32px;text-align:center;box-shadow:0 16px 44px rgba(79,70,229,.45);}
+  .run .resil{animation:press 1.2s ease 22.4s both;}
+  .redir{margin-top:26px;background:#0f172a;border-radius:30px;padding:32px;opacity:0;}
+  .run .redir{animation:pop .55s var(--ease) 23.0s both;}
+  .redir small{color:var(--li);font-weight:900;letter-spacing:2px;font-size:25px;}
+  .redir .u{color:#fff;font-size:32px;font-weight:800;margin-top:10px;}
+  .redir .ok{color:#5eead4;font-weight:800;font-size:28px;margin-top:16px;}
+
+  /* BUDGET */
+  .binput{display:flex;gap:16px;margin-top:20px;opacity:0;}
+  .run .binput{animation:up .45s var(--ease) 25.3s both;}
+  .bfield{flex:1;background:#fff;border:2px solid #cbd5e1;border-radius:26px;padding:24px 28px;font-size:40px;font-weight:900;color:var(--ink);}
+  .bsave{background:linear-gradient(135deg,var(--indigo),var(--indigo-d));color:#fff;font-weight:900;font-size:30px;padding:24px 34px;border-radius:26px;}
+  .bwrap{margin-top:40px;position:relative;width:300px;height:300px;align-self:center;}
+  .bdonut{width:300px;height:300px;transform:rotate(-90deg);}
+  .bprog{stroke-dasharray:691.15;stroke-dashoffset:691.15;}
+  .run .bprog{animation:fillD 1.2s ease 25.7s both;}
+  @keyframes fillD{from{stroke-dashoffset:691.15}to{stroke-dashoffset:235}}
+  .bpct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;}
+  .run .bpct{animation:pop .5s var(--ease) 26.2s both;}
+  .bpct .pv{font-size:84px;font-weight:900;color:var(--ink);letter-spacing:-2px;}
+  .bpct .pl{font-size:26px;color:#64748b;font-weight:800;}
+  .bstatus{margin-top:30px;background:#ecfdf5;border:2px solid var(--teal);border-radius:26px;padding:24px;font-size:30px;font-weight:800;color:#0f766e;opacity:0;}
+  .run .bstatus{animation:up .45s var(--ease) 27.0s both;}
+
+  /* OUTRO */
+  .feats{display:flex;gap:30px;margin:38px 0;font-size:42px;font-weight:900;flex-wrap:wrap;justify-content:center;}
+  .feats span{opacity:0;} .feats span b{color:var(--teal);}
+  .run .feats span:nth-child(1){animation:pop .5s var(--ease) 30.1s both;}
+  .run .feats span:nth-child(2){animation:pop .5s var(--ease) 30.3s both;}
+  .run .feats span:nth-child(3){animation:pop .5s var(--ease) 30.5s both;}
+  .free{font-size:42px;color:#dbeafe;font-weight:800;margin-bottom:18px;}
+  .cta{font-size:68px;font-weight:900;background:linear-gradient(120deg,var(--teal),#67e8f9,var(--li),var(--teal));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 3s linear infinite;}
+  @keyframes shimmer{0%{background-position:0% 0}100%{background-position:300% 0}}
+
+  .hint{position:fixed;bottom:12px;left:0;right:0;text-align:center;color:#475569;font-size:13px;z-index:50;}
+</style>
+</head>
+<body>
+  <div id="fit">
+    <div class="stage" id="stage">
+      <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+
+      <!-- INTRO -->
+      <div class="scene intro">
+        <div class="logo"><div class="mark"><svg viewBox="0 0 1024 1024"><path d="M512 132 L597 427 L892 512 L597 597 L512 892 L427 597 L132 512 L427 427 Z" fill="#fff"/></svg></div><div class="wordmark">SubPilot</div></div>
+        <div class="tagline">Reprends le contrôle de tes <span class="grad">abonnements</span>.</div>
+      </div>
+
+      <!-- HOOK -->
+      <div class="scene hook">
+        <h1 class="big">Tu paies des abos<br/>que t'as <span class="hl">oubliés</span> ? 😬</h1>
+        <div class="chips">
+          <div class="chip c1">📺 Netflix <small>13,49 €</small></div>
+          <div class="chip c2">🎵 Spotify <small>10,99 €</small></div>
+          <div class="chip c3">🏋️ Sport <small>29,99 €</small></div>
+          <div class="chip c4">🎨 Adobe <small>19,99 €</small></div>
+          <div class="chip c5">☁️ iCloud+ <small>2,99 €</small></div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div class="scene dash">
+        <div class="flabel" style="--bd:6.8s"><div class="pillf">📊 Ton tableau de bord</div></div>
+        <div class="phone"><div class="screen"><div class="notch"></div><div class="pad">
+          <div class="dhero"><div class="k">TOTAL MENSUEL</div><div class="v">79,46 €</div><div class="s">8 abonnements actifs</div></div>
+          <div class="dstats">
+            <div class="dstat"><div class="sl">Annuel</div><div class="sv">953 €</div></div>
+            <div class="dstat warn"><div class="sl">Budget</div><div class="sv">66%</div></div>
+            <div class="dstat"><div class="sl">Actifs</div><div class="sv">8</div></div>
+          </div>
+          <div class="drow"><div class="di" style="background:#7c3aed">NF</div><div class="dn">Netflix</div><div class="dp">13,49 €</div></div>
+          <div class="drow"><div class="di" style="background:#ec4899">SP</div><div class="dn">Spotify</div><div class="dp">10,99 €</div></div>
+        </div></div></div>
+      </div>
+
+      <!-- IMPORT -->
+      <div class="scene imp">
+        <div class="step" style="--bd:11.0s"><div class="num">1</div><div class="stxt">Ajoute en un <span class="grad">copier-coller</span></div></div>
+        <div class="phone"><div class="screen"><div class="notch"></div><div class="pad">
+          <div class="lbl">Ajouter depuis un e-mail</div>
+          <div class="mailbox">« Votre abonnement Netflix de 13,49 € sera renouvelé le 15/07/2026. »</div>
+          <div class="btn">Analyser l'e-mail ✨</div>
+          <div class="detect">
+            <div class="dtitle">Détecté automatiquement</div>
+            <div class="row"><span>Service</span><b>Netflix</b></div>
+            <div class="row"><span>Prix</span><b>13,49 €</b></div>
+            <div class="row"><span>Fréquence</span><b>Mensuel</b></div>
+            <div class="row"><span>Échéance</span><b>15/07/2026</b></div>
+          </div>
+        </div></div></div>
+      </div>
+
+      <!-- REMINDERS -->
+      <div class="scene rem">
+        <div class="step" style="--bd:16.7s"><div class="num">2</div><div class="stxt">Ne rate plus un <span class="grad">renouvellement</span></div></div>
+        <div class="phone"><div class="screen" style="background:#1e1b4b"><div class="notch"></div>
+          <div class="lock-time"><div style="font-size:38px;font-weight:700;color:#c7d2fe">9:41</div><div style="font-size:100px;font-weight:200">sam. 14</div></div>
+          <div class="notif n1"><div class="ic"><svg viewBox="0 0 1024 1024"><path d="M512 132 L597 427 L892 512 L597 597 L512 892 L427 597 L132 512 L427 427 Z" fill="#fff"/></svg></div><div><h4>SubPilot · maintenant</h4><p>Netflix se renouvelle dans 3 jours · 13,49 €</p></div></div>
+          <div class="notif n2"><div class="ic"><svg viewBox="0 0 1024 1024"><path d="M512 132 L597 427 L892 512 L597 597 L512 892 L427 597 L132 512 L427 427 Z" fill="#fff"/></svg></div><div><h4>SubPilot · hier</h4><p>Sport se renouvelle demain · 29,99 €</p></div></div>
+          <div class="notif n3"><div class="ic"><svg viewBox="0 0 1024 1024"><path d="M512 132 L597 427 L892 512 L597 597 L512 892 L427 597 L132 512 L427 427 Z" fill="#fff"/></svg></div><div><h4>SubPilot</h4><p>Spotify se renouvelle dans 7 jours · 10,99 €</p></div></div>
+        </div></div>
+      </div>
+
+      <!-- CANCEL -->
+      <div class="scene can">
+        <div class="step" style="--bd:20.8s"><div class="num">3</div><div class="stxt">Résilie en <span class="grad">1 clic</span></div></div>
+        <div class="phone"><div class="screen"><div class="notch"></div><div class="pad">
+          <div class="subcard">
+            <div class="subhead"><div class="ic">NF</div><div><div style="font-size:34px;font-weight:900">Netflix</div><div class="muted" style="font-size:26px">Renouvellement le 15/07</div></div><div class="pill">13,49 €</div></div>
+            <div class="resil">Résilier</div>
+          </div>
+          <div class="redir"><small>REDIRECTION</small><div class="u">netflix.com/cancelplan</div><div class="ok">✓ Direct, sans chercher</div></div>
+        </div></div></div>
+      </div>
+
+      <!-- BUDGET -->
+      <div class="scene bud">
+        <div class="flabel" style="--bd:24.9s"><div class="pillf">🎯 Fixe ton budget</div></div>
+        <div class="phone"><div class="screen"><div class="notch"></div><div class="pad">
+          <div class="lbl">Budget mensuel souhaité</div>
+          <div class="binput"><div class="bfield">120 €</div><div class="bsave">Sauver</div></div>
+          <div class="bwrap">
+            <svg class="bdonut" viewBox="0 0 300 300">
+              <defs><linearGradient id="bg-d" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14b8a6"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs>
+              <circle cx="150" cy="150" r="110" fill="none" stroke="#e2e8f0" stroke-width="34"/>
+              <circle class="bprog" cx="150" cy="150" r="110" fill="none" stroke="url(#bg-d)" stroke-width="34" stroke-linecap="round"/>
+            </svg>
+            <div class="bpct"><div class="pv">66%</div><div class="pl">de ton budget</div></div>
+          </div>
+          <div class="bstatus">👍 Il te reste 40,54 € ce mois-ci</div>
+        </div></div></div>
+      </div>
+
+      <!-- OUTRO -->
+      <div class="scene out">
+        <div class="logo"><div class="mark"><svg viewBox="0 0 1024 1024"><path d="M512 132 L597 427 L892 512 L597 597 L512 892 L427 597 L132 512 L427 427 Z" fill="#fff"/></svg></div><div class="wordmark">SubPilot</div></div>
+        <div class="feats"><span>📥 <b>Détecte</b></span><span>🔔 <b>Prévient</b></span><span>✂️ <b>Résilie</b></span></div>
+        <div class="free">Gratuit · iPhone · Android · Ordinateur</div>
+        <div class="cta">Teste-la 👉</div>
+      </div>
+
+    </div>
+  </div>
+  <div class="hint">Plein écran + enregistreur d'écran (boucle ~34 s).</div>
+
+  <script>
+    var stage=document.getElementById('stage');
+    function fit(){var k=Math.min(window.innerWidth/1080,window.innerHeight/1920);stage.style.transform='scale('+k+')';}
+    window.addEventListener('resize',fit);fit();
+    function play(){stage.classList.remove('run');void stage.offsetWidth;stage.classList.add('run');}
+    play(); setInterval(play, 34000);
+  </script>
+</body>
+</html>
