@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#4f46e5" />
+<title>Installer SubPilot — guide rapide</title>
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+<style>
+  :root{
+    --indigo:#4f46e5; --indigo-d:#3730a3; --teal:#14b8a6; --pink:#ec4899;
+    --ink:#0f172a; --muted:#475569; --bg:#eef2ff; --card:#ffffff;
+    --line:#e2e8f0; --radius:22px;
+    --font:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:var(--font); color:var(--ink); line-height:1.55;
+    background:
+      radial-gradient(circle at 10% 0%, rgba(20,184,166,.18), transparent 40%),
+      radial-gradient(circle at 100% 10%, rgba(236,72,153,.14), transparent 38%),
+      linear-gradient(160deg,#eef2ff,#f8fafc 60%,#ecfeff);
+    min-height:100vh; padding:22px 16px 60px;
+  }
+  .wrap{width:min(100%,620px); margin:0 auto;}
+
+  .hero{display:flex; align-items:center; gap:14px; margin-bottom:6px;}
+  .mark{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--teal),#a5b4fc);color:#fff;font-size:1.7rem;
+    box-shadow:0 16px 34px rgba(20,184,166,.32);flex:0 0 auto;}
+  h1{font-size:clamp(1.7rem,7vw,2.3rem);letter-spacing:-.03em;line-height:1.05;}
+  .sub{color:var(--muted); margin:10px 2px 20px; font-size:1.02rem;}
+  .badge{display:inline-block;margin-bottom:14px;padding:5px 12px;border-radius:999px;
+    background:#fef9c3;color:#854d0e;font-weight:800;font-size:.78rem;}
+
+  .warn{display:none;border:1px solid #fca5a5;background:linear-gradient(135deg,#fff1f2,#fef2f2);
+    border-radius:var(--radius);padding:16px 18px;margin-bottom:18px;}
+  .warn.show{display:block;}
+  .warn h2{font-size:1.05rem;color:#b91c1c;margin-bottom:6px;}
+  .warn p{color:#7f1d1d;font-size:.95rem;}
+  .warn .how{margin-top:10px;font-size:.9rem;color:#991b1b;}
+  .copy{margin-top:12px;display:inline-flex;gap:8px;align-items:center;border:0;
+    background:var(--indigo);color:#fff;font-weight:800;padding:10px 16px;border-radius:999px;
+    font-family:inherit;font-size:.92rem;cursor:pointer;}
+
+  .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;
+    background:#fff;border:1px solid var(--line);padding:6px;border-radius:999px;}
+  .tabs button{border:0;background:transparent;color:var(--muted);font-family:inherit;
+    font-weight:800;font-size:.92rem;padding:11px 6px;border-radius:999px;cursor:pointer;
+    transition:.2s;}
+  .tabs button.active{background:linear-gradient(135deg,var(--indigo),var(--indigo-d));color:#fff;}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;box-shadow:0 18px 40px rgba(15,23,42,.08);margin-bottom:16px;}
+  .panel{display:none;} .panel.active{display:block;}
+  .panel h2{font-size:1.2rem;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+
+  ol{list-style:none;counter-reset:step;display:grid;gap:14px;}
+  ol li{counter-increment:step;position:relative;padding-left:46px;font-size:1rem;}
+  ol li::before{content:counter(step);position:absolute;left:0;top:-2px;width:32px;height:32px;
+    border-radius:10px;display:grid;place-items:center;font-weight:900;color:#fff;
+    background:linear-gradient(135deg,var(--teal),var(--indigo));font-size:.95rem;}
+  ol li b{color:var(--indigo-d);}
+  .ic{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;
+    background:#eef2ff;vertical-align:-6px;margin:0 2px;}
+  .note{margin-top:14px;padding:12px 14px;border-radius:14px;background:#f0fdfa;
+    border:1px solid #99f6e4;color:#0f766e;font-size:.9rem;font-weight:600;}
+
+  .cta{display:block;text-align:center;text-decoration:none;margin-top:6px;
+    background:linear-gradient(135deg,var(--indigo),var(--indigo-d));color:#fff;
+    font-weight:900;font-size:1.08rem;padding:17px;border-radius:999px;
+    box-shadow:0 18px 38px rgba(79,70,229,.32);}
+  .cta.small{font-size:.95rem;padding:13px;background:none;color:var(--indigo-d);
+    box-shadow:none;border:1px solid var(--line);}
+  .foot{text-align:center;color:var(--muted);font-size:.82rem;margin-top:22px;}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-weight:700;
+    font-size:.9rem;opacity:0;transition:.25s;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="mark" aria-hidden="true">✦</div>
+      <div>
+        <span class="badge">🧪 Version test</span>
+        <h1>Installer SubPilot</h1>
+      </div>
+    </div>
+    <p class="sub">Suis les étapes ci-dessous : en 20 secondes, SubPilot s'installe comme une vraie application sur ton téléphone. C'est <b>gratuit</b>. 🙌</p>
+
+    <!-- Avertissement navigateur interne (Instagram/Facebook/TikTok) -->
+    <div class="warn" id="warnInApp">
+      <h2>⚠️ Ouvre d'abord dans ton navigateur</h2>
+      <p>Tu as ouvert ce lien depuis une application (Instagram, TikTok…). L'installation ne fonctionne pas ici — il faut ouvrir la page dans <b>Safari</b> (iPhone) ou <b>Chrome</b> (Android).</p>
+      <p class="how" id="warnHow"></p>
+      <button class="copy" id="copyBtn">🔗 Copier le lien</button>
+    </div>
+
+    <!-- Onglets plateforme -->
+    <div class="tabs" role="tablist">
+      <button data-tab="ios" id="tab-ios">🍏 iPhone</button>
+      <button data-tab="android" id="tab-android">🤖 Android</button>
+      <button data-tab="desktop" id="tab-desktop">💻 Ordinateur</button>
+    </div>
+
+    <div class="card">
+      <!-- iOS -->
+      <div class="panel" id="panel-ios">
+        <h2>🍏 Sur iPhone / iPad</h2>
+        <ol>
+          <li>Ouvre cette page dans <b>Safari</b> (le navigateur d'Apple).</li>
+          <li>Appuie sur le bouton <b>Partager</b> <span class="ic">⬆️</span> en bas de l'écran.</li>
+          <li>Fais défiler et choisis <b>« Sur l'écran d'accueil »</b> <span class="ic">➕</span>.</li>
+          <li>Appuie sur <b>Ajouter</b> en haut à droite.</li>
+          <li>C'est fait ! L'icône <b>SubPilot</b> apparaît sur ton écran d'accueil. 🎉</li>
+        </ol>
+        <div class="note">💡 Important : sur iPhone, l'installation ne marche <b>que dans Safari</b> (pas dans Chrome ni dans le navigateur d'Instagram).</div>
+      </div>
+
+      <!-- Android -->
+      <div class="panel" id="panel-android">
+        <h2>🤖 Sur Android</h2>
+        <ol>
+          <li>Ouvre cette page dans <b>Chrome</b>.</li>
+          <li>Appuie sur le menu <b>⋮</b> (trois points) en haut à droite.</li>
+          <li>Choisis <b>« Installer l'application »</b> (ou « Ajouter à l'écran d'accueil »).</li>
+          <li>Confirme avec <b>Installer</b>.</li>
+          <li>L'icône <b>SubPilot</b> apparaît sur ton écran d'accueil. 🎉</li>
+        </ol>
+        <div class="note">💡 Parfois une petite bannière « Installer l'application » apparaît toute seule en bas : tu peux appuyer directement dessus.</div>
+      </div>
+
+      <!-- Desktop -->
+      <div class="panel" id="panel-desktop">
+        <h2>💻 Sur ordinateur</h2>
+        <ol>
+          <li>Ouvre cette page dans <b>Chrome</b> ou <b>Edge</b>.</li>
+          <li>Clique sur l'icône d'installation <span class="ic">⬇️</span> à droite de la barre d'adresse.</li>
+          <li>Clique sur <b>Installer</b>.</li>
+          <li>SubPilot s'ouvre dans sa propre fenêtre, comme un logiciel. 🎉</li>
+        </ol>
+        <div class="note">💡 Pas d'icône d'installation ? Tu peux aussi simplement utiliser SubPilot directement dans le navigateur.</div>
+      </div>
+    </div>
+
+    <a class="cta" id="openApp" href="./index.html">🚀 Ouvrir SubPilot maintenant</a>
+    <a class="cta small" id="openAppBrowser" href="./index.html" style="margin-top:10px;">Déjà installé ? Ouvrir l'application</a>
+
+    <p class="foot">SubPilot est une application web (PWA) — pas besoin de l'App Store ni du Play Store.<br/>Merci de tester 🙏 — tes retours servent directement à l'améliorer.</p>
+  </div>
+
+  <div class="toast" id="toast">Lien copié ✅</div>
+
+<script>
+  var appUrl = location.href.replace(/installer\.html.*$/, "index.html");
+  document.getElementById("openApp").href = appUrl;
+  document.getElementById("openAppBrowser").href = appUrl;
+
+  var ua = navigator.userAgent || "";
+  var isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && "ontouchend" in document);
+  var isAndroid = /Android/i.test(ua);
+  var inApp = /Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat|TikTok|Twitter/i.test(ua);
+
+  function selectTab(name){
+    ["ios","android","desktop"].forEach(function(t){
+      document.getElementById("tab-"+t).classList.toggle("active", t===name);
+      document.getElementById("panel-"+t).classList.toggle("active", t===name);
+    });
+  }
+  document.querySelectorAll(".tabs button").forEach(function(b){
+    b.addEventListener("click", function(){ selectTab(b.dataset.tab); });
+  });
+
+  selectTab(isIOS ? "ios" : isAndroid ? "android" : "desktop");
+
+  if (inApp){
+    var warn = document.getElementById("warnInApp");
+    warn.classList.add("show");
+    document.getElementById("warnHow").textContent = isIOS
+      ? "👉 Appuie sur le menu « ··· » en haut à droite, puis choisis « Ouvrir dans Safari »."
+      : "👉 Appuie sur le menu « ⋮ » en haut à droite, puis choisis « Ouvrir dans Chrome » (ou « Ouvrir dans le navigateur »).";
+  }
+
+  document.getElementById("copyBtn").addEventListener("click", function(){
+    var done = function(){
+      var t=document.getElementById("toast"); t.classList.add("show");
+      setTimeout(function(){ t.classList.remove("show"); }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(location.href).then(done, done);
+    } else {
+      var i=document.createElement("input"); i.value=location.href; document.body.appendChild(i);
+      i.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(i); done();
+    }
+  });
+</script>
+</body>
+</html>
