@@ -1,1 +1,8 @@
 node_modules/
+
+# Secrets — ne jamais versionner
+.env
+.env.local
+
+# Images générées pour les réseaux (sorties locales)
+promo/instagram/
