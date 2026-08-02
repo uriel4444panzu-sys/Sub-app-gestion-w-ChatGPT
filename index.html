@@ -25,7 +25,7 @@
         } catch (e) {}
       })();
     </script>
-    <link rel="stylesheet" href="styles.css?v=44" />
+    <link rel="stylesheet" href="styles.css?v=45" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -560,6 +560,17 @@
       </div>
     </div>
 
+    <div class="modal-overlay" id="feedbackModal" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackMessage">
+        <h3 id="feedbackTitle">Ton avis compte 💬</h3>
+        <p id="feedbackMessage" class="helper-text">Ça fait 2 semaines que tu utilises SubPilot 🙌 Ton avis en 2 minutes m'aiderait énormément à l'améliorer. Merci !</p>
+        <div class="modal-actions">
+          <button type="button" class="ghost-button" id="feedbackLater">Plus tard</button>
+          <button type="button" class="primary-button small" id="feedbackGive">Donner mon avis</button>
+        </div>
+      </div>
+    </div>
+
     <template id="emptyStateTemplate">
       <article class="empty-state">
         <strong>Aucun abonnement trouvé</strong>
@@ -567,6 +578,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=44"></script>
+    <script src="app.js?v=45"></script>
   </body>
 </html>
