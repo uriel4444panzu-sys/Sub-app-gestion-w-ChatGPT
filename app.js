@@ -8,8 +8,13 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "44";
+const APP_VERSION = "45";
 const THEME_KEY = "subpilot-theme";
+// Relance de retour testeur : au bout de 14 jours d'utilisation, on invite
+// l'utilisateur à remplir le formulaire (rappel in-app + notification push).
+const FEEDBACK_FORM_URL = "https://forms.gle/vZqEUfvrUgtBseyS7";
+const FEEDBACK_DELAY_DAYS = 14;
+const FEEDBACK_ASKED_KEY = "subpilot-feedback-asked";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 
@@ -180,6 +185,9 @@ const permissionModal = document.querySelector("#permissionModal");
 const permissionMessage = document.querySelector("#permissionMessage");
 const permissionAllowButton = document.querySelector("#permissionAllow");
 const permissionCancelButton = document.querySelector("#permissionCancel");
+const feedbackModal = document.querySelector("#feedbackModal");
+const feedbackGiveButton = document.querySelector("#feedbackGive");
+const feedbackLaterButton = document.querySelector("#feedbackLater");
 const authGate = document.querySelector("#authGate");
 const appShell = document.querySelector("#appShell");
 const authStatus = document.querySelector("#authStatus");
@@ -236,6 +244,13 @@ permissionCancelButton.addEventListener("click", closePermissionModal);
 permissionModal.addEventListener("click", (event) => {
   if (event.target === permissionModal) closePermissionModal();
 });
+if (feedbackGiveButton) feedbackGiveButton.addEventListener("click", giveFeedback);
+if (feedbackLaterButton) feedbackLaterButton.addEventListener("click", dismissFeedback);
+if (feedbackModal) {
+  feedbackModal.addEventListener("click", (event) => {
+    if (event.target === feedbackModal) dismissFeedback();
+  });
+}
 signupForm.addEventListener("submit", handleSignupSubmit);
 loginForm.addEventListener("submit", handleLoginSubmit);
 authGoogleButton.addEventListener("click", handleGoogleSignIn);
@@ -435,6 +450,7 @@ function handleFirebaseUserChange(user) {
 
   loadCloudData()
     .then(() => refreshPushRegistration())
+    .then(() => maybePromptFeedback())
     .catch((error) => {
       renderAccountStatus(getFriendlyFirebaseError(error));
     });
@@ -2147,6 +2163,99 @@ function requestMediaPermission(kind) {
 function closePermissionModal() {
   permissionModal.hidden = true;
   pendingMediaPermission = null;
+}
+
+// ---------------------------------------------------------------------------
+// Relance « retour testeur » (in-app) après 14 jours d'utilisation
+// ---------------------------------------------------------------------------
+async function maybePromptFeedback() {
+  if (!isCloudUser() || !appUnlocked || !firebaseState.user || !feedbackModal) return;
+
+  const user = firebaseState.user;
+  const deviceKey = `${FEEDBACK_ASKED_KEY}-${user.uid}`;
+  try {
+    if (localStorage.getItem(deviceKey)) return; // déjà vu sur cet appareil
+  } catch (error) {
+    /* localStorage indisponible : on tente quand même l'affichage */
+  }
+
+  const created =
+    user.metadata && user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
+  if (!created || Number.isNaN(created.getTime())) return;
+  const ageDays = Math.floor((Date.now() - created.getTime()) / 86_400_000);
+  if (ageDays < FEEDBACK_DELAY_DAYS) return;
+
+  // Coordination avec la notification push : si le retour a déjà été demandé
+  // (peu importe le canal), on n'insiste pas.
+  if (await feedbackAlreadyRequested(user.uid)) {
+    try {
+      localStorage.setItem(deviceKey, "1");
+    } catch (error) {
+      /* ignore */
+    }
+    return;
+  }
+
+  openFeedbackModal();
+}
+
+async function feedbackAlreadyRequested(uid) {
+  if (!firebaseState.modules || !firebaseState.db) return false;
+  try {
+    const { doc, getDoc } = firebaseState.modules;
+    const snapshot = await getDoc(doc(firebaseState.db, "users", uid, "data", "feedback"));
+    return snapshot.exists() && snapshot.data().requested === true;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function markFeedbackRequested() {
+  if (!isCloudUser() || !firebaseState.modules || !firebaseState.db || !firebaseState.user) return;
+  try {
+    const { doc, setDoc } = firebaseState.modules;
+    await setDoc(
+      doc(firebaseState.db, "users", firebaseState.user.uid, "data", "feedback"),
+      { requested: true, channel: "in-app", requestedAt: new Date().toISOString() },
+      { merge: true },
+    );
+  } catch (error) {
+    /* pas bloquant : le rappel local suffit à ne pas reposer la question */
+  }
+}
+
+function rememberFeedbackAskedOnDevice() {
+  if (!firebaseState.user) return;
+  try {
+    localStorage.setItem(`${FEEDBACK_ASKED_KEY}-${firebaseState.user.uid}`, "1");
+  } catch (error) {
+    /* ignore */
+  }
+}
+
+function openFeedbackModal() {
+  if (!feedbackModal) return;
+  feedbackModal.hidden = false;
+  if (feedbackGiveButton) feedbackGiveButton.focus();
+}
+
+function closeFeedbackModal() {
+  if (feedbackModal) feedbackModal.hidden = true;
+}
+
+function giveFeedback() {
+  // Ouvre le formulaire et n'insiste plus (sur cet appareil + dans le cloud).
+  window.open(FEEDBACK_FORM_URL, "_blank", "noopener");
+  rememberFeedbackAskedOnDevice();
+  markFeedbackRequested();
+  closeFeedbackModal();
+}
+
+function dismissFeedback() {
+  // « Plus tard » : on n'affiche plus sur cet appareil, mais on NE marque PAS le
+  // cloud comme « demandé » → la notification push pourra relancer la personne.
+  rememberFeedbackAskedOnDevice();
+  closeFeedbackModal();
 }
 
 function grantPendingMediaPermission() {

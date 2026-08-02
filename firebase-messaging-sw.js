@@ -33,8 +33,16 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const targetUrl = event.notification.data?.url || "./index.html";
+
+  // Lien externe absolu (ex. formulaire de retour) : on ouvre directement l'URL
+  // plutôt que de simplement remettre l'app au premier plan.
+  const isExternal = /^https?:\/\//i.test(targetUrl);
+
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      if (isExternal) {
+        return self.clients.openWindow ? self.clients.openWindow(targetUrl) : undefined;
+      }
       for (const client of clientList) {
         if ("focus" in client) return client.focus();
       }
