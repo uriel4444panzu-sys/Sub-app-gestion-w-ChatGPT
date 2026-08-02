@@ -31,20 +31,30 @@ const STYLE =
   "brand palette indigo #4f46e5 and teal #14b8a6 with soft pink #ec4899 accents, " +
   "smooth gradient background, centered composition, minimalist, generous negative space, " +
   "modern fintech aesthetic, ultra clean, high detail, octane render, product photography style, " +
-  "NO text, NO letters, NO words, square 1:1 framing.";
+  "square 1:1 framing.";
 
-// Concepts (10 visuels distincts autour de la gestion d'abonnements).
-const CONCEPTS = [
-  "A neat 3D stack of floating rounded subscription cards hovering above a modern smartphone",
-  "A cute 3D piggy bank surrounded by floating coins, symbolizing saving money on subscriptions",
-  "A 3D calendar block with a glowing notification bell floating above it, reminder concept",
-  "A pair of 3D scissors cutting a glowing subscription card in half, cancellation concept",
-  "A floating 3D dashboard panel with a donut budget chart and small rising bar graphs",
-  "An organized 3D wallet with neatly arranged colorful cards sliding out",
-  "A 3D magnet attracting golden coins back toward it, money coming back concept",
-  "A 3D shield hovering protectively over a small wallet and cards, control and security concept",
-  "A 3D control panel with a joystick and dials, a pilot steering personal finances concept",
-  "A 3D rocket made of stacked coins lifting off from a launch pad, growth and savings concept",
+// Consigne pour le texte 3D, dans la même matière que la scène.
+function texte3D(accroche) {
+  return (
+    `Include a bold 3D inflated glossy text that reads exactly "${accroche}" ` +
+    "in French, made of the same clay/plastic material as the scene, matching the brand " +
+    "colors, large and perfectly legible, correctly spelled with correct French accents, " +
+    "placed in the empty space without covering the main object."
+  );
+}
+
+// 10 visuels : scène (en anglais pour le moteur) + accroche 3D (en français).
+const VISUELS = [
+  { scene: "A neat 3D stack of floating rounded subscription cards hovering above a modern smartphone", texte: "Tous tes abos ici" },
+  { scene: "A cute 3D piggy bank surrounded by floating coins, symbolizing saving money on subscriptions", texte: "Économise" },
+  { scene: "A 3D calendar block with a glowing notification bell floating above it, reminder concept", texte: "Prévenu à temps" },
+  { scene: "A pair of 3D scissors cutting a glowing subscription card in half, cancellation concept", texte: "Résilie en 1 clic" },
+  { scene: "A floating 3D dashboard panel with a donut budget chart and small rising bar graphs", texte: "Ton budget en vue" },
+  { scene: "An organized 3D wallet with neatly arranged colorful cards sliding out", texte: "Reprends le contrôle" },
+  { scene: "A 3D magnet attracting golden coins back toward it, money coming back concept", texte: "Récupère ton argent" },
+  { scene: "A 3D shield hovering protectively over a small wallet and cards, control and security concept", texte: "Zéro abo oublié" },
+  { scene: "A 3D control panel with a joystick and dials, a pilot steering personal finances concept", texte: "Pilote tes dépenses" },
+  { scene: "A 3D rocket made of stacked coins lifting off from a launch pad, growth and savings concept", texte: "Reprends la main" },
 ];
 
 // --------------------------------------------------------------------------
@@ -97,12 +107,13 @@ async function main() {
   }
 
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  console.log(`🎨 Génération de ${CONCEPTS.length} image(s) — ${SIZE}, qualité ${QUALITY}\n`);
+  console.log(`🎨 Génération de ${VISUELS.length} image(s) — ${SIZE}, qualité ${QUALITY}\n`);
 
   let ok = 0;
-  for (let i = 0; i < CONCEPTS.length; i++) {
-    const prompt = `${CONCEPTS[i]}. ${STYLE}`;
-    process.stdout.write(`(${i + 1}/${CONCEPTS.length}) ${CONCEPTS[i].slice(0, 48)}… `);
+  for (let i = 0; i < VISUELS.length; i++) {
+    const { scene, texte } = VISUELS[i];
+    const prompt = `${scene}. ${texte3D(texte)} ${STYLE}`;
+    process.stdout.write(`(${i + 1}/${VISUELS.length}) « ${texte} »… `);
     try {
       const file = await generateOne(prompt, i);
       ok++;
@@ -112,7 +123,7 @@ async function main() {
     }
   }
 
-  console.log(`\n✨ Terminé : ${ok}/${CONCEPTS.length} image(s) dans ${OUTPUT_DIR}`);
+  console.log(`\n✨ Terminé : ${ok}/${VISUELS.length} image(s) dans ${OUTPUT_DIR}`);
 }
 
 main().catch((error) => {
