@@ -10,7 +10,22 @@
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
     <title>SubPilot - Gestion d'abonnements</title>
-    <link rel="stylesheet" href="styles.css?v=43" />
+    <script>
+      // Applique le thème avant le rendu pour éviter tout flash (clair/sombre/système).
+      (function () {
+        try {
+          var stored = localStorage.getItem("subpilot-theme") || "system";
+          var prefersDark =
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var effective = stored === "system" ? (prefersDark ? "dark" : "light") : stored;
+          document.documentElement.setAttribute("data-theme", effective);
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", effective === "dark" ? "#0b1120" : "#0f172a");
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css?v=44" />
   </head>
   <body>
     <div class="ambient-orb orb-one" aria-hidden="true"></div>
@@ -515,6 +530,21 @@
           <p id="notificationsStatus" class="helper-text status-text"></p>
         </section>
 
+        <section class="panel appearance-card" aria-labelledby="appearanceTitle">
+          <div class="section-heading tight">
+            <div>
+              <p class="eyebrow">Apparence</p>
+              <h3 id="appearanceTitle">Thème de l'application</h3>
+            </div>
+          </div>
+          <p class="helper-text">Choisissez l'apparence de SubPilot. « Système » suit automatiquement le réglage clair ou sombre de votre appareil.</p>
+          <div class="theme-toggle" role="group" aria-label="Choix du thème">
+            <button type="button" data-theme-choice="light">Clair</button>
+            <button type="button" data-theme-choice="dark">Sombre</button>
+            <button type="button" data-theme-choice="system">Système</button>
+          </div>
+        </section>
+
         <p id="appVersion" class="app-version"></p>
       </section>
     </main>
@@ -537,6 +567,6 @@
       </article>
     </template>
 
-    <script src="app.js?v=43"></script>
+    <script src="app.js?v=44"></script>
   </body>
 </html>
