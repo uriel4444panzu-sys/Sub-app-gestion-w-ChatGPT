@@ -1,0 +1,57 @@
+name: Publier sur Instagram
+
+# Deux modes :
+#  1) Manuel (recommandé au début) : onglet Actions -> "Publier sur Instagram" -> Run workflow.
+#     - laisse "only_id" vide pour publier tous les posts dus (date <= aujourd'hui) ;
+#     - ou renseigne l'id d'un post précis du calendar.json pour ne publier que celui-là ;
+#     - coche "dry_run" pour tester sans rien publier.
+#  2) Planifié (optionnel) : décommente le bloc "schedule" ci-dessous pour publier
+#     automatiquement chaque jour le post du jour.
+
+on:
+  workflow_dispatch:
+    inputs:
+      only_id:
+        description: "Publier seulement ce post (id du calendar.json). Vide = tous les posts dus."
+        required: false
+        default: ""
+      dry_run:
+        description: "Tester sans publier (true/false)"
+        required: false
+        default: "false"
+  # schedule:
+  #   - cron: "0 10 * * *"   # tous les jours à 10:00 UTC (12:00 Paris en été)
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Publier
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          ONLY_ID: ${{ github.event.inputs.only_id }}
+          DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '0' }}
+        run: node promo/instagram-auto/publish.js
+
+      - name: Enregistrer les posts publiés
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        run: |
+          if ! git diff --quiet -- promo/instagram-auto/published.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add promo/instagram-auto/published.json
+            git commit -m "chore(insta): journal des posts publiés"
+            git push
+          else
+            echo "Aucun nouveau post publié."
+          fi
