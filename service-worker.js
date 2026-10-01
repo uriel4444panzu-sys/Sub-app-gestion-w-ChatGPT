@@ -1,9 +1,10 @@
-const CACHE_NAME = "subpilot-v45";
+const CACHE_NAME = "subpilot-v46";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=45",
-  "./app.js?v=45",
+  "./styles.css?v=46",
+  "./app.js?v=46",
+  "./radar.js?v=46",
   "./manifest.webmanifest",
   "./assets/icon.svg",
 ];
@@ -67,3 +68,4 @@ self.addEventListener("fetch", (event) => {
     }),
   );
 });
+

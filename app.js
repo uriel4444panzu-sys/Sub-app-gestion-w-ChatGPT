@@ -8,7 +8,7 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "45";
+const APP_VERSION = "46";
 const THEME_KEY = "subpilot-theme";
 // Relance de retour testeur : au bout de 14 jours d'utilisation, on invite
 // l'utilisateur à remplir le formulaire (rappel in-app + notification push).
@@ -678,6 +678,7 @@ function switchTab(tabName) {
     const isActive = button.dataset.tab === tabName;
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-selected", String(isActive));
+    button.setAttribute("aria-pressed", String(isActive));
   });
 
   document.querySelectorAll(".tab-panel").forEach((panel) => {
@@ -686,7 +687,9 @@ function switchTab(tabName) {
     panel.hidden = !isActive;
   });
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  const panel = document.querySelector(`[data-panel="${tabName}"]`);
+  SubpilotRadar.animatePanel(panel);
+  window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 
 function handleSubmit(event) {
@@ -808,6 +811,7 @@ function renderInsights() {
     ? `${getSubscriptionIcon(nextSubscription)} ${nextSubscription.name} · ${formatRelativeDate(nextSubscription.nextDate)}`
     : "Aucun";
   document.querySelector("#topCategory").textContent = topCategory ? `${topCategory.icon} ${topCategory.category}` : "-";
+  SubpilotRadar.renderHomeGauge(monthlyTotal, monthlyBudget);
 }
 
 function renderCompactList() {
@@ -983,6 +987,7 @@ function renderBudget() {
     : "Ajoutez un plafond pour visualiser la place prise par vos abonnements.";
 
   renderSimulation(monthlyTotal);
+  SubpilotRadar.renderBudget(getCategoryTotals(), monthlyTotal, getCategoryMeta, formatMoney);
 }
 
 function renderSimulation(monthlyTotal) {
@@ -1037,11 +1042,12 @@ function renderPopularServices() {
   popularServices.forEach((service) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "service-chip";
+    button.className = "popular-service";
     button.innerHTML = `<span class="service-icon" style="--icon-color: ${getCategoryMeta(service.category).color}">${escapeHtml(service.serviceIcon)}</span><strong>${service.name}</strong><small>${formatMoney(service.price)}</small>`;
     button.addEventListener("click", () => prefillService(service));
     container.append(button);
   });
+  SubpilotRadar.collapsePopularServices(container);
 }
 
 function prefillService(service) {
@@ -2672,10 +2678,12 @@ function applyTheme(preference) {
   const effective = resolveEffectiveTheme(preference);
   document.documentElement.setAttribute("data-theme", effective);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", effective === "dark" ? "#0b1120" : "#0f172a");
+  if (meta) meta.setAttribute("content", effective === "dark" ? "#14251a" : "#d8e6d3");
 }
 
 function updateThemeButtons(preference) {
+  const picker = document.querySelector("[data-theme-picker]");
+  if (picker) picker.value = preference;
   document.querySelectorAll("[data-theme-choice]").forEach((button) => {
     const isActive = button.dataset.themeChoice === preference;
     button.classList.toggle("active", isActive);
@@ -2694,6 +2702,8 @@ function setThemePreference(preference) {
 }
 
 function initializeThemeControls() {
+  const picker = document.querySelector("[data-theme-picker]");
+  if (picker) picker.addEventListener("change", () => setThemePreference(picker.value));
   const preference = getStoredThemePreference();
   applyTheme(preference);
   updateThemeButtons(preference);
@@ -2717,3 +2727,4 @@ function initializeThemeControls() {
     }
   }
 }
+

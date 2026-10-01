@@ -19,6 +19,12 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Sauvegarde locale dans le navigateur avec `localStorage`, et synchronisation cloud Firebase quand `firebase-config.js` est configuré.
 - Installation sur téléphone comme une PWA, avec icône SVG texte uniquement, mode plein écran `standalone` et cache hors connexion.
 
+## Apparence Radar
+
+L’interface utilise une palette vert sapin/sauge, un motif original continu et des jauges numériques segmentées pour le budget et le simulateur. Le thème clair, sombre ou système se choisit dans le menu **Apparence** de l’onglet **Compte** ; la préférence reste mémorisée sur l’appareil. Les transitions respectent la préférence de réduction des animations.
+
+Cette refonte concerne la présentation : les comptes, la synchronisation Firebase, les notifications, l’import e-mail et les opérations sur les abonnements gardent leurs parcours existants. Le logo actuel est conservé. Les icônes de navigation proviennent de Lucide (licence incluse dans `assets/LUCIDE_LICENSE`) et sont intégrées localement, sans dépendance réseau supplémentaire.
+
 ## Utilisation locale
 
 Ouvrez directement `index.html` dans un navigateur, ou lancez un petit serveur local :
@@ -174,3 +180,4 @@ L'application est une PWA installable :
 - **iPhone / Safari** : ouvrez l'application, touchez **Partager**, puis **Sur l'écran d'accueil**.
 
 Une fois ajoutée, SubPilot s'ouvre comme une application classique depuis l'écran d'accueil et peut charger son interface même hors connexion grâce au service worker. Le projet évite les fichiers binaires afin que les pull requests et extractions restent lisibles.
+
