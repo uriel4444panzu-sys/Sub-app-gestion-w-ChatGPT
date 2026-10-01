@@ -1,14 +1,13 @@
 <!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f172a" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="SubPilot" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+<html lang="fr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d8e6d3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SubPilot">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <title>SubPilot - Gestion d'abonnements</title>
     <script>
       // Applique le thème avant le rendu pour éviter tout flash (clair/sombre/système).
@@ -21,21 +20,16 @@
           var effective = stored === "system" ? (prefersDark ? "dark" : "light") : stored;
           document.documentElement.setAttribute("data-theme", effective);
           var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute("content", effective === "dark" ? "#0b1120" : "#0f172a");
+          if (meta) meta.setAttribute("content", effective === "dark" ? "#14251a" : "#d8e6d3");
         } catch (e) {}
       })();
     </script>
-    <link rel="stylesheet" href="styles.css?v=45" />
+    <link rel="stylesheet" href="styles.css?v=46">
   </head>
-  <body>
-    <div class="ambient-orb orb-one" aria-hidden="true"></div>
-    <div class="ambient-orb orb-two" aria-hidden="true"></div>
-
-
-    <section class="auth-gate" id="authGate" aria-labelledby="authTitle">
+  <body id="subpilot"><div class="sp-app sp-radar"><div class="sp-pattern" aria-hidden="true"><span class="sp-trace sp-trace-a"></span><span class="sp-trace sp-trace-b"></span><span class="sp-trace sp-trace-c"></span><span class="sp-trace sp-trace-d"></span><span class="sp-trace sp-trace-e"></span><span class="sp-trace sp-trace-f"></span><span class="sp-trace sp-trace-g"></span><span class="sp-trace sp-trace-h"></span><span class="sp-trace sp-trace-i"></span><span class="sp-trace sp-trace-j"></span><span class="sp-trace sp-trace-k"></span><span class="sp-trace sp-trace-l"></span><span class="sp-loop sp-loop-a"></span><span class="sp-loop sp-loop-b"></span><span class="sp-loop sp-loop-c"></span><span class="sp-loop sp-loop-d"></span><span class="sp-trace sp-trace-a" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-b" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-c" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-d" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-e" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-f" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-g" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-h" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-i" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-j" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-k" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-l" style="margin-top: 960px;"></span><span class="sp-loop sp-loop-a" style="margin-top: 960px;"></span><span class="sp-loop sp-loop-b" style="margin-top: 960px;"></span><span class="sp-loop sp-loop-c" style="margin-top: 960px;"></span><span class="sp-loop sp-loop-d" style="margin-top: 960px;"></span><span class="sp-trace sp-trace-a" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-b" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-c" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-d" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-e" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-f" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-g" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-h" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-i" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-j" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-k" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-l" style="margin-top: 1920px;"></span><span class="sp-loop sp-loop-a" style="margin-top: 1920px;"></span><span class="sp-loop sp-loop-b" style="margin-top: 1920px;"></span><span class="sp-loop sp-loop-c" style="margin-top: 1920px;"></span><span class="sp-loop sp-loop-d" style="margin-top: 1920px;"></span><span class="sp-trace sp-trace-a" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-b" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-c" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-d" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-e" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-f" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-g" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-h" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-i" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-j" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-k" style="margin-top: 2880px;"></span><span class="sp-trace sp-trace-l" style="margin-top: 2880px;"></span><span class="sp-loop sp-loop-a" style="margin-top: 2880px;"></span><span class="sp-loop sp-loop-b" style="margin-top: 2880px;"></span><span class="sp-loop sp-loop-c" style="margin-top: 2880px;"></span><span class="sp-loop sp-loop-d" style="margin-top: 2880px;"></span><span class="sp-loop sp-loop-field" style="left: 43%; top: 18px; width: 38px; height: 26px; transform: rotate(-12deg);"></span><span class="sp-loop sp-loop-field" style="left: 64%; top: 165px; width: 64px; height: 40px; transform: rotate(15deg);"></span><span class="sp-loop sp-loop-field" style="left: 40%; top: 297px; width: 42px; height: 27px; transform: rotate(-18deg);"></span><span class="sp-loop sp-loop-field" style="left: 61%; top: 457px; width: 58px; height: 38px; transform: rotate(12deg);"></span><span class="sp-loop sp-loop-field" style="left: 32%; top: 623px; width: 38px; height: 26px; transform: rotate(-11deg);"></span><span class="sp-loop sp-loop-field" style="left: 68%; top: 791px; width: 48px; height: 31px; transform: rotate(16deg);"></span><span class="sp-loop sp-loop-field" style="left: 47%; top: 951px; width: 62px; height: 40px; transform: rotate(-15deg);"></span><span class="sp-loop sp-loop-field" style="left: 43%; top: 1118px; width: 38px; height: 26px; transform: rotate(-12deg);"></span><span class="sp-loop sp-loop-field" style="left: 64%; top: 1265px; width: 64px; height: 40px; transform: rotate(15deg);"></span><span class="sp-loop sp-loop-field" style="left: 40%; top: 1397px; width: 42px; height: 27px; transform: rotate(-18deg);"></span><span class="sp-loop sp-loop-field" style="left: 61%; top: 1557px; width: 58px; height: 38px; transform: rotate(12deg);"></span><span class="sp-loop sp-loop-field" style="left: 32%; top: 1723px; width: 38px; height: 26px; transform: rotate(-11deg);"></span><span class="sp-loop sp-loop-field" style="left: 68%; top: 1891px; width: 48px; height: 31px; transform: rotate(16deg);"></span><span class="sp-loop sp-loop-field" style="left: 47%; top: 2051px; width: 62px; height: 40px; transform: rotate(-15deg);"></span><span class="sp-loop sp-loop-field" style="left: 43%; top: 2218px; width: 38px; height: 26px; transform: rotate(-12deg);"></span><span class="sp-loop sp-loop-field" style="left: 64%; top: 2365px; width: 64px; height: 40px; transform: rotate(15deg);"></span><span class="sp-loop sp-loop-field" style="left: 40%; top: 2497px; width: 42px; height: 27px; transform: rotate(-18deg);"></span><span class="sp-loop sp-loop-field" style="left: 61%; top: 2657px; width: 58px; height: 38px; transform: rotate(12deg);"></span><span class="sp-loop sp-loop-field" style="left: 32%; top: 2823px; width: 38px; height: 26px; transform: rotate(-11deg);"></span><span class="sp-loop sp-loop-field" style="left: 68%; top: 2991px; width: 48px; height: 31px; transform: rotate(16deg);"></span><span class="sp-loop sp-loop-field" style="left: 47%; top: 3151px; width: 62px; height: 40px; transform: rotate(-15deg);"></span><span class="sp-loop sp-loop-field" style="left: 43%; top: 3318px; width: 38px; height: 26px; transform: rotate(-12deg);"></span><span class="sp-loop sp-loop-field" style="left: 64%; top: 3465px; width: 64px; height: 40px; transform: rotate(15deg);"></span><span class="sp-loop sp-loop-field" style="left: 40%; top: 3597px; width: 42px; height: 27px; transform: rotate(-18deg);"></span><span class="sp-loop sp-loop-field" style="left: 61%; top: 3757px; width: 58px; height: 38px; transform: rotate(12deg);"></span><span class="sp-loop sp-loop-field" style="left: 32%; top: 3923px; width: 38px; height: 26px; transform: rotate(-11deg);"></span><span class="sp-loop sp-loop-field" style="left: 68%; top: 4091px; width: 48px; height: 31px; transform: rotate(16deg);"></span><span class="sp-loop sp-loop-field" style="left: 47%; top: 4251px; width: 62px; height: 40px; transform: rotate(-15deg);"></span></div><header class="sp-header"><span class="sp-brand"><img class="sp-current-logo" src="assets/icon.svg" alt="" width="31" height="31">SubPilot</span><div class="sp-header-controls"><div class="sp-theme-switch" role="group" aria-label="Apparence"><button type="button" class="cursor-interaction" aria-pressed="false" aria-label="Mode clair" data-theme-choice="light"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg></button><button type="button" class="cursor-interaction" aria-pressed="true" aria-label="Mode sombre" data-theme-choice="dark"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path></svg></button></div><button type="button" class="sp-icon cursor-interaction" aria-label="Ouvrir mon compte" data-tab-target="account"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg></button></div></header><section class="auth-gate" id="authGate" aria-labelledby="authTitle">
       <div class="auth-card">
         <div class="auth-brand">
-          <div class="app-mark" aria-hidden="true">✦</div>
+          <img class="sp-current-logo" src="assets/icon.svg" alt="" width="31" height="31">
           <div>
             <p class="eyebrow">Bienvenue sur</p>
             <h1 id="authTitle">SubPilot</h1>
@@ -43,7 +37,7 @@
         </div>
         <p class="auth-intro">Connectez-vous pour retrouver vos abonnements, votre budget et vos catégories sur tous vos appareils.</p>
 
-        <article class="quick-profile" id="authQuickProfile" hidden>
+        <article class="quick-profile" id="authQuickProfile" hidden="">
           <div class="profile-avatar small" id="authQuickAvatar">SP</div>
           <div>
             <strong id="authQuickName">Profil enregistré</strong>
@@ -52,7 +46,7 @@
           <button type="button" class="primary-button small" id="quickLoginButton">Connexion</button>
         </article>
 
-        <div class="auth-mode-toggle" role="tablist" aria-label="Choix du mode d'authentification">
+        <div class="auth-mode-toggle auth-tabs" role="tablist" aria-label="Choix du mode d'authentification">
           <button type="button" class="active" data-auth-mode="signup" aria-selected="true">Créer un compte</button>
           <button type="button" data-auth-mode="login" aria-selected="false">Se connecter</button>
         </div>
@@ -61,11 +55,11 @@
           <div class="form-row">
             <label>
               Prénom
-              <input id="authFirstName" type="text" autocomplete="given-name" required />
+              <input id="authFirstName" type="text" autocomplete="given-name" required="">
             </label>
             <label>
               Nom
-              <input id="authLastName" type="text" autocomplete="family-name" required />
+              <input id="authLastName" type="text" autocomplete="family-name" required="">
             </label>
           </div>
           <div class="form-row">
@@ -80,34 +74,34 @@
             </label>
             <label>
               Date de naissance
-              <input id="authBirthDate" type="date" autocomplete="bday" required />
+              <input id="authBirthDate" type="date" autocomplete="bday" required="">
             </label>
           </div>
           <label>
             Adresse email
-            <input id="authEmail" type="email" autocomplete="email" required />
+            <input id="authEmail" type="email" autocomplete="email" required="">
           </label>
           <div class="form-row">
             <label>
               Mot de passe
-              <input id="authPassword" type="password" autocomplete="new-password" required />
+              <input id="authPassword" type="password" autocomplete="new-password" required="">
             </label>
             <label>
               Confirmation du mot de passe
-              <input id="authPasswordConfirm" type="password" autocomplete="new-password" required />
+              <input id="authPasswordConfirm" type="password" autocomplete="new-password" required="">
             </label>
           </div>
           <button type="submit" class="primary-button">Créer mon compte</button>
         </form>
 
-        <form class="auth-form" id="loginForm" data-auth-panel="login" hidden>
+        <form class="auth-form" id="loginForm" data-auth-panel="login" hidden="">
           <label>
             Adresse email
-            <input id="loginEmail" type="email" autocomplete="email" />
+            <input id="loginEmail" type="email" autocomplete="email">
           </label>
           <label>
             Mot de passe
-            <input id="loginPassword" type="password" autocomplete="current-password" />
+            <input id="loginPassword" type="password" autocomplete="current-password">
           </label>
           <button type="submit" class="primary-button">Se connecter</button>
           <button type="button" class="link-button" id="forgotPasswordButton">Mot de passe oublié ?</button>
@@ -115,36 +109,13 @@
 
         <div class="auth-divider"><span>ou</span></div>
         <button type="button" class="google-button full" id="authGoogleButton">Continuer avec Google</button>
-        <p id="authStatus" class="helper-text status-text">Chargement de l'authentification…</p>
+        <p id="authStatus" class="helper-text status-text" aria-live="polite">Chargement de l'authentification…</p>
       </div>
-    </section>
+    </section><main class="app-shell" id="appShell" hidden="">
+      
 
-    <main class="app-shell" id="appShell" hidden>
-      <nav class="tab-bar" aria-label="Navigation principale">
-        <button class="tab-button active" type="button" data-tab="dashboard" aria-selected="true" aria-controls="dashboardPanel">
-          <span>⌁</span>
-          Tableau
-        </button>
-        <button class="tab-button" type="button" data-tab="subscriptions" aria-selected="false" aria-controls="subscriptionsPanel">
-          <span>◈</span>
-          Abonnements
-        </button>
-        <button class="tab-button add-tab" type="button" data-tab="add" aria-selected="false" aria-controls="addPanel">
-          <span>＋</span>
-          Ajouter
-        </button>
-        <button class="tab-button" type="button" data-tab="budget" aria-selected="false" aria-controls="budgetPanel">
-          <span>◐</span>
-          Budget
-        </button>
-        <button class="tab-button" type="button" data-tab="account" aria-selected="false" aria-controls="accountPanel">
-          <span>◎</span>
-          Compte
-        </button>
-      </nav>
-
-      <div class="notif-banner" id="notifBanner" hidden>
-        <span>🔔 Réactivez les rappels pour être prévenu avant chaque renouvellement.</span>
+      <div class="notif-banner" id="notifBanner" hidden=""><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"></path><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path></svg>
+        <span>Réactivez les rappels avant vos renouvellements.</span>
         <button type="button" class="primary-button small" id="notifBannerButton">Réactiver</button>
       </div>
 
@@ -157,17 +128,9 @@
           <button type="button" class="ghost-button" data-tab-target="add">Ajouter</button>
         </div>
 
-      <header class="hero-card dashboard-hero" aria-labelledby="app-title">
-        <div class="brand-row">
-          <div class="app-mark" aria-hidden="true">✦</div>
-          <div>
-            <p class="eyebrow">Pilotage des abonnements</p>
-            <h1 id="app-title">SubPilot</h1>
-          </div>
-        </div>
-        <p class="hero-text">
-          Une vision claire, rapide et agréable de vos dépenses récurrentes — pensée pour une utilisation quotidienne sur mobile.
-        </p>
+      <header class="hero-card dashboard-hero" aria-labelledby="app-title"><h1 id="app-title">Dépenses récurrentes</h1>
+        
+        
         <div class="hero-metrics" aria-live="polite">
           <div>
             <span>Total mensuel</span>
@@ -178,15 +141,8 @@
             <strong id="budgetUsageHero">0%</strong>
           </div>
         </div>
-        <div class="install-card" id="installCard">
-          <div>
-            <p class="eyebrow">Application mobile</p>
-            <strong>Ajoutez SubPilot à votre écran d'accueil</strong>
-            <p id="installHelp">Installez l'app pour l'ouvrir comme une application classique, même hors connexion.</p>
-          </div>
-          <button type="button" class="install-button" id="installButton">Installer</button>
-        </div>
-      </header>
+        
+      <div class="radar-home-gauge" role="progressbar" aria-label="Budget utilisé" aria-valuemin="0" aria-valuemax="100" aria-valuenow="43"><span></span></div></header>
 
         <section class="insights-grid" aria-label="Indicateurs principaux">
           <article class="insight-card">
@@ -222,9 +178,16 @@
           </div>
           <div id="categoryBreakdown" class="category-breakdown"></div>
         </section>
-      </section>
+      <div class="install-card" id="installCard">
+          <div>
+            <p class="eyebrow">Application mobile</p>
+            <strong>Ajoutez SubPilot à votre écran d'accueil</strong>
+            <p id="installHelp">Installez l'app pour l'ouvrir comme une application classique, même hors connexion.</p>
+          </div>
+          <button type="button" class="install-button" id="installButton">Installer</button>
+        </div></section>
 
-      <section class="tab-panel" id="subscriptionsPanel" data-panel="subscriptions" hidden aria-labelledby="subscriptionsTitle">
+      <section class="tab-panel" id="subscriptionsPanel" data-panel="subscriptions" hidden="" aria-labelledby="subscriptionsTitle">
         <div class="section-heading list-heading">
           <div>
             <p class="eyebrow">Gestion</p>
@@ -232,7 +195,7 @@
           </div>
           <label class="search-label">
             <span>Rechercher</span>
-            <input id="searchInput" type="search" placeholder="Nom, catégorie, priorité" />
+            <input id="searchInput" type="search" placeholder="Nom, catégorie, priorité">
           </label>
         </div>
         <section class="panel reminders-info" aria-labelledby="remindersInfoTitle">
@@ -247,11 +210,11 @@
           </p>
           <button type="button" class="ghost-button" data-tab-target="account">Gérer mes notifications</button>
         </section>
-        <div class="category-legend" id="categoryLegend" aria-label="Légende des catégories"></div>
+        <details class="category-legend-shell"><summary>Légende des catégories</summary><div class="category-legend" id="categoryLegend" aria-label="Légende des catégories"></div></details>
         <div id="subscriptionList" class="subscription-list"></div>
       </section>
 
-      <section class="tab-panel" id="addPanel" data-panel="add" hidden aria-labelledby="addTitle">
+      <section class="tab-panel" id="addPanel" data-panel="add" hidden="" aria-labelledby="addTitle">
         <div class="section-heading">
           <div>
             <p class="eyebrow">Ajout guidé</p>
@@ -286,27 +249,27 @@
             <button type="button" class="primary-button small" id="mailImportAnalyze">Analyser l'e-mail</button>
             <button type="button" class="ghost-button" id="mailImportClear">Effacer</button>
           </div>
-          <p id="mailImportStatus" class="helper-text status-text"></p>
+          <p id="mailImportStatus" class="helper-text status-text" aria-live="polite"></p>
         </section>
 
         <section class="panel" aria-labelledby="formTitle">
           <h3 class="visually-hidden" id="formTitle">Formulaire d'abonnement</h3>
           <form id="subscriptionForm" class="subscription-form">
-            <input type="hidden" id="subscriptionId" />
+            <input type="hidden" id="subscriptionId">
             <div class="form-row">
               <label>
                 Nom
-                <input id="name" name="name" type="text" placeholder="Netflix, salle de sport..." required />
+                <input id="name" name="name" type="text" placeholder="Netflix, salle de sport..." required="">
               </label>
               <label>
                 Sigle du service
-                <input id="serviceIcon" name="serviceIcon" type="text" maxlength="3" inputmode="text" placeholder="NF, SP, AI..." />
+                <input id="serviceIcon" name="serviceIcon" type="text" maxlength="3" inputmode="text" placeholder="NF, SP, AI...">
               </label>
             </div>
             <div class="form-row">
               <label>
                 Prix
-                <input id="price" name="price" type="number" min="0" step="0.01" placeholder="12.99" required />
+                <input id="price" name="price" type="number" min="0" step="0.01" placeholder="12.99" required="">
               </label>
               <label>
                 Devise
@@ -332,18 +295,18 @@
                 <select id="category" name="category"></select>
               </label>
             </div>
-            <div class="custom-category-panel" id="customCategoryPanel" hidden>
+            <div class="custom-category-panel" id="customCategoryPanel" hidden="">
               <label>
                 Nom de la catégorie
-                <input id="customCategoryName" type="text" placeholder="Animaux, outils créatifs..." />
+                <input id="customCategoryName" type="text" placeholder="Animaux, outils créatifs...">
               </label>
               <label>
                 Icône visuelle
-                <input id="customCategoryIcon" type="text" maxlength="3" inputmode="text" placeholder="AN" />
+                <input id="customCategoryIcon" type="text" maxlength="3" inputmode="text" placeholder="AN">
               </label>
               <label>
                 Couleur
-                <input id="customCategoryColor" type="color" value="#4f46e5" />
+                <input id="customCategoryColor" type="color" value="#4f46e5">
               </label>
               <div class="icon-picker" aria-label="Choisir une icône visuelle">
                 <button type="button" data-custom-icon="TV">TV</button>
@@ -360,7 +323,7 @@
             <div class="form-row">
               <label>
                 Prochain paiement
-                <input id="nextDate" name="nextDate" type="date" required />
+                <input id="nextDate" name="nextDate" type="date" required="">
               </label>
               <label>
                 Priorité
@@ -380,25 +343,28 @@
         </section>
       </section>
 
-      <section class="tab-panel" id="budgetPanel" data-panel="budget" hidden aria-labelledby="budgetTitle">
+      <section class="tab-panel" id="budgetPanel" data-panel="budget" hidden="" aria-labelledby="budgetTitle">
         <div class="section-heading">
           <div>
             <p class="eyebrow">Cap financier</p>
             <h2 id="budgetTitle">Budget abonnements</h2>
           </div>
-        </div>
+        </div><section class="sp-pie-panel" aria-labelledby="sp-pie-title"><div class="sp-pie-heading"><h3 id="sp-pie-title">Répartition mensuelle</h3><span>3 catégories</span></div>
+    <div class="sp-pie-wrap"><svg class="sp-pie" viewBox="0 0 240 240" role="img" aria-label="Répartition mensuelle : Sport 29,99 euros, Streaming 13,49 euros, Productivité 8,25 euros."><g class="sp-pie-sectors"></g><circle cx="120" cy="120" r="103" class="sp-pie-reference"></circle><text x="120" y="104" class="sp-pie-label" text-anchor="middle">TOTAL MENSUEL</text><text x="120" y="135" class="sp-pie-value" text-anchor="middle">51,73</text><text x="120" y="156" class="sp-pie-unit" text-anchor="middle">€ / mois</text></svg></div>
+    <div class="sp-pie-legend" role="group" aria-label="Détail par catégorie"><button type="button" class="cursor-interaction" data-pie="Sport" aria-pressed="false"><span class="sp-pie-dot sp-pie-sport"></span><span>Sport<small>58 % du total</small></span><strong>29,99 €</strong></button><button type="button" class="cursor-interaction" data-pie="Streaming" aria-pressed="false"><span class="sp-pie-dot sp-pie-streaming"></span><span>Streaming<small>26 % du total</small></span><strong>13,49 €</strong></button><button type="button" class="cursor-interaction" data-pie="Productivité" aria-pressed="false"><span class="sp-pie-dot sp-pie-productivity"></span><span>Productivité<small>16 % du total</small></span><strong>8,25 €</strong></button></div>
+  </section>
 
         <section class="budget-layout">
           <article class="panel budget-card">
             <label>
               Budget mensuel souhaité
               <div class="budget-input-row">
-                <input id="budgetInput" type="number" min="0" step="1" placeholder="120" />
+                <input id="budgetInput" type="number" min="0" step="1" placeholder="120">
                 <button type="button" class="primary-button small" id="saveBudgetButton">Sauver</button>
               </div>
             </label>
             <div class="budget-visual" aria-label="Graphique de budget">
-              <div class="donut" id="budgetDonut" style="--value: 0%; --status-color: #14b8a6">
+              <div class="donut" id="budgetDonut" style="--value: 0%; --status-color: #14b8a6"><svg class="radar-digital-ring" viewBox="0 0 128 128" role="img" aria-label="Part du budget utilisée"><g class="radar-ring-marks"></g></svg>
                 <span id="budgetPercent">0%</span>
               </div>
               <div class="budget-copy">
@@ -418,7 +384,7 @@
             <div class="simulator-grid">
               <label>
                 Prix théorique
-                <input id="simulationPrice" type="number" min="0" step="0.01" placeholder="9.99" />
+                <input id="simulationPrice" type="number" min="0" step="0.01" placeholder="9.99">
               </label>
               <label>
                 Fréquence
@@ -431,7 +397,7 @@
               </label>
             </div>
             <div class="simulation-visual" aria-label="Graphique de simulation">
-              <div class="donut simulator-donut" id="simulationDonut" style="--value: 0%; --status-color: #14b8a6">
+              <div class="donut simulator-donut" id="simulationDonut" style="--value: 0%; --status-color: #14b8a6"><svg class="radar-digital-ring" viewBox="0 0 128 128" role="img" aria-label="Part du budget après simulation"><g class="radar-ring-marks"></g></svg>
                 <span id="simulationPercent">0%</span>
               </div>
               <div class="simulation-caption">
@@ -439,14 +405,14 @@
                 <p id="simulationCaptionText">Le graphique montrera la part du budget après ajout théorique.</p>
               </div>
             </div>
-            <div class="simulation-result" id="simulationResult">
+            <div class="simulation-result" id="simulationResult" aria-live="polite">
               Saisissez un prix pour voir son impact sur votre budget.
             </div>
           </article>
         </section>
       </section>
 
-      <section class="tab-panel" id="accountPanel" data-panel="account" hidden aria-labelledby="accountTitle">
+      <section class="tab-panel" id="accountPanel" data-panel="account" hidden="" aria-labelledby="accountTitle">
         <div class="section-heading">
           <div>
             <p class="eyebrow">Espace personnel</p>
@@ -468,9 +434,9 @@
             <button type="button" class="ghost-button" id="takePhotoButton">Prendre une photo</button>
             <button type="button" class="delete-button" id="signOutButton">Déconnexion</button>
           </div>
-          <input id="avatarFileInput" class="visually-hidden" type="file" accept="image/*" />
-          <input id="avatarCameraInput" class="visually-hidden" type="file" accept="image/*" capture="user" />
-          <p id="profilePhotoStatus" class="helper-text status-text">Gérez votre photo de profil et votre session en toute sécurité. SubPilot vous demandera votre autorisation avant d'accéder à votre appareil photo, à votre galerie ou à vos fichiers.</p>
+          <input id="avatarFileInput" class="visually-hidden" type="file" accept="image/*">
+          <input id="avatarCameraInput" class="visually-hidden" type="file" accept="image/*" capture="user">
+          <p id="profilePhotoStatus" class="helper-text status-text" aria-live="polite">Gérez votre photo de profil et votre session en toute sécurité. SubPilot vous demandera votre autorisation avant d'accéder à votre appareil photo, à votre galerie ou à vos fichiers.</p>
         </section>
 
         <section class="panel profile-details" aria-labelledby="profileDetailsTitle">
@@ -485,11 +451,11 @@
             <div class="profile-grid">
               <label>
                 Prénom
-                <input id="profileFirstName" type="text" autocomplete="given-name" />
+                <input id="profileFirstName" type="text" autocomplete="given-name">
               </label>
               <label>
                 Nom
-                <input id="profileLastName" type="text" autocomplete="family-name" />
+                <input id="profileLastName" type="text" autocomplete="family-name">
               </label>
               <label>
                 Sexe
@@ -502,7 +468,7 @@
               </label>
               <label>
                 Date de naissance
-                <input id="profileBirthDate" type="date" autocomplete="bday" />
+                <input id="profileBirthDate" type="date" autocomplete="bday">
               </label>
               <div class="profile-readonly">
                 <span>Adresse email</span>
@@ -513,7 +479,7 @@
               <button type="submit" class="primary-button small">Enregistrer mes infos</button>
             </div>
           </form>
-          <p id="accountStatus" class="helper-text status-text"></p>
+          <p id="accountStatus" class="helper-text status-text" aria-live="polite"></p>
         </section>
 
         <section class="panel notifications-card" aria-labelledby="notificationsTitle">
@@ -527,7 +493,7 @@
           <div class="profile-actions">
             <button type="button" class="primary-button small" id="enableNotificationsButton">Activer les notifications</button>
           </div>
-          <p id="notificationsStatus" class="helper-text status-text"></p>
+          <p id="notificationsStatus" class="helper-text status-text" aria-live="polite"></p>
         </section>
 
         <section class="panel appearance-card" aria-labelledby="appearanceTitle">
@@ -538,18 +504,18 @@
             </div>
           </div>
           <p class="helper-text">Choisissez l'apparence de SubPilot. « Système » suit automatiquement le réglage clair ou sombre de votre appareil.</p>
-          <div class="theme-toggle" role="group" aria-label="Choix du thème">
-            <button type="button" data-theme-choice="light">Clair</button>
-            <button type="button" data-theme-choice="dark">Sombre</button>
-            <button type="button" data-theme-choice="system">Système</button>
-          </div>
+          <label class="radar-theme-field">Apparence<select data-theme-picker=""><option value="system">Selon mon appareil</option><option value="light">Clair</option><option value="dark">Sombre</option></select></label>
         </section>
 
         <p id="appVersion" class="app-version"></p>
       </section>
-    </main>
-
-    <div class="modal-overlay" id="permissionModal" hidden>
+    <nav class="sp-nav tab-bar" aria-label="Navigation principale">
+        <button class="tab-button active" type="button" data-tab="dashboard" aria-selected="true" aria-controls="dashboardPanel" aria-pressed="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>Accueil</button>
+        <button class="tab-button" type="button" data-tab="subscriptions" aria-selected="false" aria-controls="subscriptionsPanel" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg>Abos</button>
+        <button class="tab-button add-tab sp-add" type="button" data-tab="add" aria-selected="false" aria-controls="addPanel" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Ajouter</button>
+        <button class="tab-button" type="button" data-tab="budget" aria-selected="false" aria-controls="budgetPanel" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21v-6"></path><path d="M12 21V3"></path><path d="M19 21V9"></path></svg>Budget</button>
+        <button class="tab-button" type="button" data-tab="account" aria-selected="false" aria-controls="accountPanel" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 0 0-16 0"></path></svg>Compte</button>
+      </nav></main><div class="modal-overlay" id="permissionModal" hidden="">
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="permissionTitle" aria-describedby="permissionMessage">
         <h3 id="permissionTitle">Autorisation requise</h3>
         <p id="permissionMessage" class="helper-text">SubPilot souhaite accéder à votre appareil.</p>
@@ -558,26 +524,18 @@
           <button type="button" class="primary-button small" id="permissionAllow">Autoriser</button>
         </div>
       </div>
-    </div>
-
-    <div class="modal-overlay" id="feedbackModal" hidden>
+    </div><div class="modal-overlay" id="feedbackModal" hidden="">
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackMessage">
-        <h3 id="feedbackTitle">Ton avis compte 💬</h3>
-        <p id="feedbackMessage" class="helper-text">Ça fait 2 semaines que tu utilises SubPilot 🙌 Ton avis en 2 minutes m'aiderait énormément à l'améliorer. Merci !</p>
+        <h3 id="feedbackTitle">Ton avis compte</h3>
+        <p id="feedbackMessage" class="helper-text">Ça fait 2 semaines que tu utilises SubPilot. Ton avis en 2 minutes m’aiderait à l’améliorer. Merci !</p>
         <div class="modal-actions">
           <button type="button" class="ghost-button" id="feedbackLater">Plus tard</button>
           <button type="button" class="primary-button small" id="feedbackGive">Donner mon avis</button>
         </div>
       </div>
-    </div>
-
-    <template id="emptyStateTemplate">
+    </div><template id="emptyStateTemplate">
       <article class="empty-state">
         <strong>Aucun abonnement trouvé</strong>
         <p>Ajoutez votre premier abonnement pour visualiser vos dépenses et vos alertes.</p>
       </article>
-    </template>
-
-    <script src="app.js?v=45"></script>
-  </body>
-</html>
+    </template></div><script src="radar.js?v=46"></script><script src="app.js?v=46"></script></body></html>
