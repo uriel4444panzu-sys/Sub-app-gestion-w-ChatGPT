@@ -8,7 +8,7 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "48";
+const APP_VERSION = "49";
 const THEME_KEY = "subpilot-theme";
 // Relance de retour testeur : au bout de 14 jours d'utilisation, on invite
 // l'utilisateur à remplir le formulaire (rappel in-app + notification push).
