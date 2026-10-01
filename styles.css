@@ -488,3 +488,7 @@ body{margin:0;background:light-dark(#d8e6d3,#14251a)}
 #subpilot .sp-app .insight-card.warning{padding:16px;border-bottom:1px solid light-dark(#416153,#4c6656)}
 #subpilot .sp-app .insight-card .card-label{color:#c7d8ce}
 #subpilot .sp-app .insight-card strong{color:#eff6ed}
+
+/* Preserve the full mascot silhouette in both application headers. */
+#subpilot .sp-app .sp-current-logo{width:44px;height:44px;object-fit:contain;border-radius:0}
+#subpilot .sp-app .auth-brand .sp-current-logo{width:64px;height:64px}

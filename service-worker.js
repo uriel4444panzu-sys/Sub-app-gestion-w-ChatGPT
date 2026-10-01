@@ -1,11 +1,20 @@
-const CACHE_NAME = "subpilot-v47";
+const CACHE_NAME = "subpilot-v48";
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=47",
-  "./app.js?v=47",
-  "./radar.js?v=47",
-  "./manifest.webmanifest",
+  "./styles.css?v=48",
+  "./app.js?v=48",
+  "./radar.js?v=48",
+  "./manifest.webmanifest?v=48",
+  "./assets/subpilot-logo.png?v=48",
+  "./assets/icon-192.png?v=48",
+  "./assets/icon-512.png?v=48",
+  "./assets/icon-maskable-512.png?v=48",
+  "./assets/apple-touch-icon.png?v=48",
+  "./assets/favicon-16.png?v=48",
+  "./assets/favicon-32.png?v=48",
+  "./assets/favicon-48.png?v=48",
+  "./assets/favicon.ico?v=48",
   "./assets/icon.svg",
 ];
 
@@ -68,4 +77,3 @@ self.addEventListener("fetch", (event) => {
     }),
   );
 });
-

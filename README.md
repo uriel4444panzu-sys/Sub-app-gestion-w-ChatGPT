@@ -17,13 +17,13 @@ SubPilot est une application web mobile-first pour suivre ses abonnements et com
 - Onglet **Compte** dédié au profil connecté : informations personnelles consultables et modifiables, photo de profil depuis la galerie ou l’appareil photo, synchronisation manuelle et déconnexion.
 - Connexion rapide : SubPilot mémorise le dernier profil utilisé sur l’appareil pour afficher une carte avec photo, nom et bouton **Connexion** sans mélanger les données entre comptes.
 - Sauvegarde locale dans le navigateur avec `localStorage`, et synchronisation cloud Firebase quand `firebase-config.js` est configuré.
-- Installation sur téléphone comme une PWA, avec icône SVG texte uniquement, mode plein écran `standalone` et cache hors connexion.
+- Installation sur téléphone comme une PWA, avec icônes PNG adaptées aux lanceurs mobiles, mode plein écran `standalone` et cache hors connexion.
 
 ## Apparence Radar
 
 L’interface utilise une palette vert sapin/sauge, un motif original continu et des jauges numériques segmentées pour le budget et le simulateur. Le thème clair, sombre ou système se choisit dans le menu **Apparence** de l’onglet **Compte** ; la préférence reste mémorisée sur l’appareil. Les transitions respectent la préférence de réduction des animations.
 
-Cette refonte concerne la présentation : les comptes, la synchronisation Firebase, les notifications, l’import e-mail et les opérations sur les abonnements gardent leurs parcours existants. Le logo actuel est conservé. Les icônes de navigation proviennent de Lucide (licence incluse dans `assets/LUCIDE_LICENSE`) et sont intégrées localement, sans dépendance réseau supplémentaire.
+Cette refonte concerne la présentation : les comptes, la synchronisation Firebase, les notifications, l’import e-mail et les opérations sur les abonnements gardent leurs parcours existants. Le logo mascotte fourni pour SubPilot est détouré pour l’interface et les favicons. Des exports PNG sur fond vert sapin servent aux icônes de l’écran d’accueil. Les icônes de navigation proviennent de Lucide (licence incluse dans `assets/LUCIDE_LICENSE`) et sont intégrées localement, sans dépendance réseau supplémentaire.
 
 ## Utilisation locale
 
@@ -179,5 +179,9 @@ L'application est une PWA installable :
 - **Android / Chrome** : ouvrez l'application, puis utilisez le bouton **Installer** ou le menu Chrome > **Ajouter à l'écran d'accueil**.
 - **iPhone / Safari** : ouvrez l'application, touchez **Partager**, puis **Sur l'écran d'accueil**.
 
-Une fois ajoutée, SubPilot s'ouvre comme une application classique depuis l'écran d'accueil et peut charger son interface même hors connexion grâce au service worker. Le projet évite les fichiers binaires afin que les pull requests et extractions restent lisibles.
+Une fois ajoutée, SubPilot s'ouvre comme une application classique depuis l'écran d'accueil et peut charger son interface même hors connexion grâce au service worker. Les icônes sont fournies en PNG et ICO, avec un export SVG compatible conservant l’ancien chemin `assets/icon.svg`.
 
+
+### Mise à jour du logo installé
+
+Sur iPhone, l’icône d’un raccourci déjà ajouté peut rester mémorisée. Si l’ancien logo persiste, retirez uniquement le raccourci de l’écran d’accueil, ouvrez l’application dans Safari, puis utilisez **Partager > Sur l’écran d’accueil**. Le lien `apple-touch-icon` utilise un PNG 180 × 180 ; le manifeste fournit des PNG 192 × 192 et 512 × 512, ainsi qu’une variante avec marge de sécurité pour les lanceurs Android.
