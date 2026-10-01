@@ -14,9 +14,20 @@ window.SubpilotRadar = (() => {
 
   function renderHomeGauge(total, budget) {
     const gauge = query('.radar-home-gauge');
-    const percent = budget > 0 ? Math.min(100, total / budget * 100) : 0;
+    const usage = budget > 0 ? total / budget * 100 : 0;
+    const percent = Math.min(100, usage);
+    const stops = [[60, [194, 231, 134]], [80, [240, 194, 125]], [100, [240, 128, 115]]];
+    let color = stops[0][1];
+    for (let index = 1; index < stops.length; index++) {
+      if (usage > stops[index - 1][0]) {
+        const fraction = Math.min(1, (usage - stops[index - 1][0]) / (stops[index][0] - stops[index - 1][0]));
+        color = stops[index - 1][1].map((value, channel) => Math.round(value + (stops[index][1][channel] - value) * fraction));
+      }
+    }
+    gauge.closest('.dashboard-hero').style.setProperty('--radar-budget-signal', `rgb(${color.join(',')})`);
     gauge.querySelector('span').style.width = `${percent}%`;
     gauge.setAttribute('aria-valuenow', String(Math.round(percent)));
+    gauge.setAttribute('aria-valuetext', budget > 0 ? `${Math.round(usage)} % du budget utilisé` : 'Budget mensuel non défini');
   }
 
   function ringPath(start, end) {
