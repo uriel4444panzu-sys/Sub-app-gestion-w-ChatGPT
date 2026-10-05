@@ -522,3 +522,61 @@ html[data-install-guide="show"] #subpilot .sp-header [data-tab-target]{display:n
 #subpilot .sp-app .ig-skip .link-button{text-align:center}
 #subpilot .sp-app .ig-skip small{font-size:11px;color:var(--sp-muted)}
 #subpilot .sp-app .ig-reopen{justify-self:start;font-size:13px}
+/* =====================================================================
+   Grands écrans : plus de « cadre téléphone ». Le mobile (< 640 px) est inchangé.
+   ===================================================================== */
+/* Tablettes et fenêtres étroites : une colonne plus large */
+@media (min-width:640px) and (max-width:899px){
+  #subpilot .sp-app{width:calc(100% - 48px);max-width:720px}
+}
+/* Ordinateur : app plein écran, navigation latérale, contenu en colonnes */
+@media (min-width:900px){
+  #subpilot .sp-app{width:100%;max-width:none;min-height:100vh;min-height:100dvh;margin:0;border:0;border-radius:0;box-shadow:none;overflow:visible}
+  #subpilot .sp-header{position:sticky;top:0;z-index:6;height:72px;padding:0 32px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+
+  /* Barre d'onglets -> colonne fixe à gauche */
+  #subpilot .sp-app .app-shell{padding-left:248px}
+  #subpilot .sp-app .sp-nav{position:fixed;top:72px;left:0;bottom:0;width:248px;z-index:5;display:flex;flex-direction:column;gap:4px;margin:0;padding:24px 16px;border-top:0;border-right:1px solid var(--sp-line);background:var(--sp-paper)}
+  #subpilot .sp-app .sp-nav button{width:100%;min-height:46px;flex-direction:row;justify-content:flex-start;gap:12px;padding:0 14px;font-size:14px}
+  #subpilot .sp-radar .sp-nav button[aria-pressed="true"]:not(.sp-add)::before{display:none}
+  /* « Ajouter » : simple entrée de menu, surlignée seulement quand l'onglet est actif */
+  #subpilot .sp-radar .sp-nav .sp-add:not([aria-pressed="true"]){background:transparent;color:var(--sp-muted)}
+  #subpilot .sp-radar .sp-nav .sp-add[aria-pressed="true"]{background:#c2e786;color:#244e3a;font-weight:600}
+  #subpilot .sp-nav svg{width:20px;height:20px;flex-shrink:0}
+
+  /* Zone de contenu */
+  #subpilot .sp-app .tab-panel{width:100%;max-width:1200px;margin:0 auto;padding:36px 48px 56px;align-content:start}
+  #subpilot .sp-app .tab-panel>.section-heading{grid-column:1/-1}
+  #subpilot .sp-app .notif-banner{width:calc(100% - 96px);max-width:1104px;margin:24px auto 0;font-size:13px}
+
+  /* Tableau de bord : dépenses + indicateurs côte à côte, puis résumé + répartition */
+  #subpilot .sp-app .dashboard-panel{grid-template-columns:repeat(12,minmax(0,1fr));gap:20px}
+  #subpilot .sp-app .dashboard-panel>*{grid-column:1/-1}
+  #subpilot .sp-app .dashboard-panel>.dashboard-hero{grid-column:1/span 6}
+  #subpilot .sp-app .dashboard-panel>.insights-grid{grid-column:7/-1}
+  #subpilot .sp-app .dashboard-panel>.compact-panel{grid-column:1/span 7;align-self:start}
+  #subpilot .sp-app .dashboard-panel>.compact-panel+.panel{grid-column:8/-1;align-self:start}
+  #subpilot .sp-app .dashboard-panel>.install-card{display:none}
+
+  /* Abonnements : cartes en grille */
+  #subpilot .sp-app .subscription-list{grid-template-columns:repeat(auto-fill,minmax(320px,1fr));align-items:start}
+
+  /* Ajouter : formulaire à gauche, suggestions et import e-mail à droite */
+  #subpilot .sp-app #addPanel{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:start}
+  #subpilot .sp-app #addPanel>.panel:not(.suggestions-panel):not(.mail-import-card){grid-column:1;grid-row:2/span 2}
+  #subpilot .sp-app #addPanel>.suggestions-panel{grid-column:2;grid-row:2}
+  #subpilot .sp-app #addPanel>.mail-import-card{grid-column:2;grid-row:3}
+
+  /* Budget : répartition à gauche, budget et simulateur à droite */
+  #subpilot .sp-app #budgetPanel{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+
+  /* Compte : profil, notifications, apparence à gauche ; informations à droite */
+  #subpilot .sp-app #accountPanel{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+  #subpilot .sp-app #accountPanel>.profile-details{grid-column:2;grid-row:2/span 3}
+  #subpilot .sp-app #accountPanel>.profile-panel,#subpilot .sp-app #accountPanel>.notifications-card,#subpilot .sp-app #accountPanel>.appearance-card{grid-column:1}
+  #subpilot .sp-app #accountPanel>.app-version{grid-column:1/-1}
+
+  /* Connexion : carte centrée */
+  #subpilot .sp-app .auth-gate{width:100%;max-width:480px;margin:56px auto;padding:0}
+  #subpilot .sp-app .auth-card{padding:32px;border-radius:20px;box-shadow:0 12px 32px light-dark(#20332b14,#00000033)}
+}
