@@ -8,13 +8,16 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "49";
+const APP_VERSION = "50";
 const THEME_KEY = "subpilot-theme";
 // Relance de retour testeur : au bout de 14 jours d'utilisation, on invite
 // l'utilisateur à remplir le formulaire (rappel in-app + notification push).
 const FEEDBACK_FORM_URL = "https://forms.gle/vZqEUfvrUgtBseyS7";
 const FEEDBACK_DELAY_DAYS = 14;
 const FEEDBACK_ASKED_KEY = "subpilot-feedback-asked";
+// Mémorise le choix « Continuer dans le navigateur » du guide d'installation
+// (même clé que le script de détection placé dans le <head> d'index.html).
+const INSTALL_GUIDE_SKIP_KEY = "subpilot-install-guide-skip";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 
@@ -268,6 +271,7 @@ document.querySelectorAll("[data-tab-target]").forEach((button) => {
 });
 
 setupInstallExperience();
+setupInstallGuide();
 registerServiceWorker();
 resetForm();
 render();
@@ -293,12 +297,154 @@ function setupInstallExperience() {
     deferredInstallPrompt = event;
     installButton.disabled = false;
     installHelp.textContent = "SubPilot est prêt : installez-le pour le retrouver comme une vraie application.";
+    refreshGuideInstallButton();
   });
 
   window.addEventListener("appinstalled", () => {
     deferredInstallPrompt = null;
     installCard.hidden = true;
+    refreshGuideInstallButton();
+    showGuideInstalled();
   });
+}
+
+// ---------------------------------------------------------------------------
+// Guide d'installation (premier lancement dans le navigateur)
+// L'affichage initial est décidé dans le <head> (attribut data-install-guide)
+// pour éviter tout flash de la page de connexion ; ici on gère l'interaction.
+// ---------------------------------------------------------------------------
+function isStandaloneApp() {
+  return window.matchMedia("(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)").matches
+    || window.navigator.standalone === true;
+}
+
+function detectInstallPlatform() {
+  const ua = navigator.userAgent || "";
+  const ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const android = /Android/i.test(ua);
+  return {
+    os: ios ? "ios" : android ? "android" : "desktop",
+    // Navigateurs intégrés aux réseaux sociaux : l'installation y est impossible.
+    inApp: /Instagram|FBAN|FBAV|FB_IAB|FBIOS|TikTok|musical_ly|Snapchat|Line\/|LinkedInApp|Twitter|Pinterest/i.test(ua),
+    iosOtherBrowser: ios && /CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua),
+  };
+}
+
+function setupInstallGuide() {
+  const guide = document.querySelector("#installGuide");
+  if (!guide) return;
+
+  const standalone = isStandaloneApp();
+  document.querySelectorAll("[data-open-install-guide]").forEach((button) => {
+    button.hidden = standalone;
+    button.addEventListener("click", openInstallGuide);
+  });
+  if (standalone) {
+    document.documentElement.removeAttribute("data-install-guide");
+    return;
+  }
+
+  const platform = detectInstallPlatform();
+  selectGuideTab(platform.os === "android" ? "android" : "ios");
+  document.querySelectorAll("[data-guide-os]").forEach((button) => {
+    button.addEventListener("click", () => selectGuideTab(button.dataset.guideOs));
+  });
+
+  const inAppBox = document.querySelector("#igInApp");
+  if (inAppBox && platform.inApp) {
+    inAppBox.hidden = false;
+    document.querySelector("#igInAppHow").textContent = platform.os === "android"
+      ? "Vous êtes dans une application (Instagram, TikTok…) où l'installation est impossible. Touchez le menu ⋮ en haut à droite, puis « Ouvrir dans Chrome » — ou copiez le lien et collez-le dans Chrome."
+      : "Vous êtes dans une application (Instagram, TikTok…) où l'installation est impossible. Touchez le menu ••• , puis « Ouvrir dans le navigateur externe » — ou copiez le lien et collez-le dans Safari.";
+  }
+  document.querySelector("#igDesktop").hidden = platform.os !== "desktop";
+  document.querySelector("#igIosOtherBrowser").hidden = !platform.iosOtherBrowser;
+
+  document.querySelector("#igCopyLink")?.addEventListener("click", copyInstallLink);
+  document.querySelector("#igInstallButton")?.addEventListener("click", installFromGuide);
+  document.querySelector("#igSkip")?.addEventListener("click", skipInstallGuide);
+  refreshGuideInstallButton();
+}
+
+function selectGuideTab(os) {
+  document.querySelectorAll("[data-guide-os]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.guideOs === os));
+  });
+  document.querySelectorAll("[data-guide-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.guidePanel !== os;
+  });
+}
+
+function openInstallGuide() {
+  document.documentElement.setAttribute("data-install-guide", "show");
+  window.scrollTo({ top: 0 });
+  document.querySelector("#installGuideTitle")?.focus();
+}
+
+function skipInstallGuide() {
+  try {
+    localStorage.setItem(INSTALL_GUIDE_SKIP_KEY, "1");
+  } catch (error) {
+    /* stockage indisponible : le guide se refermera quand même pour cette visite */
+  }
+  document.documentElement.removeAttribute("data-install-guide");
+  // Retire « ?guide=1 » de l'adresse pour qu'un rechargement ne rouvre pas le guide.
+  if (/[?&]guide=1/.test(window.location.search)) {
+    window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+  }
+  window.scrollTo({ top: 0 });
+}
+
+function refreshGuideInstallButton() {
+  const button = document.querySelector("#igInstallButton");
+  const label = document.querySelector("#igManualLabel");
+  if (!button) return;
+  const available = Boolean(deferredInstallPrompt);
+  button.hidden = !available;
+  if (label) label.hidden = !available;
+}
+
+async function installFromGuide() {
+  if (!deferredInstallPrompt) return;
+  const prompt = deferredInstallPrompt;
+  prompt.prompt();
+  const choice = await prompt.userChoice.catch(() => null);
+  deferredInstallPrompt = null;
+  refreshGuideInstallButton();
+  if (choice?.outcome === "accepted") showGuideInstalled();
+}
+
+function showGuideInstalled() {
+  const message = document.querySelector("#igInstalled");
+  if (message) message.hidden = false;
+}
+
+async function copyInstallLink() {
+  const link = window.location.href.split("#")[0];
+  const done = () => {
+    const copied = document.querySelector("#igCopied");
+    if (copied) copied.hidden = false;
+  };
+  try {
+    await navigator.clipboard.writeText(link);
+    done();
+  } catch (error) {
+    // Repli pour les navigateurs intégrés qui bloquent l'API presse-papiers.
+    const field = document.createElement("textarea");
+    field.value = link;
+    field.setAttribute("readonly", "");
+    field.style.position = "fixed";
+    field.style.opacity = "0";
+    document.body.append(field);
+    field.select();
+    try {
+      document.execCommand("copy");
+      done();
+    } catch (copyError) {
+      window.prompt("Copiez ce lien :", link);
+    }
+    field.remove();
+  }
 }
 
 async function installApp() {
