@@ -492,3 +492,33 @@ body{margin:0;background:light-dark(#d8e6d3,#14251a)}
 /* Preserve the full mascot silhouette in both application headers. */
 #subpilot .sp-app .sp-current-logo{width:44px;height:44px;object-fit:contain;border-radius:0}
 #subpilot .sp-app .auth-brand .sp-current-logo{width:64px;height:64px}
+/* Guide d'installation : affiché avant la connexion quand l'app est ouverte dans un navigateur */
+#subpilot .sp-app .install-guide{display:none}
+html[data-install-guide="show"] #subpilot .sp-app .install-guide{display:grid}
+html[data-install-guide="show"] #subpilot #authGate,html[data-install-guide="show"] #subpilot #appShell{display:none!important}
+html[data-install-guide="show"] #subpilot .sp-header [data-tab-target]{display:none}
+#subpilot .sp-app .install-guide{position:relative;z-index:1;padding:24px 20px 28px;gap:16px;align-content:start}
+#subpilot .sp-app .ig-hero{display:flex;gap:12px;align-items:center}
+#subpilot .sp-app .ig-hero .sp-current-logo{width:56px;height:56px}
+#subpilot .sp-app .ig-hero h1{font-size:22px;line-height:1.2;letter-spacing:-.5px;outline:none}
+#subpilot .sp-app .ig-intro{font-size:13px;line-height:1.6;color:var(--sp-muted)}
+#subpilot .sp-app .ig-alert{display:grid;gap:6px;padding:14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--sp-alert) 40%,transparent);background:color-mix(in srgb,var(--sp-alert) 9%,var(--sp-paper))}
+#subpilot .sp-app .ig-alert strong{color:var(--sp-alert);font-size:14px;font-weight:600}
+#subpilot .sp-app .ig-alert p{font-size:13px;line-height:1.55}
+#subpilot .sp-app .ig-alert .ghost-button{justify-self:start;margin-top:4px}
+#subpilot .sp-app .ig-copied{font-size:12px;color:var(--sp-muted)}
+#subpilot .sp-app .ig-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--sp-soft);border-radius:12px}
+#subpilot .sp-app .ig-tabs button{min-height:40px;border-radius:9px;font-size:14px;font-weight:500;color:var(--sp-muted)}
+#subpilot .sp-app .ig-tabs button[aria-pressed="true"]{background:var(--sp-paper);color:var(--sp-ink);box-shadow:0 1px 3px light-dark(#20332b1f,#00000066)}
+#subpilot .sp-app .ig-panel{display:grid;gap:14px;padding:16px;background:var(--sp-paper);border:1px solid var(--sp-line);border-radius:16px}
+#subpilot .sp-app .ig-steps{list-style:none;margin:0;padding:0;display:grid;gap:14px;counter-reset:ig-step}
+#subpilot .sp-app .ig-steps li{counter-increment:ig-step;position:relative;padding-left:38px;font-size:14px;line-height:1.55}
+#subpilot .sp-app .ig-steps li::before{content:counter(ig-step);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--sp-accent);color:var(--sp-onaccent);font-size:13px;font-weight:600}
+#subpilot .sp-app .ig-glyph{display:inline-grid;place-items:center;width:24px;height:24px;margin:0 2px;border-radius:7px;background:var(--sp-soft);vertical-align:-6px}
+#subpilot .sp-app .ig-glyph svg{width:15px;height:15px}
+#subpilot .sp-app .ig-note{font-size:12px;line-height:1.55;color:var(--sp-muted)}
+#subpilot .sp-app .ig-success{padding:12px 14px;border-radius:12px;background:var(--sp-soft);font-size:13px;font-weight:500}
+#subpilot .sp-app .ig-skip{display:grid;justify-items:center;gap:2px;text-align:center}
+#subpilot .sp-app .ig-skip .link-button{text-align:center}
+#subpilot .sp-app .ig-skip small{font-size:11px;color:var(--sp-muted)}
+#subpilot .sp-app .ig-reopen{justify-self:start;font-size:13px}
