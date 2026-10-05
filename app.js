@@ -8,7 +8,7 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "50";
+const APP_VERSION = "51";
 const THEME_KEY = "subpilot-theme";
 // Relance de retour testeur : au bout de 14 jours d'utilisation, on invite
 // l'utilisateur à remplir le formulaire (rappel in-app + notification push).
@@ -334,17 +334,19 @@ function setupInstallGuide() {
   const guide = document.querySelector("#installGuide");
   if (!guide) return;
 
-  const standalone = isStandaloneApp();
+  // Pas de guide depuis l'app installée, ni sur ordinateur (tout, y compris les
+  // notifications, y fonctionne directement dans le navigateur).
+  const platform = detectInstallPlatform();
+  const noGuide = isStandaloneApp() || platform.os === "desktop";
   document.querySelectorAll("[data-open-install-guide]").forEach((button) => {
-    button.hidden = standalone;
+    button.hidden = noGuide;
     button.addEventListener("click", openInstallGuide);
   });
-  if (standalone) {
+  if (noGuide) {
     document.documentElement.removeAttribute("data-install-guide");
     return;
   }
 
-  const platform = detectInstallPlatform();
   selectGuideTab(platform.os === "android" ? "android" : "ios");
   document.querySelectorAll("[data-guide-os]").forEach((button) => {
     button.addEventListener("click", () => selectGuideTab(button.dataset.guideOs));
@@ -357,7 +359,6 @@ function setupInstallGuide() {
       ? "Vous êtes dans une application (Instagram, TikTok…) où l'installation est impossible. Touchez le menu ⋮ en haut à droite, puis « Ouvrir dans Chrome » — ou copiez le lien et collez-le dans Chrome."
       : "Vous êtes dans une application (Instagram, TikTok…) où l'installation est impossible. Touchez le menu ••• , puis « Ouvrir dans le navigateur externe » — ou copiez le lien et collez-le dans Safari.";
   }
-  document.querySelector("#igDesktop").hidden = platform.os !== "desktop";
   document.querySelector("#igIosOtherBrowser").hidden = !platform.iosOtherBrowser;
 
   document.querySelector("#igCopyLink")?.addEventListener("click", copyInstallLink);
