@@ -8,7 +8,7 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "54";
+const APP_VERSION = "55";
 const THEME_KEY = "subpilot-theme";
 // Relance de retour testeur : au bout de 14 jours d'utilisation, on invite
 // l'utilisateur à remplir le formulaire (rappel in-app + notification push).
@@ -18,6 +18,7 @@ const FEEDBACK_ASKED_KEY = "subpilot-feedback-asked";
 // Mémorise le choix « Continuer dans le navigateur » du guide d'installation
 // (même clé que le script de détection placé dans le <head> d'index.html).
 const INSTALL_GUIDE_SKIP_KEY = "subpilot-install-guide-skip";
+const CONTACT_EMAIL = "subpilot@outlook.fr";
 const MINIMUM_ACCOUNT_AGE = 13;
 const FREQUENCY_STEPS = { weekly: 7, monthly: 1, quarterly: 3, yearly: 12 };
 
@@ -163,6 +164,8 @@ const mailImportAnalyzeButton = document.querySelector("#mailImportAnalyze");
 const mailImportClearButton = document.querySelector("#mailImportClear");
 const mailImportStatus = document.querySelector("#mailImportStatus");
 const signOutButton = document.querySelector("#signOutButton");
+const contactMailButton = document.querySelector("#contactMailButton");
+const authContactLink = document.querySelector("#authContactLink");
 const deleteAccountButton = document.querySelector("#deleteAccountButton");
 const deleteAccountConfirm = document.querySelector("#deleteAccountConfirm");
 const deleteAccountPasswordField = document.querySelector("#deleteAccountPasswordField");
@@ -222,6 +225,7 @@ renderCategoryLegend();
 renderPopularServices();
 const appVersionEl = document.querySelector("#appVersion");
 if (appVersionEl) appVersionEl.textContent = `SubPilot v${APP_VERSION}`;
+setupContactLinks();
 initializeThemeControls();
 if (loadRememberedProfile()) switchAuthMode("login");
 renderAccountStatus();
@@ -1834,6 +1838,19 @@ async function handleSignOut() {
   await firebaseState.modules.signOut(firebaseState.auth);
   clearDisplayedAccountData();
   renderAccountStatus("Déconnecté. Reconnectez-vous pour accéder à SubPilot.");
+}
+
+// --- Contact ----------------------------------------------------------------
+
+// Pré-remplit les liens « Nous contacter » : l'objet et la signature rappellent
+// la version installée, ce qui évite de devoir la demander à chaque signalement.
+function setupContactLinks() {
+  const subject = encodeURIComponent(`SubPilot v${APP_VERSION} — question`);
+  const body = encodeURIComponent(`\n\n—\nEnvoyé depuis SubPilot v${APP_VERSION}`);
+  const href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+  [contactMailButton, authContactLink].forEach((link) => {
+    if (link) link.href = href;
+  });
 }
 
 // --- Suppression du compte (RGPD : droit à l'effacement) --------------------

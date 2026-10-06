@@ -596,3 +596,11 @@ html[data-install-guide="show"] #subpilot .sp-header [data-tab-target]{display:n
 @media (min-width:900px){
   #subpilot .sp-app #accountPanel>.privacy-card{grid-column:2}
 }
+
+/* Contact : e-mail et Instagram */
+#subpilot .sp-app .contact-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+#subpilot .sp-app .contact-link svg{flex:none}
+#subpilot .sp-app .contact-detail{margin-top:4px;font-size:12px;overflow-wrap:anywhere}
+@media (min-width:900px){
+  #subpilot .sp-app #accountPanel>.contact-card{grid-column:1}
+}
