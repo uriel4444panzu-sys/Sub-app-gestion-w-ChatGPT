@@ -8,7 +8,7 @@ const FIREBASE_SDK_VERSION = "12.7.0";
 const FIREBASE_CONFIG_VERSION = "25";
 // Numéro de version affiché dans l'app (doit suivre la version du cache) afin de
 // vérifier d'un coup d'œil quelle version est réellement chargée sur l'appareil.
-const APP_VERSION = "52";
+const APP_VERSION = "53";
 const THEME_KEY = "subpilot-theme";
 // Relance de retour testeur : au bout de 14 jours d'utilisation, on invite
 // l'utilisateur à remplir le formulaire (rappel in-app + notification push).
@@ -51,6 +51,9 @@ let messagingState = null;
 // de la bannière au démarrage). On ne se fie pas à Notification.permission seul,
 // car iOS peut indiquer « granted » alors que l'abonnement push est en réalité mort.
 let pushReady = false;
+// Message à afficher sur l'écran de connexion à la prochaine déconnexion
+// (ex. après la suppression du compte, que Firebase signale de façon asynchrone).
+let pendingAuthNotice = "";
 let pushChecked = false;
 
 const defaultCategories = [
@@ -160,6 +163,14 @@ const mailImportAnalyzeButton = document.querySelector("#mailImportAnalyze");
 const mailImportClearButton = document.querySelector("#mailImportClear");
 const mailImportStatus = document.querySelector("#mailImportStatus");
 const signOutButton = document.querySelector("#signOutButton");
+const deleteAccountButton = document.querySelector("#deleteAccountButton");
+const deleteAccountConfirm = document.querySelector("#deleteAccountConfirm");
+const deleteAccountPasswordField = document.querySelector("#deleteAccountPasswordField");
+const deleteAccountPassword = document.querySelector("#deleteAccountPassword");
+const deleteAccountCheck = document.querySelector("#deleteAccountCheck");
+const deleteAccountCancel = document.querySelector("#deleteAccountCancel");
+const deleteAccountSubmit = document.querySelector("#deleteAccountSubmit");
+const deleteAccountStatus = document.querySelector("#deleteAccountStatus");
 const enableNotificationsButton = document.querySelector("#enableNotificationsButton");
 const notificationsStatus = document.querySelector("#notificationsStatus");
 const notifBanner = document.querySelector("#notifBanner");
@@ -234,6 +245,11 @@ customIconButtons.forEach((button) => {
 mailImportAnalyzeButton.addEventListener("click", handleMailImportAnalyze);
 mailImportClearButton.addEventListener("click", clearMailImport);
 signOutButton.addEventListener("click", handleSignOut);
+deleteAccountButton.addEventListener("click", openDeleteAccount);
+deleteAccountCancel.addEventListener("click", closeDeleteAccount);
+deleteAccountCheck.addEventListener("change", updateDeleteAccountSubmit);
+deleteAccountPassword.addEventListener("input", updateDeleteAccountSubmit);
+deleteAccountSubmit.addEventListener("click", handleDeleteAccount);
 enableNotificationsButton.addEventListener("click", enableWebPushNotifications);
 notifBannerButton.addEventListener("click", enableWebPushNotifications);
 quickLoginButton.addEventListener("click", handleQuickLogin);
@@ -583,7 +599,8 @@ function handleFirebaseUserChange(user) {
     pushReady = false;
     pushChecked = false;
     clearDisplayedAccountData();
-    renderAccountStatus();
+    renderAccountStatus(pendingAuthNotice || undefined);
+    pendingAuthNotice = "";
     return;
   }
 
@@ -1819,6 +1836,145 @@ async function handleSignOut() {
   renderAccountStatus("Déconnecté. Reconnectez-vous pour accéder à SubPilot.");
 }
 
+// --- Suppression du compte (RGPD : droit à l'effacement) --------------------
+
+// Documents Firestore d'un utilisateur. Tout ce que l'app écrit se trouve sous
+// users/{uid}/… : si un nouveau document est ajouté ailleurs dans le code, il
+// doit aussi être listé ici pour être effacé avec le compte.
+const USER_DOCUMENT_PATHS = [
+  ["data", "app"],
+  ["data", "feedback"],
+  ["profile", "details"],
+  ["messaging", "web"],
+];
+
+function usesPasswordSignIn() {
+  if (firebaseState.localMode) return true;
+  const providers = (firebaseState.user?.providerData || []).map((entry) => entry.providerId);
+  return providers.includes("password") || !providers.includes("google.com");
+}
+
+function openDeleteAccount() {
+  if (!firebaseState.user) return;
+  deleteAccountConfirm.hidden = false;
+  deleteAccountButton.hidden = true;
+  deleteAccountPasswordField.hidden = !usesPasswordSignIn();
+  deleteAccountPassword.value = "";
+  deleteAccountCheck.checked = false;
+  deleteAccountStatus.textContent = usesPasswordSignIn()
+    ? ""
+    : "Google vous demandera de confirmer votre identité.";
+  updateDeleteAccountSubmit();
+}
+
+function closeDeleteAccount() {
+  deleteAccountConfirm.hidden = true;
+  deleteAccountButton.hidden = false;
+  deleteAccountPassword.value = "";
+  deleteAccountCheck.checked = false;
+  deleteAccountStatus.textContent = "";
+}
+
+function updateDeleteAccountSubmit() {
+  const needsPassword = !deleteAccountPasswordField.hidden;
+  deleteAccountSubmit.disabled = !deleteAccountCheck.checked || (needsPassword && !deleteAccountPassword.value);
+}
+
+async function handleDeleteAccount() {
+  if (!firebaseState.user || deleteAccountSubmit.disabled) return;
+  deleteAccountSubmit.disabled = true;
+  deleteAccountCancel.disabled = true;
+  deleteAccountStatus.textContent = "Suppression en cours…";
+
+  try {
+    pendingAuthNotice = "Votre compte et toutes vos données ont été supprimés.";
+    if (firebaseState.localMode) {
+      await deleteLocalAccount(deleteAccountPassword.value);
+    } else {
+      await deleteCloudAccount(deleteAccountPassword.value);
+    }
+    forgetAccountOnDevice();
+    appUnlocked = false;
+    firebaseState.user = null;
+    firebaseState.profile = null;
+    closeDeleteAccount();
+    clearDisplayedAccountData();
+    switchAuthMode("signup");
+    renderAccountStatus("Votre compte et toutes vos données ont été supprimés.");
+    if (firebaseState.localMode) pendingAuthNotice = "";
+  } catch (error) {
+    pendingAuthNotice = "";
+    deleteAccountStatus.textContent = getDeleteAccountError(error);
+    updateDeleteAccountSubmit();
+  } finally {
+    deleteAccountCancel.disabled = false;
+  }
+}
+
+async function deleteCloudAccount(password) {
+  const {
+    doc, deleteDoc, deleteUser, reauthenticateWithCredential, reauthenticateWithPopup, EmailAuthProvider, provider,
+  } = firebaseState.modules;
+  const user = firebaseState.auth.currentUser;
+  if (!user) throw new Error("Session expirée : reconnectez-vous puis réessayez.");
+
+  // Firebase n'autorise la suppression qu'après une connexion récente : on
+  // redemande l'identité AVANT d'effacer quoi que ce soit, pour ne jamais
+  // laisser un compte vide mais toujours existant.
+  if (usesPasswordSignIn()) {
+    await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+  } else {
+    await reauthenticateWithPopup(user, provider);
+  }
+
+  // Désinscription de cet appareil des notifications push (sans bloquer).
+  try {
+    if (messagingState?.deleteToken) await messagingState.deleteToken(messagingState.messaging);
+  } catch {
+    // Jeton déjà invalide : il est de toute façon effacé avec le document ci-dessous.
+  }
+
+  for (const path of USER_DOCUMENT_PATHS) {
+    await deleteDoc(doc(firebaseState.db, "users", user.uid, ...path));
+  }
+  await deleteUser(user);
+}
+
+async function deleteLocalAccount(password) {
+  const accounts = loadLocalAccounts();
+  const account = accounts.find((item) => item.uid === firebaseState.user.uid);
+  if (account) {
+    const hash = await hashLocalPassword(password, account.salt);
+    if (hash !== account.passwordHash) throw { code: "auth/wrong-password" };
+  }
+  saveLocalAccounts(accounts.filter((item) => item.uid !== firebaseState.user.uid));
+}
+
+// Efface aussi ce que l'app a gardé sur l'appareil (données, profil mémorisé).
+function forgetAccountOnDevice() {
+  const uid = firebaseState.user?.uid;
+  clearLocalAppData();
+  localStorage.removeItem(REMEMBERED_PROFILE_KEY);
+  localStorage.removeItem(LOCAL_SESSION_KEY);
+  if (uid) localStorage.removeItem(`${FEEDBACK_ASKED_KEY}-${uid}`);
+  pushReady = false;
+  pushChecked = false;
+}
+
+function getDeleteAccountError(error) {
+  const code = error?.code || "";
+  const messages = {
+    "auth/wrong-password": "Mot de passe incorrect.",
+    "auth/invalid-credential": "Mot de passe incorrect.",
+    "auth/missing-password": "Saisissez votre mot de passe pour confirmer.",
+    "auth/popup-closed-by-user": "Confirmation Google annulée : votre compte n'a pas été supprimé.",
+    "auth/user-mismatch": "Ce compte Google ne correspond pas au compte connecté.",
+    "auth/too-many-requests": "Trop de tentatives. Réessayez dans quelques minutes.",
+    "auth/network-request-failed": "Pas de connexion internet. Réessayez une fois en ligne.",
+  };
+  return messages[code] || `Suppression impossible : ${error?.message || "erreur inconnue"}.`;
+}
+
 // --- Notifications push (Firebase Cloud Messaging) ---------------------------
 
 function webPushSupported() {
@@ -1951,7 +2107,7 @@ async function ensureMessaging() {
   if (!supported) return null;
 
   const messaging = module.getMessaging(firebaseState.app);
-  messagingState = { messaging, getToken: module.getToken, onMessage: module.onMessage, listening: false };
+  messagingState = { messaging, getToken: module.getToken, deleteToken: module.deleteToken, onMessage: module.onMessage, listening: false };
   return messaging;
 }
 

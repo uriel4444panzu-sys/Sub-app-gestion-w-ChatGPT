@@ -580,3 +580,19 @@ html[data-install-guide="show"] #subpilot .sp-header [data-tab-target]{display:n
   #subpilot .sp-app .auth-gate{width:100%;max-width:480px;margin:56px auto;padding:0}
   #subpilot .sp-app .auth-card{padding:32px;border-radius:20px;box-shadow:0 12px 32px light-dark(#20332b14,#00000033)}
 }
+
+/* Vie privée : lien vers la politique + suppression du compte */
+#subpilot .sp-app a.ghost-button{display:inline-flex;align-items:center;justify-content:center;color:var(--sp-ink);text-decoration:none;font-size:12px}
+#subpilot .sp-app .delete-confirm{display:grid;gap:12px;margin-top:4px;padding:14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--sp-alert) 40%,transparent);background:color-mix(in srgb,var(--sp-alert) 8%,var(--sp-paper))}
+#subpilot .sp-app .delete-confirm[hidden]{display:none}
+#subpilot .sp-app .delete-confirm>p{margin:0;font-size:13px}
+#subpilot .sp-app .delete-confirm strong{color:var(--sp-alert)}
+#subpilot .sp-app .delete-check{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--sp-ink);cursor:pointer}
+#subpilot .sp-app .delete-check input[type="checkbox"]{display:inline-block;width:20px;height:20px;min-height:0;margin:1px 0 0;padding:0;flex:none;border:0;accent-color:var(--sp-alert)}
+#subpilot .sp-app .danger-button{background:var(--sp-alert);color:light-dark(#fffdf7,#1a201d);border-radius:12px;padding:10px 14px;min-height:44px;font-size:12px;font-weight:600}
+#subpilot .sp-app .danger-button:disabled{opacity:.45;cursor:not-allowed}
+#subpilot .sp-app .auth-legal{margin-top:10px;font-size:12px;text-align:center}
+#subpilot .sp-app .auth-legal a{color:var(--sp-accent);text-decoration:underline}
+@media (min-width:900px){
+  #subpilot .sp-app #accountPanel>.privacy-card{grid-column:2}
+}

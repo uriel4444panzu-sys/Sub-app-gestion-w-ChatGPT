@@ -4,6 +4,12 @@
 // Déploiement (nécessite le plan Blaze) :
 //   cd functions && npm install
 //   firebase deploy --only functions
+//
+// Région : Paris (europe-west9), la même que la base Firestore, pour que le
+// traitement des abonnements reste en France. Lors d'un changement de région,
+// supprimer d'abord les anciennes fonctions (sinon les rappels partiraient en
+// double) : firebase functions:delete sendRenewalReminders sendFeedbackRequests --region us-central1
+const { setGlobalOptions } = require("firebase-functions/v2");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { logger } = require("firebase-functions");
 const { initializeApp } = require("firebase-admin/app");
@@ -11,6 +17,7 @@ const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
 
+setGlobalOptions({ region: "europe-west9" });
 initializeApp();
 const db = getFirestore();
 const REMINDER_DAYS = [7, 3, 1];
