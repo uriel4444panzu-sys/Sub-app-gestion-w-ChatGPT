@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Politique de confidentialité · SubPilot</title>
+  <meta name="description" content="Comment SubPilot collecte, héberge et protège vos données personnelles.">
+  <meta name="theme-color" content="#14251a">
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png?v=53">
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png?v=53">
+  <style>
+    :root{color-scheme:light dark;
+      --bg:light-dark(#e9eee9,#101b17);--paper:light-dark(#f9fbf7,#192922);--ink:light-dark(#1c3529,#f1f5ed);
+      --muted:light-dark(#455d4e,#c0d0c3);--line:light-dark(#bccdc0,#3a5143);--soft:light-dark(#dbe7d6,#2c4132);
+      --accent:light-dark(#2d563c,#c2e786);--alert:light-dark(#933c30,#ffa897)}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+    main{max-width:760px;margin:0 auto;padding:max(24px,env(safe-area-inset-top)) 16px 64px}
+    header{display:flex;align-items:center;gap:12px;margin:8px 0 24px}
+    header img{width:44px;height:44px}
+    header a{margin-left:auto;color:var(--accent);font-size:14px;text-decoration:none;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+    .brand{font-weight:600;font-size:18px}
+    h1{font:400 30px/1.2 Georgia,"Times New Roman",serif;margin:0 0 6px}
+    .updated{color:var(--muted);font-size:13px;margin:0 0 20px}
+    .summary{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:0 0 24px}
+    .summary ul{margin:8px 0 0;padding-left:20px}
+    section{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:0 0 14px}
+    h2{font-size:17px;margin:0 0 10px}
+    p{margin:0 0 10px}
+    p:last-child,ul:last-child{margin-bottom:0}
+    ul{padding-left:20px;margin:0 0 10px}
+    li{margin:4px 0}
+    .table{display:grid;gap:10px}
+    .row{display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr);gap:4px 16px;padding-top:10px;border-top:1px solid var(--line)}
+    .row:first-child{border-top:0;padding-top:0}
+    .row b{font-weight:600}
+    @media (max-width:560px){.row{grid-template-columns:1fr}}
+    .tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--accent);font-weight:600;margin-left:6px}
+    a{color:var(--accent)}
+    .no{color:var(--alert);font-weight:600}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="./assets/subpilot-logo.png?v=53" alt="">
+    <span class="brand">SubPilot</span>
+    <a href="./index.html">← Retour à l'app</a>
+  </header>
+
+  <h1>Politique de confidentialité</h1>
+  <p class="updated">Dernière mise à jour : 6 octobre 2026</p>
+
+  <div class="summary">
+    <strong>En bref</strong>
+    <ul>
+      <li>SubPilot n'a <strong>aucun accès à votre compte bancaire</strong>.</li>
+      <li>Vos abonnements et votre profil sont <strong>hébergés en France (Paris)</strong>.</li>
+      <li>Aucune publicité, aucun outil de pistage, <strong>aucune revente</strong> de données.</li>
+      <li>Vous pouvez <strong>supprimer votre compte et toutes vos données</strong> à tout moment, depuis l'onglet Compte.</li>
+    </ul>
+  </div>
+
+  <section>
+    <h2>1. Qui est responsable de vos données ?</h2>
+    <p>Le responsable du traitement est <strong>SubPilot</strong>, application de suivi d'abonnements actuellement en phase de test.</p>
+    <p>Pour toute question ou demande concernant vos données, écrivez-nous en message privé sur Instagram : <a href="https://www.instagram.com/sub.pilot/" rel="noopener">@sub.pilot</a>.</p>
+  </section>
+
+  <section>
+    <h2>2. Quelles données sont collectées ?</h2>
+    <div class="table">
+      <div class="row"><b>Compte</b><span>Adresse e-mail, mot de passe (chiffré par Firebase, jamais visible, même par nous), prénom, nom, date de naissance (pour vérifier l'âge minimum), sexe (facultatif) et photo de profil (facultative). Avec « Continuer avec Google » : le nom, l'e-mail et la photo transmis par Google.</span></div>
+      <div class="row"><b>Vos abonnements</b><span>Ce que vous saisissez : nom du service, prix, fréquence, catégorie, date de renouvellement, priorité et note, ainsi que votre budget mensuel et vos catégories personnalisées.</span></div>
+      <div class="row"><b>Rappels</b><span>Uniquement si vous activez les notifications : un identifiant technique de l'appareil (jeton push) et le type de navigateur, pour vous envoyer les rappels.</span></div>
+      <div class="row"><b>Avis testeur</b><span>Un simple indicateur qui retient si l'invitation à donner votre avis vous a déjà été envoyée.</span></div>
+    </div>
+    <p style="margin-top:14px"><span class="no">Ce que SubPilot ne collecte pas :</span></p>
+    <ul>
+      <li>aucun accès bancaire ni relevé de compte ;</li>
+      <li>aucune lecture de votre boîte mail : quand vous collez un e-mail, son analyse se fait <strong>sur votre appareil</strong> et le texte n'est jamais envoyé ; seuls les champs que vous validez sont enregistrés ;</li>
+      <li>aucune géolocalisation, aucun contact, aucun outil de mesure d'audience ou de publicité.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>3. Pourquoi ces données sont-elles utilisées ?</h2>
+    <ul>
+      <li><strong>Faire fonctionner le service</strong> (compte, synchronisation entre vos appareils, tableau de bord, budget) : nécessaire à l'exécution du service que vous demandez.</li>
+      <li><strong>Vous envoyer des rappels</strong> avant chaque renouvellement (7, 3 et 1 jour avant) : sur la base de votre consentement, que vous donnez en autorisant les notifications et que vous pouvez retirer à tout moment dans les réglages de votre appareil.</li>
+      <li><strong>Vous demander votre avis une seule fois</strong>, environ 14 jours après votre inscription : intérêt légitime d'améliorer l'application pendant la phase de test.</li>
+    </ul>
+    <p>Vos données ne sont jamais vendues, louées ni utilisées à des fins publicitaires.</p>
+  </section>
+
+  <section>
+    <h2>4. Où sont-elles hébergées ?</h2>
+    <div class="table">
+      <div class="row"><b>Abonnements, profil, budget</b><span>Google Cloud Firestore, <strong>Paris (France)</strong><span class="tag">UE</span></span></div>
+      <div class="row"><b>Envoi des rappels</b><span>Google Cloud Functions, <strong>Paris (France)</strong><span class="tag">UE</span>, et Firebase Cloud Messaging (infrastructure mondiale de Google) pour acheminer la notification.</span></div>
+      <div class="row"><b>Connexion au compte</b><span>Firebase Authentication (Google), <strong>États-Unis</strong>.</span></div>
+      <div class="row"><b>Site de l'application</b><span>GitHub Pages (GitHub), États-Unis : journaux techniques de connexion (adresse IP).</span></div>
+    </div>
+    <p style="margin-top:14px">Nos prestataires sont Google (Firebase) et GitHub. Les transferts vers les États-Unis sont encadrés par le <strong>cadre de protection des données UE–États-Unis</strong> (Data Privacy Framework), auquel ces deux sociétés adhèrent, ainsi que par les clauses contractuelles types de la Commission européenne.</p>
+  </section>
+
+  <section>
+    <h2>5. Combien de temps sont-elles conservées ?</h2>
+    <p>Vos données sont conservées tant que votre compte existe. Lorsque vous supprimez votre compte, votre profil, vos abonnements, votre budget et vos appareils enregistrés sont <strong>effacés immédiatement</strong>, puis votre compte de connexion est supprimé. Les identifiants de notification devenus invalides sont supprimés automatiquement.</p>
+  </section>
+
+  <section>
+    <h2>6. Comment sont-elles protégées ?</h2>
+    <ul>
+      <li>Tous les échanges sont chiffrés (HTTPS).</li>
+      <li>Des règles d'accès strictes garantissent que <strong>chaque compte ne peut lire que ses propres données</strong>.</li>
+      <li>Votre mot de passe n'est jamais stocké en clair.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>7. Vos droits</h2>
+    <p>Conformément au RGPD, vous pouvez à tout moment :</p>
+    <ul>
+      <li><strong>accéder</strong> à vos données et les <strong>corriger</strong> (onglet Compte → Mes informations) ;</li>
+      <li><strong>les effacer</strong> : onglet Compte → Mes données → « Supprimer mon compte et mes données » ;</li>
+      <li>demander leur <strong>portabilité</strong>, la <strong>limitation</strong> de leur traitement ou vous y <strong>opposer</strong> ;</li>
+      <li><strong>retirer votre consentement</strong> aux notifications dans les réglages de votre appareil.</li>
+    </ul>
+    <p>Pour toute demande, contactez-nous sur Instagram (<a href="https://www.instagram.com/sub.pilot/" rel="noopener">@sub.pilot</a>) : nous répondons sous un mois au plus. Vous pouvez aussi adresser une réclamation à la <a href="https://www.cnil.fr/fr/plaintes" rel="noopener">CNIL</a>.</p>
+  </section>
+
+  <section>
+    <h2>8. Stockage sur votre appareil</h2>
+    <p>SubPilot enregistre sur votre appareil (stockage local du navigateur) uniquement ce qui est nécessaire à son fonctionnement : votre session de connexion, votre thème, vos préférences d'affichage et un aperçu de votre profil pour l'écran d'accueil. Aucun cookie publicitaire ni traceur tiers n'est utilisé.</p>
+  </section>
+
+  <section>
+    <h2>9. Âge minimum</h2>
+    <p>La création d'un compte est réservée aux personnes de 13 ans et plus. En France, l'activation des notifications par un mineur de moins de 15 ans nécessite l'accord d'un parent.</p>
+  </section>
+
+  <section>
+    <h2>10. Modifications</h2>
+    <p>Cette politique peut évoluer avec l'application. La date de dernière mise à jour figure en haut de cette page.</p>
+  </section>
+</main>
+</body>
+</html>
